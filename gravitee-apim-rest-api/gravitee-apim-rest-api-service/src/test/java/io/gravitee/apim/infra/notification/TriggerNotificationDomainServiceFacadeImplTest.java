@@ -1044,7 +1044,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @SneakyThrows
     private void givenExistingApplication(Application application, PrimaryOwnerEntity primaryOwnerEntity) {
         lenient().when(applicationRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(applicationRepository.findById(eq(application.getId()))).thenReturn(Optional.of(application));
+        lenient()
+            .when(applicationRepository.findById(eq(application.getId())))
+            .thenReturn(Optional.of(application));
 
         membershipCrudService.initWith(
             List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, primaryOwnerEntity.id(), ORGANIZATION_ID))
@@ -1054,25 +1056,33 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @SneakyThrows
     private void givenExistingPlan(Plan plan) {
         lenient().when(planRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(planRepository.findById(eq(plan.getId()))).thenReturn(Optional.of(plan));
+        lenient()
+            .when(planRepository.findById(eq(plan.getId())))
+            .thenReturn(Optional.of(plan));
     }
 
     @SneakyThrows
     private void givenExistingSubscription(Subscription subscription) {
         lenient().when(subscriptionRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(subscriptionRepository.findById(eq(subscription.getId()))).thenReturn(Optional.of(subscription));
+        lenient()
+            .when(subscriptionRepository.findById(eq(subscription.getId())))
+            .thenReturn(Optional.of(subscription));
     }
 
     @SneakyThrows
     private void givenExistingApiProduct(ApiProduct apiProduct) {
         lenient().when(apiProductsRepository.findById(any())).thenReturn(Optional.empty());
-        lenient().when(apiProductsRepository.findById(eq(apiProduct.getId()))).thenReturn(Optional.of(apiProduct));
+        lenient()
+            .when(apiProductsRepository.findById(eq(apiProduct.getId())))
+            .thenReturn(Optional.of(apiProduct));
     }
 
     @SneakyThrows
     private Integration givenExistingIntegration(Integration integration) {
         lenient().when(integrationRepository.findByIntegrationId(any())).thenReturn(Optional.empty());
-        lenient().when(integrationRepository.findByIntegrationId(eq(integration.getId()))).thenReturn(Optional.of(integration));
+        lenient()
+            .when(integrationRepository.findByIntegrationId(eq(integration.getId())))
+            .thenReturn(Optional.of(integration));
 
         return integration;
     }

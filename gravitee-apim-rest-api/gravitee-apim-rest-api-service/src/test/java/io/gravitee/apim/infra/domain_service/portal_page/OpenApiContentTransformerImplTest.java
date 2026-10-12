@@ -30,14 +30,14 @@ import org.junit.jupiter.api.Test;
 class OpenApiContentTransformerImplTest {
 
     private static final String OPENAPI = """
-        openapi: 3.0.3
-        info:
-          title: Test
-          version: 1.0.0
-        servers:
-          - url: https://origin.example.com/base
-        paths: {}
-        """;
+    openapi: 3.0.3
+    info:
+      title: Test
+      version: 1.0.0
+    servers:
+      - url: https://origin.example.com/base
+    paths: {}
+    """;
 
     private final OpenApiContentTransformerImpl transformer = new OpenApiContentTransformerImpl();
 

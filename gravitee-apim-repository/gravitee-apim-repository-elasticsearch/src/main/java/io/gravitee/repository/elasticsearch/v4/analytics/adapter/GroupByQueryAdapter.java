@@ -104,14 +104,12 @@ public class GroupByQueryAdapter {
             ObjectNode rangeAgg = MAPPER.createObjectNode();
             rangeAgg.put("field", query.field());
             var rangesArray = MAPPER.createArrayNode();
-            query
-                .groups()
-                .forEach(group -> {
-                    ObjectNode rangeObj = MAPPER.createObjectNode();
-                    rangeObj.put("from", group.from());
-                    rangeObj.put("to", group.to());
-                    rangesArray.add(rangeObj);
-                });
+            query.groups().forEach(group -> {
+                ObjectNode rangeObj = MAPPER.createObjectNode();
+                rangeObj.put("from", group.from());
+                rangeObj.put("to", group.to());
+                rangesArray.add(rangeObj);
+            });
             rangeAgg.set("ranges", rangesArray);
             byRange.set("range", rangeAgg);
             aggs.set("by_" + query.field() + "_range", byRange);
@@ -120,23 +118,21 @@ public class GroupByQueryAdapter {
             ObjectNode termsAgg = MAPPER.createObjectNode();
             termsAgg.put("field", query.field());
             termsAgg.put("size", 1000);
-            query
-                .order()
-                .ifPresent(order -> {
-                    ObjectNode orderNode = MAPPER.createObjectNode();
-                    orderNode.put(order.field(), order.order() ? "asc" : "desc");
-                    termsAgg.set("order", orderNode);
+            query.order().ifPresent(order -> {
+                ObjectNode orderNode = MAPPER.createObjectNode();
+                orderNode.put(order.field(), order.order() ? "asc" : "desc");
+                termsAgg.set("order", orderNode);
 
-                    if (order.type() != null && order.type().equalsIgnoreCase("AVG")) {
-                        ObjectNode aggregationsNode = MAPPER.createObjectNode();
-                        ObjectNode avgAgg = MAPPER.createObjectNode();
-                        ObjectNode avgField = MAPPER.createObjectNode();
-                        avgField.put("field", order.field());
-                        avgAgg.set("avg", avgField);
-                        aggregationsNode.set(order.field(), avgAgg);
-                        byTerms.set("aggregations", aggregationsNode);
-                    }
-                });
+                if (order.type() != null && order.type().equalsIgnoreCase("AVG")) {
+                    ObjectNode aggregationsNode = MAPPER.createObjectNode();
+                    ObjectNode avgAgg = MAPPER.createObjectNode();
+                    ObjectNode avgField = MAPPER.createObjectNode();
+                    avgField.put("field", order.field());
+                    avgAgg.set("avg", avgField);
+                    aggregationsNode.set(order.field(), avgAgg);
+                    byTerms.set("aggregations", aggregationsNode);
+                }
+            });
             byTerms.set("terms", termsAgg);
             aggs.set("by_" + query.field(), byTerms);
         }
@@ -154,19 +150,17 @@ public class GroupByQueryAdapter {
         }
         Map<String, Long> values = new HashMap<>();
         List<String> order = new ArrayList<>(agg.getBuckets().size());
-        agg
-            .getBuckets()
-            .forEach(bucket -> {
-                String key = bucket.get("key").asText();
-                long value;
-                if (this.valueField != null && bucket.has(this.valueField)) {
-                    value = bucket.get(this.valueField).get("value").asLong();
-                } else {
-                    value = bucket.get("doc_count").asLong();
-                }
-                values.put(key, value);
-                order.add(key);
-            });
+        agg.getBuckets().forEach(bucket -> {
+            String key = bucket.get("key").asText();
+            long value;
+            if (this.valueField != null && bucket.has(this.valueField)) {
+                value = bucket.get(this.valueField).get("value").asLong();
+            } else {
+                value = bucket.get("doc_count").asLong();
+            }
+            values.put(key, value);
+            order.add(key);
+        });
         return Optional.of(new GroupByAggregate(this.aggName, this.fieldName, values, order));
     }
 }

@@ -84,7 +84,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
         assertEquals(HttpStatusCode.PRECONDITION_FAILED_412, response.getStatus());
 
         var body = response.readEntity(String.class);
-        assert (body.isEmpty());
+        assert body.isEmpty();
 
         verify(apiStateServiceV4, never()).start(any(), any(), any());
     }

@@ -83,7 +83,7 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
         while (found) {
             String type = environment.getProperty("security.providers[" + idx + "].type");
-            found = (type != null);
+            found = type != null;
             if (found) {
                 DefaultAuthenticationProvider provider = new DefaultAuthenticationProvider(type, idx);
                 provider.setConfiguration(getConfiguration(provider));

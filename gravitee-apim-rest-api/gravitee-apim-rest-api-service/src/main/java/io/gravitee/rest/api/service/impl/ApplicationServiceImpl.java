@@ -861,27 +861,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Consumer<Subscription> clientIdSubscriptionModifier = s -> s.setClientId(clientId);
         Consumer<Subscription> applicationNameSubscriptionModifier = s -> s.setApplicationName(application.getName());
 
-        subscriptionService
-            .search(executionContext, subQuery)
-            .forEach(subscriptionEntity -> {
-                Consumer<Subscription> subscriptionModifier = null;
-                if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
-                    subscriptionModifier = clientIdSubscriptionModifier;
-                }
-                if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
-                    subscriptionModifier = subscriptionModifier == null
+        subscriptionService.search(executionContext, subQuery).forEach(subscriptionEntity -> {
+            Consumer<Subscription> subscriptionModifier = null;
+            if (areNotEmptyAndDifferent(clientId, subscriptionEntity.getClientId())) {
+                subscriptionModifier = clientIdSubscriptionModifier;
+            }
+            if (areNotEmptyAndDifferent(application.getName(), subscriptionEntity.getApplicationName())) {
+                subscriptionModifier =
+                    subscriptionModifier == null
                         ? applicationNameSubscriptionModifier
                         : subscriptionModifier.andThen(applicationNameSubscriptionModifier);
-                }
-                if (subscriptionModifier != null) {
-                    UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
-                    updateSubscriptionEntity.setId(subscriptionEntity.getId());
-                    updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
-                    updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
-                    updateSubscriptionEntity.setConfiguration(subscriptionEntity.getConfiguration());
-                    subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
-                }
-            });
+            }
+            if (subscriptionModifier != null) {
+                UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+                updateSubscriptionEntity.setId(subscriptionEntity.getId());
+                updateSubscriptionEntity.setStartingAt(subscriptionEntity.getStartingAt());
+                updateSubscriptionEntity.setEndingAt(subscriptionEntity.getEndingAt());
+                updateSubscriptionEntity.setConfiguration(subscriptionEntity.getConfiguration());
+                subscriptionService.update(executionContext, updateSubscriptionEntity, subscriptionModifier);
+            }
+        });
     }
 
     private void checkClientIdUniqueness(
@@ -1077,7 +1076,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .collect(Collectors.toSet());
 
             if (!planIds.isEmpty()) {
-                Set<GenericPlanEntity> plans = this.planSearchService.findByIdIn(executionContext, planIds)
+                Set<GenericPlanEntity> plans = this.planSearchService
+                    .findByIdIn(executionContext, planIds)
                     .stream()
                     .filter(planEntity -> PlanMode.STANDARD.equals(planEntity.getPlanMode()))
                     .filter(planEntity -> {

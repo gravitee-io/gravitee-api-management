@@ -145,7 +145,9 @@ class TcpApiReactorTest {
         lenient().when(api.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
         lenient().when(apiDefinition.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
 
-        lenient().when(defaultInvoker.invoke(any(TcpExecutionContext.class))).thenReturn(spyInvokerChain);
+        lenient()
+            .when(defaultInvoker.invoke(any(TcpExecutionContext.class)))
+            .thenReturn(spyInvokerChain);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);

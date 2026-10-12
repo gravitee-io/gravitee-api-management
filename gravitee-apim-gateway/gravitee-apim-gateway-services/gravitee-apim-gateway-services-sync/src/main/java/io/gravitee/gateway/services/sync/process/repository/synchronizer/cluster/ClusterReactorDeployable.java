@@ -40,6 +40,6 @@ public class ClusterReactorDeployable implements ClusterDeployable {
 
     @Override
     public String clusterId() {
-        return clusterId != null ? clusterId : (reactableCluster != null ? reactableCluster.getId() : null);
+        return clusterId != null ? clusterId : reactableCluster != null ? reactableCluster.getId() : null;
     }
 }

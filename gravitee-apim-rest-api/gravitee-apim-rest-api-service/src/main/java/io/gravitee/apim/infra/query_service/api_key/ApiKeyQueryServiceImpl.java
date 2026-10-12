@@ -156,7 +156,10 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
         try {
             subscriptionsById = subscriptionIds.isEmpty()
                 ? Map.of()
-                : subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(Collectors.toMap(Subscription::getId, s -> s));
+                : subscriptionRepository
+                      .findByIdIn(subscriptionIds)
+                      .stream()
+                      .collect(Collectors.toMap(Subscription::getId, s -> s));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while resolving subscriptions for expiring API keys", e);
         }
@@ -168,23 +171,24 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
 
     private static ExpiringApiKey toExpiring(ApiKey apiKey, Map<String, Subscription> subscriptionsById) {
         ZonedDateTime expireAt = apiKey.getExpireAt() == null ? null : apiKey.getExpireAt().toInstant().atZone(ZoneOffset.UTC);
-        List<ExpiringApiKeySubscription> subs = apiKey.getSubscriptions() == null
-            ? List.of()
-            : apiKey
-                .getSubscriptions()
-                .stream()
-                .map(subId -> {
-                    Subscription s = subscriptionsById.get(subId);
-                    if (s == null) {
-                        // Data skew (subscription deleted between key write and our query). Surfacing here
-                        // gives ops a trail; the key still flows through with whatever subs remain.
-                        log.warn("API key {} references unknown subscription {} — skipping that projection", apiKey.getId(), subId);
-                    }
-                    return s;
-                })
-                .filter(java.util.Objects::nonNull)
-                .map(s -> new ExpiringApiKeySubscription(s.getId(), s.getApi(), s.getPlan(), s.getSubscribedBy()))
-                .toList();
+        List<ExpiringApiKeySubscription> subs =
+            apiKey.getSubscriptions() == null
+                ? List.of()
+                : apiKey
+                      .getSubscriptions()
+                      .stream()
+                      .map(subId -> {
+                          Subscription s = subscriptionsById.get(subId);
+                          if (s == null) {
+                              // Data skew (subscription deleted between key write and our query). Surfacing here
+                              // gives ops a trail; the key still flows through with whatever subs remain.
+                              log.warn("API key {} references unknown subscription {} — skipping that projection", apiKey.getId(), subId);
+                          }
+                          return s;
+                      })
+                      .filter(java.util.Objects::nonNull)
+                      .map(s -> new ExpiringApiKeySubscription(s.getId(), s.getApi(), s.getPlan(), s.getSubscribedBy()))
+                      .toList();
         return new ExpiringApiKey(
             apiKey.getId(),
             apiKey.getKey(),

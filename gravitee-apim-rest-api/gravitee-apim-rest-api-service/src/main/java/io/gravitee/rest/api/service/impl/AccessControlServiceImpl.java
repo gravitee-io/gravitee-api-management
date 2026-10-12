@@ -110,20 +110,18 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
                 executionContext.getEnvironmentId()
             );
 
-            return accessControls
-                .stream()
-                .anyMatch(acl -> {
-                    if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
-                        boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
-                        return pageEntity.isExcludedAccessControls() != roleMatched;
-                    } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
-                        boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
-                        return pageEntity.isExcludedAccessControls() != groupMatched;
-                    } else {
-                        log.warn("ACL reference type [{}] not found", acl.getReferenceType());
-                    }
-                    return false;
-                });
+            return accessControls.stream().anyMatch(acl -> {
+                if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
+                    boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
+                    return pageEntity.isExcludedAccessControls() != roleMatched;
+                } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
+                    boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
+                    return pageEntity.isExcludedAccessControls() != groupMatched;
+                } else {
+                    log.warn("ACL reference type [{}] not found", acl.getReferenceType());
+                }
+                return false;
+            });
         }
     }
 
@@ -198,11 +196,11 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         }
 
         // only members which could modify a page can see an unpublished page
-        return roleService.hasPermission(
-            member.getPermissions(),
-            ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
-        );
+        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+            RolePermissionAction.UPDATE,
+            RolePermissionAction.CREATE,
+            RolePermissionAction.DELETE,
+        });
     }
 
     private Set<RoleEntity> getContextualUserRoles(
@@ -219,19 +217,17 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
             );
 
             if (genericApiEntity.getGroups() != null && !genericApiEntity.getGroups().isEmpty()) {
-                genericApiEntity
-                    .getGroups()
-                    .forEach(groupId -> {
-                        MemberEntity member = membershipService.getUserMember(
-                            executionContext,
-                            MembershipReferenceType.GROUP,
-                            groupId,
-                            getAuthenticatedUsername()
-                        );
-                        if (member != null) {
-                            roles.addAll(member.getRoles());
-                        }
-                    });
+                genericApiEntity.getGroups().forEach(groupId -> {
+                    MemberEntity member = membershipService.getUserMember(
+                        executionContext,
+                        MembershipReferenceType.GROUP,
+                        groupId,
+                        getAuthenticatedUsername()
+                    );
+                    if (member != null) {
+                        roles.addAll(member.getRoles());
+                    }
+                });
             }
             return roles;
         } else {

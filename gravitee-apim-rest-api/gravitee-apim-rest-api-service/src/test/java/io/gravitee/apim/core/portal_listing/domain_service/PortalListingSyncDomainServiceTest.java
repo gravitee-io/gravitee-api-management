@@ -235,7 +235,14 @@ class PortalListingSyncDomainServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
-        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(new NavigationPath("/getting-started", null))).build()));
+        apiCrud.initWith(
+            List.of(
+                Api.builder()
+                    .id(apiId)
+                    .portalNavigation(List.of(new NavigationPath("/getting-started", null)))
+                    .build()
+            )
+        );
 
         var initial = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), initial);
@@ -259,7 +266,14 @@ class PortalListingSyncDomainServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(anApiDocPageContent(docContentId, apiId)));
-        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(new NavigationPath("/getting-started", null))).build()));
+        apiCrud.initWith(
+            List.of(
+                Api.builder()
+                    .id(apiId)
+                    .portalNavigation(List.of(new NavigationPath("/getting-started", null)))
+                    .build()
+            )
+        );
 
         var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), listing);
@@ -301,7 +315,14 @@ class PortalListingSyncDomainServiceTest {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         var portalRoot = portalRootFolder("Guides", "guides");
         navItemCrud.create(portalRoot);
-        apiCrud.initWith(List.of(Api.builder().id(apiId).portalNavigation(List.of(new NavigationPath("/guides", null))).build()));
+        apiCrud.initWith(
+            List.of(
+                Api.builder()
+                    .id(apiId)
+                    .portalNavigation(List.of(new NavigationPath("/guides", null)))
+                    .build()
+            )
+        );
 
         syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
 

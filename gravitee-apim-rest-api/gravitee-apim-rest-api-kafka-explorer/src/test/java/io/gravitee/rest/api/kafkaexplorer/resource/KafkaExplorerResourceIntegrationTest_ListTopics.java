@@ -47,7 +47,10 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
         var props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(props)) {
-            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 1, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin
+                .createTopics(List.of(new NewTopic(TEST_TOPIC, 1, (short) 1)))
+                .all()
+                .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();
@@ -100,7 +103,9 @@ class KafkaExplorerResourceIntegrationTest_ListTopics extends AbstractKafkaExplo
             .findFirst();
         assertThat(testTopic).isPresent();
         assertThat(testTopic.get().getSize()).isNotNull().isGreaterThan(0);
-        assertThat(testTopic.get().getMessageCount()).isNotNull().isEqualTo((long) TEST_MESSAGES_COUNT);
+        assertThat(testTopic.get().getMessageCount())
+            .isNotNull()
+            .isEqualTo((long) TEST_MESSAGES_COUNT);
     }
 
     @Test

@@ -311,7 +311,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -332,7 +334,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockConnectedUser();
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -403,7 +407,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         stubFor(post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY)));
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
@@ -443,7 +449,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         );
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         String body = response.readEntity(String.class);
@@ -465,7 +473,9 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         );
 
         // When
-        Response response = orgTarget().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
+        Response response = orgTarget()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE")));
 
         // Then
         String body = response.readEntity(String.class);

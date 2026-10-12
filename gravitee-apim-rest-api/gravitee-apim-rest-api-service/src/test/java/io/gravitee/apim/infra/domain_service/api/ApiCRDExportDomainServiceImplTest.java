@@ -286,23 +286,19 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getCrossId()).isNull();
             soft.assertThat(spec.getHrid()).isEqualTo("api-hrid");
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft
-                .assertThat(spec.getPlans().get("plan-name"))
-                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
-                    soft.assertThat(plan.getId()).isNull();
-                    soft.assertThat(plan.getHrid()).isNotNull();
-                    soft.assertThat(plan.getGeneralConditions()).isNull();
-                    soft.assertThat(plan.getGeneralConditionsHrid()).isEqualTo("general-conditions-hrid");
-                });
+            soft.assertThat(spec.getPlans().get("plan-name")).isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                soft.assertThat(plan.getId()).isNull();
+                soft.assertThat(plan.getHrid()).isNotNull();
+                soft.assertThat(plan.getGeneralConditions()).isNull();
+                soft.assertThat(plan.getGeneralConditionsHrid()).isEqualTo("general-conditions-hrid");
+            });
             soft.assertThat(spec.getPages()).hasSize(1);
-            soft
-                .assertThat(spec.getPages().get("page-hrid"))
-                .isInstanceOfSatisfying(PageCRD.class, page -> {
-                    soft.assertThat(page.getId()).isNull();
-                    soft.assertThat(page.getHrid()).isNotNull();
-                    soft.assertThat(page.getParentId()).isNull();
-                    soft.assertThat(page.getParentHrid()).isNotNull();
-                });
+            soft.assertThat(spec.getPages().get("page-hrid")).isInstanceOfSatisfying(PageCRD.class, page -> {
+                soft.assertThat(page.getId()).isNull();
+                soft.assertThat(page.getHrid()).isNotNull();
+                soft.assertThat(page.getParentId()).isNull();
+                soft.assertThat(page.getParentHrid()).isNotNull();
+            });
         });
     }
 
@@ -324,23 +320,19 @@ class ApiCRDExportDomainServiceImplTest {
             soft.assertThat(spec.getCrossId()).isEqualTo("cross-id");
             soft.assertThat(spec.getHrid()).isNull();
             soft.assertThat(spec.getPlans()).hasSize(1);
-            soft
-                .assertThat(spec.getPlans().get("plan-name"))
-                .isInstanceOfSatisfying(PlanCRD.class, plan -> {
-                    soft.assertThat(plan.getId()).isEqualTo("plan-id");
-                    soft.assertThat(plan.getHrid()).isNull();
-                    soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions-id");
-                    soft.assertThat(plan.getGeneralConditionsHrid()).isNull();
-                });
+            soft.assertThat(spec.getPlans().get("plan-name")).isInstanceOfSatisfying(PlanCRD.class, plan -> {
+                soft.assertThat(plan.getId()).isEqualTo("plan-id");
+                soft.assertThat(plan.getHrid()).isNull();
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions-id");
+                soft.assertThat(plan.getGeneralConditionsHrid()).isNull();
+            });
             soft.assertThat(spec.getPages()).hasSize(1);
-            soft
-                .assertThat(spec.getPages().get("page-hrid"))
-                .isInstanceOfSatisfying(PageCRD.class, page -> {
-                    soft.assertThat(page.getId()).isEqualTo("page-id");
-                    soft.assertThat(page.getHrid()).isNull();
-                    soft.assertThat(page.getParentId()).isEqualTo("parent-id");
-                    soft.assertThat(page.getParentHrid()).isNull();
-                });
+            soft.assertThat(spec.getPages().get("page-hrid")).isInstanceOfSatisfying(PageCRD.class, page -> {
+                soft.assertThat(page.getId()).isEqualTo("page-id");
+                soft.assertThat(page.getHrid()).isNull();
+                soft.assertThat(page.getParentId()).isEqualTo("parent-id");
+                soft.assertThat(page.getParentHrid()).isNull();
+            });
         });
     }
 
@@ -393,7 +385,14 @@ class ApiCRDExportDomainServiceImplTest {
 
     private static ExportApiEntity exportApiEntity(ApiEntity apiEntity, boolean withHrid) {
         return ExportApiEntity.builder()
-            .members(Set.of(MemberEntity.builder().id(USER_ID).roles(List.of(RoleEntity.builder().name("OWNER").build())).build()))
+            .members(
+                Set.of(
+                    MemberEntity.builder()
+                        .id(USER_ID)
+                        .roles(List.of(RoleEntity.builder().name("OWNER").build()))
+                        .build()
+                )
+            )
             .apiEntity(apiEntity)
             .pages(
                 List.of(
@@ -430,7 +429,13 @@ class ApiCRDExportDomainServiceImplTest {
             .name("api-name")
             .id(API_ID)
             .hrid(withHrid ? "api-hrid" : null)
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(new Path("/api-path")))
+                        .build()
+                )
+            )
             .endpointGroups(
                 List.of(
                     EndpointGroup.builder()

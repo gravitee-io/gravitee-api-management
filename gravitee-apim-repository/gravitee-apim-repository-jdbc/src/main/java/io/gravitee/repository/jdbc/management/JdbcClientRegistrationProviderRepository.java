@@ -44,7 +44,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcClientRegistrationProviderRepository
     extends JdbcAbstractCrudRepository<ClientRegistrationProvider, String>
-    implements ClientRegistrationProviderRepository {
+    implements ClientRegistrationProviderRepository
+{
 
     private final String CLIENT_REGISTRATION_PROVIDER_SCOPES;
 

@@ -225,7 +225,9 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     private Response publishTo(PortalNavigationItemId sectionId) {
-        return rootTarget().request().post(Entity.json(new PublishApiToPortal().sectionId(sectionId.id())));
+        return rootTarget()
+            .request()
+            .post(Entity.json(new PublishApiToPortal().sectionId(sectionId.id())));
     }
 
     private static PortalNavigationFolder aSection(String title) {

@@ -133,9 +133,10 @@ public class ApiReactorHandlerFactoryTest {
         when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(false);
         when(applicationContext.getBean(GatewayConfiguration.class)).thenReturn(gatewayConfiguration);
         when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class)).thenReturn(apiTemplateVariableProviderFactory);
-        when(applicationContext.getBeanNamesForType(any(ResolvableType.class))).thenReturn(
-            new String[] { "configurablePluginManager", "resourcePlugin" }
-        );
+        when(applicationContext.getBeanNamesForType(any(ResolvableType.class))).thenReturn(new String[] {
+            "configurablePluginManager",
+            "resourcePlugin",
+        });
 
         apiContextHandlerFactory = new ApiReactorHandlerFactory(
             applicationContext,

@@ -78,7 +78,7 @@ public class ProxyEndpointResolverTest {
         ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName);
         assertThat(proxyEndpoint).isNotNull();
 
-        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock(Request.class));
         assertThat(proxyRequest.uri()).isEqualTo(expectedUri);
     }
 
@@ -95,7 +95,7 @@ public class ProxyEndpointResolverTest {
         ProxyEndpoint proxyEndpoint = resolver.resolve(endpointName + ":/echo");
         assertThat(proxyEndpoint).isNotNull();
 
-        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock(Request.class));
         assertThat(proxyRequest.uri()).isEqualTo(endpointTarget + "/echo");
     }
 
@@ -158,7 +158,7 @@ public class ProxyEndpointResolverTest {
         ProxyEndpoint proxyEndpoint = resolver.resolve(requestEndpoint);
         assertThat(proxyEndpoint).isNotNull();
 
-        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock((Request.class)));
+        ProxyRequest proxyRequest = proxyEndpoint.createProxyRequest(mock(Request.class));
         assertThat(proxyRequest.uri()).isEqualTo(expectedURI);
     }
 }

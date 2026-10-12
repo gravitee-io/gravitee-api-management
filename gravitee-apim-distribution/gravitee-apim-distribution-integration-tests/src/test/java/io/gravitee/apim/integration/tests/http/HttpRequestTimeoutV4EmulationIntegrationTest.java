@@ -338,11 +338,9 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
                     socket.write(httpRequest);
 
                     // Close socket after 500ms (before backend responds)
-                    vertx
-                        .getDelegate()
-                        .setTimer(500, id -> {
-                            socket.close();
-                        });
+                    vertx.getDelegate().setTimer(500, id -> {
+                        socket.close();
+                    });
                 });
 
             metricsSubject

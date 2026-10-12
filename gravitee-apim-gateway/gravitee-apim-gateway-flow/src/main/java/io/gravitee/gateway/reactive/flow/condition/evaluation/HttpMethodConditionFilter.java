@@ -32,7 +32,8 @@ import io.reactivex.rxjava3.core.Maybe;
  */
 public class HttpMethodConditionFilter
     extends io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator
-    implements HttpConditionFilter<Flow> {
+    implements HttpConditionFilter<Flow>
+{
 
     @Override
     public Maybe<Flow> filter(HttpBaseExecutionContext ctx, Flow flow) {

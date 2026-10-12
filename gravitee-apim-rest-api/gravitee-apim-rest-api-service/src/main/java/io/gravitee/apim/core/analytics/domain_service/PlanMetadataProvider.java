@@ -78,8 +78,7 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, PlanMetadata> metaMap = new HashMap<>();
 
         // Unknown plans
-        keys
-            .stream()
+        keys.stream()
             .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
             .forEach(key -> metaMap.put(key, UNKNOWN_PLAN));
 
@@ -103,6 +102,9 @@ public class PlanMetadataProvider implements AnalyticsMetadataProvider {
         }
 
         // Build output Map<String, Map<String, String>>
-        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
+        return metaMap
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

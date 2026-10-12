@@ -48,9 +48,9 @@ public class SseEventHandler {
             if (line.startsWith("data:")) {
                 int length = line.length();
                 if (length > 5) {
-                    int index = (line.charAt(5) != ' ' ? 5 : 6);
+                    int index = line.charAt(5) != ' ' ? 5 : 6;
                     if (length > index) {
-                        data = (data != null ? data : new StringBuilder());
+                        data = data != null ? data : new StringBuilder();
                         data.append(line, index, line.length());
                     }
                 }
@@ -62,7 +62,7 @@ public class SseEventHandler {
                 sseEventBuilder = null;
                 return Maybe.empty();
             } else if (line.startsWith(":")) {
-                comment = (comment != null ? comment : new StringBuilder());
+                comment = comment != null ? comment : new StringBuilder();
                 comment.append(line.substring(1).trim());
             }
         }

@@ -315,14 +315,12 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             .map(g -> new io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group(g.from(), g.to()))
             .toList();
         var repoQuery = getGroupByQuery(groupByQuery, repoGroups);
-        return analyticsRepository
-            .searchGroupBy(executionContext.getQueryContext(), repoQuery)
-            .map(groupByAggregate -> {
-                GroupByAnalytics analytics = new GroupByAnalytics();
-                analytics.setValues(groupByAggregate.values());
-                analytics.setOrder(groupByAggregate.order());
-                return analytics;
-            });
+        return analyticsRepository.searchGroupBy(executionContext.getQueryContext(), repoQuery).map(groupByAggregate -> {
+            GroupByAnalytics analytics = new GroupByAnalytics();
+            analytics.setValues(groupByAggregate.values());
+            analytics.setOrder(groupByAggregate.order());
+            return analytics;
+        });
     }
 
     private static io.gravitee.repository.log.v4.model.analytics.GroupByQuery getGroupByQuery(
@@ -414,23 +412,21 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
     private static List<Term> mapTerms(HistogramQuery query) {
         List<io.gravitee.apim.core.analytics.model.Term> terms = query.terms();
 
-        return (terms != null && !terms.isEmpty())
+        return terms != null && !terms.isEmpty()
             ? terms
-                .stream()
-                .map(t -> new Term(t.key(), t.value()))
-                .toList()
+                  .stream()
+                  .map(t -> new Term(t.key(), t.value()))
+                  .toList()
             : List.of();
     }
 
     private static void mapAggregations(HistogramQuery query, List<Aggregation> aggregations) {
-        query
-            .aggregations()
-            .forEach(aggregation ->
-                Arrays.stream(AggregationType.values())
-                    .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
-                    .findFirst()
-                    .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
-            );
+        query.aggregations().forEach(aggregation ->
+            Arrays.stream(AggregationType.values())
+                .filter(value -> value.name().equals(aggregation.getAggregationType().name()))
+                .findFirst()
+                .ifPresent(type -> aggregations.add(new Aggregation(aggregation.getField(), type)))
+        );
     }
 
     private HistogramAnalytics mapHistogramAggregatesToHistogramAnalytics(

@@ -71,7 +71,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     void should_return_404_when_api_not_found() {
         when(wsdlToUpdateApiUseCase.execute(any())).thenThrow(new ApiNotFoundException(API));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
@@ -86,7 +88,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
             io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
         );
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -111,7 +115,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
             io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("CalculatorService").apiVersion("1.0").build()
         );
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -125,7 +131,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
             new InvalidApiDefinitionException("Unable to read the swagger specification")
         );
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
@@ -134,7 +142,9 @@ class ApiResource_UpdateApiFromWsdlTest extends ApiResourceTest {
     void should_return_400_when_invalid_paths() {
         when(wsdlToUpdateApiUseCase.execute(any())).thenThrow(new InvalidPathsException("Path [/foo] already exists"));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("<definitions/>"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }

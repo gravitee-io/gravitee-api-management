@@ -67,19 +67,17 @@ public class MetadataDefaultReferenceUpgrader implements Upgrader {
     }
 
     private Stream<Metadata> migrateDefaultMetadataToEnvironments(Set<Environment> environments, Metadata metadata) {
-        Stream<Metadata> metadataStream = environments
-            .stream()
-            .map(environment -> {
-                Metadata metadataToCreate = duplicateMetadata(environment, metadata);
-                try {
-                    return metadataRepository.create(metadataToCreate);
-                } catch (DuplicateKeyException e) {
-                    log.warn("Failed to duplicate metadata {} to {}", metadata, environment, e);
-                    return metadataToCreate;
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+        Stream<Metadata> metadataStream = environments.stream().map(environment -> {
+            Metadata metadataToCreate = duplicateMetadata(environment, metadata);
+            try {
+                return metadataRepository.create(metadataToCreate);
+            } catch (DuplicateKeyException e) {
+                log.warn("Failed to duplicate metadata {} to {}", metadata, environment, e);
+                return metadataToCreate;
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
         try {
             metadataRepository.delete(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType());
         } catch (TechnicalException e) {

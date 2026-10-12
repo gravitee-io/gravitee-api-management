@@ -82,9 +82,7 @@ public class DebugSynchronizer implements RepositorySynchronizer {
                 })
                 .count()
                 .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
-                .doOnSuccess(count ->
-                    log.debug("{} debug events refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
-                )
+                .doOnSuccess(count -> log.debug("{} debug events refreshed in {}ms", count, System.currentTimeMillis() - launchTime.get()))
                 .ignoreElement();
         }
     }

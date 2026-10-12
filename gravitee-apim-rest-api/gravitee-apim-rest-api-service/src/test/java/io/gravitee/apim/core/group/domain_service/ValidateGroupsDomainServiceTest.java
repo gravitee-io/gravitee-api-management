@@ -90,15 +90,13 @@ class ValidateGroupsDomainServiceTest {
             soft.assertThat(result.value()).isNotEmpty();
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
+            soft.assertThat(result.errors()).hasValue(
+                List.of(
+                    Validator.Error.warning(
+                        "Group [group-with-po-id] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                     )
-                );
+                )
+            );
         });
     }
 
@@ -187,15 +185,13 @@ class ValidateGroupsDomainServiceTest {
             soft.assertThat(result.value()).isNotEmpty();
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id", "default-group")));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
+            soft.assertThat(result.errors()).hasValue(
+                List.of(
+                    Validator.Error.warning(
+                        "Group [group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                     )
-                );
+                )
+            );
         });
     }
 
@@ -282,9 +278,9 @@ class ValidateGroupsDomainServiceTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(List.of(Validator.Error.warning("Group [does-not-exist] could not be found in environment [TEST]")));
+            soft.assertThat(result.errors()).hasValue(
+                List.of(Validator.Error.warning("Group [does-not-exist] could not be found in environment [TEST]"))
+            );
         });
     }
 
@@ -327,15 +323,13 @@ class ValidateGroupsDomainServiceTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.value()).hasValue(input.sanitized(Set.of()));
             soft.assertThat(result.errors()).isNotEmpty();
-            soft
-                .assertThat(result.errors())
-                .hasValue(
-                    List.of(
-                        Validator.Error.warning(
-                            "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
-                        )
+            soft.assertThat(result.errors()).hasValue(
+                List.of(
+                    Validator.Error.warning(
+                        "Group [my-hrid-group-with-po] will be discarded because it contains an API Primary Owner member, which is not supported by the API."
                     )
-                );
+                )
+            );
         });
     }
 }

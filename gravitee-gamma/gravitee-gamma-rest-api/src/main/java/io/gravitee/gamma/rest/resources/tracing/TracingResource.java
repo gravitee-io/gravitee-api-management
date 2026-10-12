@@ -117,9 +117,8 @@ public class TracingResource {
         }
         requireParam("apiId", request.apiId());
 
-        List<FilterCondition> filters = request.filters() == null
-            ? List.of()
-            : request.filters().stream().map(FilterConditionDto::toCore).toList();
+        List<FilterCondition> filters =
+            request.filters() == null ? List.of() : request.filters().stream().map(FilterConditionDto::toCore).toList();
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = searchTracesUseCase.execute(

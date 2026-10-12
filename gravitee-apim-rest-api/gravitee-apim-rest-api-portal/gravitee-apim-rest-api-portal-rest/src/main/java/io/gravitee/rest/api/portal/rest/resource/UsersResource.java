@@ -120,7 +120,9 @@ public class UsersResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var useCaseInput = finalizeRegistrationMapper.toUseCaseInput(executionContext, decoded, finalizeRegistrationInput);
         var output = acceptUserInvitationUseCase.execute(useCaseInput);
-        return Response.ok().entity(userMapper.convert(UserAdapter.INSTANCE.toUserEntity(output.user()))).build();
+        return Response.ok()
+            .entity(userMapper.convert(UserAdapter.INSTANCE.toUserEntity(output.user())))
+            .build();
     }
 
     @POST

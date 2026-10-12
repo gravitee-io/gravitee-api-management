@@ -38,14 +38,12 @@ import lombok.Getter;
     property = "type",
     defaultImpl = NoneTrustStore.class
 )
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(names = { "JKS", "jks" }, value = JKSTrustStore.class),
-        @JsonSubTypes.Type(names = { "PEM", "pem" }, value = PEMTrustStore.class),
-        @JsonSubTypes.Type(names = { "PKCS12", "pkcs12" }, value = PKCS12TrustStore.class),
-        @JsonSubTypes.Type(names = { "NONE", "none" }, value = NoneTrustStore.class),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(names = { "JKS", "jks" }, value = JKSTrustStore.class),
+    @JsonSubTypes.Type(names = { "PEM", "pem" }, value = PEMTrustStore.class),
+    @JsonSubTypes.Type(names = { "PKCS12", "pkcs12" }, value = PKCS12TrustStore.class),
+    @JsonSubTypes.Type(names = { "NONE", "none" }, value = NoneTrustStore.class),
+})
 @Getter
 @EqualsAndHashCode
 public abstract class TrustStore implements Serializable {

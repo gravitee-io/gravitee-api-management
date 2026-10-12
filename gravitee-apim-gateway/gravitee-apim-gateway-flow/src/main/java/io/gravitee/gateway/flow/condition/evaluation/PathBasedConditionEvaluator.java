@@ -40,6 +40,6 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator<Flow> {
     protected boolean evaluate(String pathInfo, Flow flow) {
         Pattern pattern = pathPatterns.getOrCreate(flow.getPath());
 
-        return (flow.getOperator() == Operator.EQUALS) ? pattern.matcher(pathInfo).matches() : pattern.matcher(pathInfo).lookingAt();
+        return flow.getOperator() == Operator.EQUALS ? pattern.matcher(pathInfo).matches() : pattern.matcher(pathInfo).lookingAt();
     }
 }

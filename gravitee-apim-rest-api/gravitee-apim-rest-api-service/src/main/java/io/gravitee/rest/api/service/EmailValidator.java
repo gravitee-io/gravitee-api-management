@@ -38,6 +38,6 @@ public class EmailValidator {
     );
 
     public static boolean isValid(String email) {
-        return email != null && (email.length() <= EMAIL_MAX_LENGTH && PATTERN.matcher(email).matches());
+        return email != null && email.length() <= EMAIL_MAX_LENGTH && PATTERN.matcher(email).matches();
     }
 }

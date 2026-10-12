@@ -106,7 +106,8 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
         doThrow(UserNotFoundException.class).when(userService).findById(GraviteeContext.getExecutionContext(), UNKNOWN_MEMBER);
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
         doAnswer(invocation ->
-            ((List<Membership>) invocation.getArgument(0)).stream()
+            ((List<Membership>) invocation.getArgument(0))
+                .stream()
                 .map(membership -> new Member().id(membership.getMemberId()))
                 .toList()
         )

@@ -146,7 +146,12 @@ class PortalThemesResourceTest extends AbstractResourceTest {
                 new CreateOrUpdatePortalThemeUseCase.Output(aTheme(), List.of())
             );
 
-            try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("theme.json")))) {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("theme.json")))
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalThemeUseCase).execute(any());
 

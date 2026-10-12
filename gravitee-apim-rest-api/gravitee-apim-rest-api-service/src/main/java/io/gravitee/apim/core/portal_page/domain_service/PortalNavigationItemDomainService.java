@@ -116,11 +116,11 @@ public class PortalNavigationItemDomainService {
 
         // Update orders of all following sibling items
         this.retrieveSiblingItems(
-                portalNavigationItem.getParentId(),
-                portalNavigationItem.getEnvironmentId(),
-                createPortalNavigationItem.getArea(),
-                portalNavigationItem.getReference()
-            )
+            portalNavigationItem.getParentId(),
+            portalNavigationItem.getEnvironmentId(),
+            createPortalNavigationItem.getArea(),
+            portalNavigationItem.getReference()
+        )
             .stream()
             .filter(item -> !Objects.equals(item.getId(), portalNavigationItem.getId()))
             .filter(sibling -> sibling.getOrder() >= portalNavigationItem.getOrder())
@@ -316,19 +316,19 @@ public class PortalNavigationItemDomainService {
 
         int sanitizedOrder = isMoveToNewParent
             ? this.sanitizeOrderForInsertion(
-                toUpdate.getParentId(),
-                originalItem.getEnvironmentId(),
-                originalItem.getArea(),
-                toUpdate.getOrder(),
-                originalItem.getReference()
-            )
+                  toUpdate.getParentId(),
+                  originalItem.getEnvironmentId(),
+                  originalItem.getArea(),
+                  toUpdate.getOrder(),
+                  originalItem.getReference()
+              )
             : this.sanitizeOrderForReordering(
-                toUpdate.getParentId(),
-                originalItem.getEnvironmentId(),
-                originalItem.getArea(),
-                toUpdate.getOrder(),
-                originalItem.getReference()
-            );
+                  toUpdate.getParentId(),
+                  originalItem.getEnvironmentId(),
+                  originalItem.getArea(),
+                  toUpdate.getOrder(),
+                  originalItem.getReference()
+              );
 
         toUpdate.setOrder(sanitizedOrder);
 
@@ -541,11 +541,11 @@ public class PortalNavigationItemDomainService {
         PortalNavigationItemId originalParentId
     ) {
         return this.retrieveSiblingItems(
-                originalParentId,
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+            originalParentId,
+            updatedItem.getEnvironmentId(),
+            updatedItem.getArea(),
+            updatedItem.getReference()
+        )
             .stream()
             .filter(sibling -> sibling.getOrder() > originalOrder)
             .peek(sibling -> {
@@ -556,11 +556,11 @@ public class PortalNavigationItemDomainService {
 
     private List<PortalNavigationItem> reorderDestinationSiblingsOnInsertion(PortalNavigationItem updatedItem) {
         return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+            updatedItem.getParentId(),
+            updatedItem.getEnvironmentId(),
+            updatedItem.getArea(),
+            updatedItem.getReference()
+        )
             .stream()
             .filter(sibling -> !Objects.equals(sibling.getId(), updatedItem.getId()) && sibling.getOrder() >= updatedItem.getOrder())
             .peek(sibling -> {
@@ -577,11 +577,11 @@ public class PortalNavigationItemDomainService {
             sibling.getOrder() >= updatedItem.getOrder() && sibling.getOrder() < originalOrder;
 
         return this.retrieveSiblingItems(
-                updatedItem.getParentId(),
-                updatedItem.getEnvironmentId(),
-                updatedItem.getArea(),
-                updatedItem.getReference()
-            )
+            updatedItem.getParentId(),
+            updatedItem.getEnvironmentId(),
+            updatedItem.getArea(),
+            updatedItem.getReference()
+        )
             .stream()
             .filter(
                 sibling ->

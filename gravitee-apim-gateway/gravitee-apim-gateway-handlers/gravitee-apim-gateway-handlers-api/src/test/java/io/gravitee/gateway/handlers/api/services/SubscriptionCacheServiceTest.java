@@ -213,7 +213,10 @@ class SubscriptionCacheServiceTest {
             subscriptionService.register(transferred);
 
             // Plan2 entry should exist
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan2)).isPresent().get().isEqualTo(transferred);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan2))
+                .isPresent()
+                .get()
+                .isEqualTo(transferred);
 
             // Plan1 entry should be gone (stale entry removed)
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, plan1)).isEmpty();
@@ -499,7 +502,10 @@ class SubscriptionCacheServiceTest {
             subscriptionService.register(subApi2);
 
             assertThat(subscriptionService.getById(SUB_ID)).isPresent();
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent().get().isEqualTo(subApi1);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID))
+                .isPresent()
+                .get()
+                .isEqualTo(subApi1);
             assertThat(subscriptionService.getByScopeId(API_ID)).isNotEmpty();
 
             subscriptionService.unregisterByApiId(API_ID);
@@ -511,7 +517,10 @@ class SubscriptionCacheServiceTest {
 
             // API_ID_2 subscriptions are intact
             assertThat(subscriptionService.getById(SUB_ID_2)).isPresent().get().isEqualTo(subApi2);
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isPresent().get().isEqualTo(subApi2);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID))
+                .isPresent()
+                .get()
+                .isEqualTo(subApi2);
             assertThat(subscriptionService.getByScopeId(API_ID_2)).isNotEmpty();
         }
 

@@ -145,10 +145,10 @@ public class ApiProductsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         Set<String> ids = hasIds
             ? searchQuery
-                .getIds()
-                .stream()
-                .filter(id -> id != null && !id.isBlank())
-                .collect(Collectors.toSet())
+                  .getIds()
+                  .stream()
+                  .filter(id -> id != null && !id.isBlank())
+                  .collect(Collectors.toSet())
             : Set.of();
 
         var input = SearchApiProductsUseCase.Input.of(

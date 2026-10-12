@@ -130,9 +130,10 @@ public class ClientCertificateCrudServiceInMemory implements ClientCertificateCr
         int fromIndex = Math.max(0, (pageNumber - 1) * pageSize);
         int toIndex = Math.min(fromIndex + pageSize, filtered.size());
 
-        List<ClientCertificate> pageContent = fromIndex < filtered.size()
-            ? filtered.subList(fromIndex, toIndex).stream().map(ClientCertificate::new).toList()
-            : Collections.emptyList();
+        List<ClientCertificate> pageContent =
+            fromIndex < filtered.size()
+                ? filtered.subList(fromIndex, toIndex).stream().map(ClientCertificate::new).toList()
+                : Collections.emptyList();
 
         return new Page<>(pageContent, pageNumber, pageSize, filtered.size());
     }

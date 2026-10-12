@@ -81,11 +81,12 @@ public class ApiProductPrimaryOwnerDomainService {
         throws ApiProductPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
             .flatMap(role ->
-                findApiProductPrimaryOwnerMembership(apiProductId, role).flatMap(membership ->
-                    switch (membership.getMemberType()) {
-                        case USER -> findUserPrimaryOwner(membership);
-                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                    }
+                findApiProductPrimaryOwnerMembership(apiProductId, role).flatMap(
+                    membership ->
+                        switch (membership.getMemberType()) {
+                            case USER -> findUserPrimaryOwner(membership);
+                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                        }
                 )
             )
             .orElseThrow(() -> new ApiProductPrimaryOwnerNotFoundException(apiProductId));

@@ -75,9 +75,9 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             spec.setGroups(getGroupNames(spec.getGroups()));
         }
         if (spec.getConsoleNotificationConfiguration() != null && spec.getConsoleNotificationConfiguration().getGroups() != null) {
-            spec
-                .getConsoleNotificationConfiguration()
-                .setGroups(new ArrayList<>(getGroupNames(new HashSet<>(spec.getConsoleNotificationConfiguration().getGroups()))));
+            spec.getConsoleNotificationConfiguration().setGroups(
+                new ArrayList<>(getGroupNames(new HashSet<>(spec.getConsoleNotificationConfiguration().getGroups())))
+            );
         }
 
         spec.setPortalNavigation(apiCrudService.get(apiId).getPortalNavigation());

@@ -57,8 +57,7 @@ public class KubernetesHelper {
             args.add("--cert=%s".formatted(certPath));
             args.add("--key=%s".formatted(keyPath));
         } else {
-            data
-                .entrySet()
+            data.entrySet()
                 .stream()
                 .map(entry -> "--from-literal=%s=%s".formatted(entry.getKey(), entry.getValue()))
                 .forEach(args::add);

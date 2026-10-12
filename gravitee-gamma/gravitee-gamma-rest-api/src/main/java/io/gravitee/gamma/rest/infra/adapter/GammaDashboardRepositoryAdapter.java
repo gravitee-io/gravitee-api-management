@@ -95,13 +95,10 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
 
     @Override
     public void delete(String id) {
-        RepositoryCalls.wrap(
-            () -> {
-                gammaDashboardRepository.delete(id);
-                return null;
-            },
-            "Failed to delete dashboard '%s'".formatted(id)
-        );
+        RepositoryCalls.wrap(() -> {
+            gammaDashboardRepository.delete(id);
+            return null;
+        }, "Failed to delete dashboard '%s'".formatted(id));
     }
 
     private static Dashboard toCore(GammaDashboard source) {

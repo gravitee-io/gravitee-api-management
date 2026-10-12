@@ -290,15 +290,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
-@Import(
-    {
-        InMemoryConfiguration.class,
-        FakeConfiguration.class,
-        CoreServiceSpringConfiguration.class,
-        UsecaseSpringConfiguration.class,
-        JacksonSpringConfiguration.class,
-    }
-)
+@Import({
+    InMemoryConfiguration.class,
+    FakeConfiguration.class,
+    CoreServiceSpringConfiguration.class,
+    UsecaseSpringConfiguration.class,
+    JacksonSpringConfiguration.class,
+})
 @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {
 

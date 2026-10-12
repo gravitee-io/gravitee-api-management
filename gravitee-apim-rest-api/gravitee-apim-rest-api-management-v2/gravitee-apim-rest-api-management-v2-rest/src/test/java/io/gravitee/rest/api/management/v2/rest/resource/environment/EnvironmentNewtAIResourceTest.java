@@ -78,13 +78,13 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         void should_generate_expression_language() {
             // Given
             String requestJson = """
-                {
-                    "message": "Generate an expression to get the user ID",
-                    "context": {
-                        "apiId": "api-123"
-                    }
+            {
+                "message": "Generate an expression to get the user ID",
+                "context": {
+                    "apiId": "api-123"
                 }
-                """;
+            }
+            """;
 
             var expectedReply = new TestELGenReply(
                 "Generated expression: {#context.attributes['user-id']}",
@@ -111,11 +111,11 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         void should_generate_expression_language_without_api_context() {
             // Given
             String requestJson = """
-                {
-                    "message": "Generate a simple expression",
-                    "context": {}
-                }
-                """;
+            {
+                "message": "Generate a simple expression",
+                "context": {}
+            }
+            """;
 
             var expectedReply = new TestELGenReply(
                 "Simple expression: {#request.timestamp}",
@@ -142,15 +142,15 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         void should_submit_positive_feedback() {
             // Given
             String requestJson = """
-                {
-                    "feedbackRequestId": {
-                        "chatId": "chat-123",
-                        "userMessageId": "user-msg-456",
-                        "agentMessageId": "agent-msg-789"
-                    },
-                    "answerHelpful": true
-                }
-                """;
+            {
+                "feedbackRequestId": {
+                    "chatId": "chat-123",
+                    "userMessageId": "user-msg-456",
+                    "agentMessageId": "agent-msg-789"
+                },
+                "answerHelpful": true
+            }
+            """;
 
             // When
             final Response response = rootTarget("el/feedback").request().post(Entity.json(requestJson));
@@ -163,15 +163,15 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         void should_submit_negative_feedback() {
             // Given
             String requestJson = """
-                {
-                    "feedbackRequestId": {
-                        "chatId": "chat-456",
-                        "userMessageId": "user-msg-789",
-                        "agentMessageId": "agent-msg-012"
-                    },
-                    "answerHelpful": false
-                }
-                """;
+            {
+                "feedbackRequestId": {
+                    "chatId": "chat-456",
+                    "userMessageId": "user-msg-789",
+                    "agentMessageId": "agent-msg-012"
+                },
+                "answerHelpful": false
+            }
+            """;
 
             // When
             final Response response = rootTarget("el/feedback").request().post(Entity.json(requestJson));
@@ -184,15 +184,15 @@ class EnvironmentNewtAIResourceTest extends AbstractResourceTest {
         void should_return_500_when_error_occurs() {
             // Given
             String requestJson = """
-                {
-                    "feedbackRequestId": {
-                        "chatId": "chat-123",
-                        "userMessageId": "user-msg-456",
-                        "agentMessageId": "agent-msg-789"
-                    },
-                    "answerHelpful": true
-                }
-                """;
+            {
+                "feedbackRequestId": {
+                    "chatId": "chat-123",
+                    "userMessageId": "user-msg-456",
+                    "agentMessageId": "agent-msg-789"
+                },
+                "answerHelpful": true
+            }
+            """;
             var expectedException = new NewtAiSubmitFeedbackException("commandId", "Unexpected error");
             newtAIProvider.initWith(List.of(new NewtAIProviderInMemory.Tuple.Fail("agent-msg-789", expectedException)));
 

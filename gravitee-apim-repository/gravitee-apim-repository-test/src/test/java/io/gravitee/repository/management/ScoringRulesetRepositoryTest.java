@@ -75,7 +75,9 @@ public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTe
     public void findAllByReferenceId_should_return_found_rulesets() throws TechnicalException {
         var found = scoringRulesetRepository.findAllByReferenceId("my-env", "ENVIRONMENT");
 
-        assertThat(found).hasSize(2).are(anyOf(haveId("ruleset1"), haveId("ruleset2")));
+        assertThat(found)
+            .hasSize(2)
+            .are(anyOf(haveId("ruleset1"), haveId("ruleset2")));
     }
 
     @Test

@@ -56,7 +56,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
     private static final String FEDERATED_API_DEFINITION = """
-        {"id":"federated-api","providerId":"provider-id","name":"Task Management","apiVersion":"v1","definitionVersion":"FEDERATED","server":{"url":"https://testurl.com/Test"}}""";
+    {"id":"federated-api","providerId":"provider-id","name":"Task Management","apiVersion":"v1","definitionVersion":"FEDERATED","server":{"url":"https://testurl.com/Test"}}""";
     private static final String FEDERATED_API_PICTURE = "data:image/png;base64,federated-api-picture";
     private static final String FEDERATED_API_BACKGROUND = "data:image/png;base64,federated-api-background";
 
@@ -287,7 +287,13 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+        assertTrue(
+            apis
+                .stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "big-name"))
+        );
     }
 
     @Test
@@ -363,7 +369,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
         assertTrue(
-            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+            apis
+                .stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
         );
     }
 
@@ -373,7 +383,13 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("grouped-api", "api-to-findById", "edge-api")));
+        assertTrue(
+            apis
+                .stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("grouped-api", "api-to-findById", "edge-api"))
+        );
     }
 
     @Test
@@ -383,7 +399,11 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
         assertTrue(
-            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+            apis
+                .stream()
+                .map(Api::getId)
+                .toList()
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
         );
     }
 

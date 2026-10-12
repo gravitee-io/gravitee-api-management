@@ -43,21 +43,19 @@ import java.util.stream.Stream;
  * @author Gravitee.io Team
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = Constraint.Required.class, name = "required"),
-        @JsonSubTypes.Type(value = Constraint.MustBeTrue.class, name = "mustBeTrue"),
-        @JsonSubTypes.Type(value = Constraint.NonEmptySelection.class, name = "nonEmptySelection"),
-        @JsonSubTypes.Type(value = Constraint.ReadOnly.class, name = "readOnly"),
-        @JsonSubTypes.Type(value = Constraint.MinLength.class, name = "minLength"),
-        @JsonSubTypes.Type(value = Constraint.MaxLength.class, name = "maxLength"),
-        @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
-        @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
-        @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
-        @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
-        @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Constraint.Required.class, name = "required"),
+    @JsonSubTypes.Type(value = Constraint.MustBeTrue.class, name = "mustBeTrue"),
+    @JsonSubTypes.Type(value = Constraint.NonEmptySelection.class, name = "nonEmptySelection"),
+    @JsonSubTypes.Type(value = Constraint.ReadOnly.class, name = "readOnly"),
+    @JsonSubTypes.Type(value = Constraint.MinLength.class, name = "minLength"),
+    @JsonSubTypes.Type(value = Constraint.MaxLength.class, name = "maxLength"),
+    @JsonSubTypes.Type(value = Constraint.MatchesPattern.class, name = "matchesPattern"),
+    @JsonSubTypes.Type(value = Constraint.OneOf.class, name = "oneOf"),
+    @JsonSubTypes.Type(value = Constraint.EachOf.class, name = "eachOf"),
+    @JsonSubTypes.Type(value = Constraint.DynamicOneOf.class, name = "dynamicOneOf"),
+    @JsonSubTypes.Type(value = Constraint.DynamicEachOf.class, name = "dynamicEachOf"),
+})
 public sealed interface Constraint
     permits
         Constraint.Required,
@@ -69,7 +67,8 @@ public sealed interface Constraint
         Constraint.MatchesPattern,
         Constraint.OneOf,
         Constraint.EachOf,
-        Constraint.ResolvableOptions {
+        Constraint.ResolvableOptions
+{
     /**
      * Whether the submitted value satisfies this constraint. The value is already trimmed; an empty string means absent.
      */

@@ -65,12 +65,10 @@ public class AuditResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
+    })
     @GraviteeLicenseFeature("apim-audit-trail")
     public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
@@ -115,12 +113,10 @@ public class AuditResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_AUDIT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_AUDIT, acls = RolePermissionAction.READ),
+    })
     public Response getAuditEvents() {
         if (events.isEmpty()) {
             Set<Class<? extends Audit.AuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model").getSubTypesOf(

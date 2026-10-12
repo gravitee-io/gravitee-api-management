@@ -118,7 +118,8 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
         }
 
         if (definition.getImports() != null && !definition.getImports().isEmpty()) {
-            ((Map<String, List<Import>>) definition.getImports()).values()
+            ((Map<String, List<Import>>) definition.getImports())
+                .values()
                 .stream()
                 .flatMap(Collection::stream)
                 .map(Import::getDefinition)
@@ -136,7 +137,7 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
         Map<String, Port> ports = serviceDefinition.getPorts();
         Iterator<Entry<String, Port>> portIterator = ports.entrySet().iterator();
 
-        final boolean singlePort = (ports.size() == 1);
+        final boolean singlePort = ports.size() == 1;
         while (portIterator.hasNext()) {
             Entry<String, Port> entry = portIterator.next();
 
@@ -162,9 +163,9 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
                 Input input = operation.getInput();
                 if (input != null) {
                     extractSOAPAction(bindingOperation).ifPresent(action -> openApiOperation.addExtension(SOAP_EXTENSION_ACTION, action));
-                    this.soapBuilder.generateSoapEnvelop(wsdlDefinition, binding, bindingOperation).ifPresent(envelope ->
-                        openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope)
-                    );
+                    this.soapBuilder
+                        .generateSoapEnvelop(wsdlDefinition, binding, bindingOperation)
+                        .ifPresent(envelope -> openApiOperation.addExtension(SOAP_EXTENSION_ENVELOPE, envelope));
                     buildRequestBody(input).ifPresent(openApiOperation::setRequestBody);
                 }
 
@@ -257,7 +258,8 @@ public class WSDLToOpenAPIConverter implements OpenAPIConverter {
             return Optional.empty();
         }
 
-        return ((Collection<Part>) input.getMessage().getParts().values()).stream()
+        return ((Collection<Part>) input.getMessage().getParts().values())
+            .stream()
             .findFirst()
             .map(Part::getElementName)
             .flatMap(elementName -> {

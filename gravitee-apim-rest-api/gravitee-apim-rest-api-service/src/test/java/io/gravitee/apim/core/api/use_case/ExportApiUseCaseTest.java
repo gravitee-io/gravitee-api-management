@@ -168,7 +168,9 @@ class ExportApiUseCaseTest {
             )
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("user id").build()));
-        lenient().when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        lenient()
+            .when(permissionService.hasPermission(any(), any(), any(), any()))
+            .thenReturn(true);
     }
 
     @AfterEach

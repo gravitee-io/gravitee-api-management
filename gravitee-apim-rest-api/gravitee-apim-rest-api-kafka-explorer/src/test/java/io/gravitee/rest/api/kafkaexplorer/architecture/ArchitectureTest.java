@@ -225,7 +225,11 @@ class ArchitectureTest {
 
         @Test
         void should_be_free_of_cycles() {
-            slices().matching(BASE_PACKAGE + ".(**)..").should().beFreeOfCycles().check(allClasses);
+            slices()
+                .matching(BASE_PACKAGE + ".(**)..")
+                .should()
+                .beFreeOfCycles()
+                .check(allClasses);
         }
     }
 }

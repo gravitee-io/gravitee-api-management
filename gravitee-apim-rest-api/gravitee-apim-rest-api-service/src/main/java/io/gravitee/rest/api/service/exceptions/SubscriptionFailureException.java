@@ -35,7 +35,7 @@ public class SubscriptionFailureException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return ("Subscription [" + subscription.getId() + "] is in failure state: " + subscription.getFailureCause());
+        return "Subscription [" + subscription.getId() + "] is in failure state: " + subscription.getFailureCause();
     }
 
     @Override

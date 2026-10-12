@@ -45,8 +45,7 @@ public class ConditionSelector extends Selector implements ConditionSupplier {
     public abstract static class ConditionSelectorBuilder<
         C extends ConditionSelector,
         B extends ConditionSelector.ConditionSelectorBuilder<C, B>
-    >
-        extends SelectorBuilder<C, B> {
+    > extends SelectorBuilder<C, B> {
 
         ConditionSelectorBuilder() {
             type(SelectorType.CONDITION);

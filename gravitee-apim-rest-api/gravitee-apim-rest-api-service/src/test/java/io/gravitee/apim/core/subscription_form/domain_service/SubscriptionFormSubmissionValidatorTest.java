@@ -114,7 +114,11 @@ class SubscriptionFormSubmissionValidatorTest {
         @Test
         void should_throw_when_value_not_in_allowed_options() {
             var schema = schema(
-                SelectField.builder().fieldKey("plan").required(true).options(List.of("Free", "Pro", "Enterprise")).build()
+                SelectField.builder()
+                    .fieldKey("plan")
+                    .required(true)
+                    .options(List.of("Free", "Pro", "Enterprise"))
+                    .build()
             );
             var values = Map.of("plan", "Premium");
             assertThatThrownBy(() -> validateSubmission(schema, values))
@@ -126,7 +130,11 @@ class SubscriptionFormSubmissionValidatorTest {
         @Test
         void should_not_throw_when_value_is_in_allowed_options() {
             var schema = schema(
-                SelectField.builder().fieldKey("plan").required(true).options(List.of("Free", "Pro", "Enterprise")).build()
+                SelectField.builder()
+                    .fieldKey("plan")
+                    .required(true)
+                    .options(List.of("Free", "Pro", "Enterprise"))
+                    .build()
             );
             var values = Map.of("plan", "Pro");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));
@@ -145,7 +153,11 @@ class SubscriptionFormSubmissionValidatorTest {
         @Test
         void should_throw_when_one_value_not_in_options() {
             var schema = schema(
-                CheckboxGroupField.builder().fieldKey("tags").required(false).options(List.of("Alpha", "Beta", "Gamma")).build()
+                CheckboxGroupField.builder()
+                    .fieldKey("tags")
+                    .required(false)
+                    .options(List.of("Alpha", "Beta", "Gamma"))
+                    .build()
             );
             var values = Map.of("tags", "Alpha,Delta");
             assertThatThrownBy(() -> validateSubmission(schema, values))
@@ -157,7 +169,11 @@ class SubscriptionFormSubmissionValidatorTest {
         @Test
         void should_not_throw_when_all_values_are_valid() {
             var schema = schema(
-                CheckboxGroupField.builder().fieldKey("tags").required(false).options(List.of("Alpha", "Beta", "Gamma")).build()
+                CheckboxGroupField.builder()
+                    .fieldKey("tags")
+                    .required(false)
+                    .options(List.of("Alpha", "Beta", "Gamma"))
+                    .build()
             );
             var values = Map.of("tags", "Alpha,Gamma");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));
@@ -264,7 +280,11 @@ class SubscriptionFormSubmissionValidatorTest {
             var schema = schema(
                 InputField.builder().fieldKey("company").required(true).build(),
                 SelectField.builder().fieldKey("plan").required(true).options(List.of("Free", "Pro")).build(),
-                CheckboxGroupField.builder().fieldKey("tags").required(false).options(List.of("A", "B", "C")).build()
+                CheckboxGroupField.builder()
+                    .fieldKey("tags")
+                    .required(false)
+                    .options(List.of("A", "B", "C"))
+                    .build()
             );
             var values = Map.of("company", "Acme Corp", "plan", "Pro", "tags", "A,C");
             assertThatNoException().isThrownBy(() -> validateSubmission(schema, values));

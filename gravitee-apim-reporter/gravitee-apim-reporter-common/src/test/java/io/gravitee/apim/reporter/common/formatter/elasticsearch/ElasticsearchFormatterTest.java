@@ -41,32 +41,30 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
         return Type.ELASTICSEARCH;
     }
 
-    @CsvSource(
-        {
-            "log, log.Log, log.json, elasticsearch/log.json",
-            "metrics, http.Metrics, metrics.json, elasticsearch/metrics.json",
-            "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.json",
-            "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.json",
-            "v4-log, v4.log.Log, v4/log.json, elasticsearch/v4/log.json",
-            "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
-            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.json",
-            "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.json",
-            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
-            "message metrics with connection dimensions, v4.metric.MessageMetrics, v4/message-metrics-with-connection-dimensions.json, elasticsearch/v4/message-metrics-with-connection-dimensions.json",
-            "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
-            "v4 metrics with warnings, v4.metric.Metrics, v4/metrics-with-warnings.json, elasticsearch/v4/metrics-with-warnings.json",
-            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
-            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
-            "message metrics with apostrophe in json additional, v4.metric.MessageMetrics, v4/message-metrics-with-apostrophe-in-json-additional.json, elasticsearch/v4/message-metrics-with-apostrophe-in-json-additional.json",
-            "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.json",
-            "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.json",
-            "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.json",
-            "topic event metrics with null api, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics-null-api.json, elasticsearch/v4/topic-event-metrics-null-api.json",
-            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
-            "decision report, v4.report.DecisionReport, v4/decision-report.json, elasticsearch/v4/decision-report.json",
-            "decision report with quotes, v4.report.DecisionReport, v4/decision-report-with-quotes.json, elasticsearch/v4/decision-report-with-quotes.json",
-        }
-    )
+    @CsvSource({
+        "log, log.Log, log.json, elasticsearch/log.json",
+        "metrics, http.Metrics, metrics.json, elasticsearch/metrics.json",
+        "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.json",
+        "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.json",
+        "v4-log, v4.log.Log, v4/log.json, elasticsearch/v4/log.json",
+        "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.json",
+        "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.json",
+        "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.json",
+        "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.json",
+        "message metrics with connection dimensions, v4.metric.MessageMetrics, v4/message-metrics-with-connection-dimensions.json, elasticsearch/v4/message-metrics-with-connection-dimensions.json",
+        "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.json",
+        "v4 metrics with warnings, v4.metric.Metrics, v4/metrics-with-warnings.json, elasticsearch/v4/metrics-with-warnings.json",
+        "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, elasticsearch/v4/metrics-with-additional.json",
+        "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, elasticsearch/v4/message-metrics-with-additional.json",
+        "message metrics with apostrophe in json additional, v4.metric.MessageMetrics, v4/message-metrics-with-apostrophe-in-json-additional.json, elasticsearch/v4/message-metrics-with-apostrophe-in-json-additional.json",
+        "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.json",
+        "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.json",
+        "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.json",
+        "topic event metrics with null api, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics-null-api.json, elasticsearch/v4/topic-event-metrics-null-api.json",
+        "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
+        "decision report, v4.report.DecisionReport, v4/decision-report.json, elasticsearch/v4/decision-report.json",
+        "decision report with quotes, v4.report.DecisionReport, v4/decision-report-with-quotes.json, elasticsearch/v4/decision-report-with-quotes.json",
+    })
     @ParameterizedTest(name = "{0}")
     void should_format(String testName, String className, String input, String output) throws IOException {
         var utcZone = ZoneId.of("UTC");
@@ -79,29 +77,29 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             var given = readGiven(input, className);
             var expected = readExpected(output);
 
-            assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+            assertThat(JSON.readTree(formatter.format(given).getBytes()))
+                .usingRecursiveComparison()
+                .isEqualTo(JSON.readTree(expected));
         }
     }
 
-    @CsvSource(
-        {
-            "log, log.Log, log.json, elasticsearch/log.jsonl",
-            "metrics, http.Metrics, metrics.json, elasticsearch/metrics.jsonl",
-            "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.jsonl",
-            "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.jsonl",
-            "v4 log, v4.log.Log, v4/log.json, elasticsearch/v4/log.jsonl",
-            "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",
-            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.jsonl",
-            "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.jsonl",
-            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
-            "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
-            "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.jsonl",
-            "decision report, v4.report.DecisionReport, v4/decision-report.json, elasticsearch/v4/decision-report.jsonl",
-            "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.jsonl",
-            "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.jsonl",
-            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.jsonl",
-        }
-    )
+    @CsvSource({
+        "log, log.Log, log.json, elasticsearch/log.jsonl",
+        "metrics, http.Metrics, metrics.json, elasticsearch/metrics.jsonl",
+        "metrics with additional, http.Metrics, metrics-with-additional.json, elasticsearch/metrics-with-additional.jsonl",
+        "endpoint status, health.EndpointStatus, endpoint-status.json, elasticsearch/endpoint-status.jsonl",
+        "v4 log, v4.log.Log, v4/log.json, elasticsearch/v4/log.jsonl",
+        "v4 metrics, v4.metric.Metrics, v4/metrics.json, elasticsearch/v4/metrics.jsonl",
+        "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, elasticsearch/v4/metrics-with-invalid-remote-address.jsonl",
+        "v4 metrics with null transaction id, v4.metric.Metrics, v4/metrics-with-null-transaction-id.json, elasticsearch/v4/metrics-with-null-transaction-id.jsonl",
+        "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
+        "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
+        "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.jsonl",
+        "decision report, v4.report.DecisionReport, v4/decision-report.json, elasticsearch/v4/decision-report.jsonl",
+        "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.jsonl",
+        "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.jsonl",
+        "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.jsonl",
+    })
     @ParameterizedTest(name = "{0}")
     void should_format_with_options(String testName, String className, String input, String output) throws IOException {
         var utcZone = ZoneId.of("UTC");

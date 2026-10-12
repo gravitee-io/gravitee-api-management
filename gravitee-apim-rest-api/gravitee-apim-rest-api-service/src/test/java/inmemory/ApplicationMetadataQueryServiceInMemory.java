@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class ApplicationMetadataQueryServiceInMemory
-    implements ApplicationMetadataQueryService, InMemoryAlternative<ApplicationMetadataEntity> {
+    implements ApplicationMetadataQueryService, InMemoryAlternative<ApplicationMetadataEntity>
+{
 
     private List<ApplicationMetadataEntity> entities = new ArrayList<>();
 
@@ -47,7 +48,8 @@ public class ApplicationMetadataQueryServiceInMemory
 
     @Override
     public List<ApplicationMetadataEntity> findAllByApplication(String applicationId) {
-        return this.entities.stream()
+        return this.entities
+            .stream()
             .filter(entity -> entity.getApplicationId().equals(applicationId))
             .collect(Collectors.toList());
     }

@@ -201,8 +201,7 @@ class HttpPolicyChainTest {
 
         // Act
         final TestObserver<Void> obs = httpPolicyChain.execute(ctx).test();
-        obs
-            .assertError(RuntimeException.class)
+        obs.assertError(RuntimeException.class)
             .assertError(t -> "policy1 failed".equals(t.getMessage()))
             .assertFailure(RuntimeException.class);
 
@@ -354,8 +353,7 @@ class HttpPolicyChainTest {
         when(policy1.onRequest(ctx)).thenReturn(Completable.complete());
         when(policy1.onRequest(ctx)).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-        cut
-            .execute(ctx)
+        cut.execute(ctx)
             .test()
             .assertError(RuntimeException.class)
             .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()))

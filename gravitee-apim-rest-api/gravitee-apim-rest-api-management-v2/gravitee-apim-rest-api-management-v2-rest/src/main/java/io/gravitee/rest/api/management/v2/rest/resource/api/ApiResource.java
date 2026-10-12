@@ -416,7 +416,9 @@ public class ApiResource extends AbstractResource {
             getGenericApiEntityById(apiId, false)
         );
 
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        return Response.ok()
+            .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+            .build();
     }
 
     @PUT
@@ -464,7 +466,9 @@ public class ApiResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             getGenericApiEntityById(apiId, false)
         );
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        return Response.ok()
+            .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+            .build();
     }
 
     @PUT
@@ -490,18 +494,18 @@ public class ApiResource extends AbstractResource {
             GraviteeContext.getExecutionContext(),
             getGenericApiEntityById(apiId, false)
         );
-        return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+        return Response.ok()
+            .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
+            .build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+    })
     public Response updateApi(
         @Context HttpHeaders headers,
         @PathParam("apiId") String apiId,
@@ -544,12 +548,10 @@ public class ApiResource extends AbstractResource {
     @PATCH
     @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json", "application/json-patch+json" })
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+    })
     public Response patchApi(
         @PathParam("apiId") String apiId,
         @QueryParam("dryRun") @DefaultValue("false") boolean dryRun,
@@ -570,9 +572,10 @@ public class ApiResource extends AbstractResource {
         }
 
         var contentType = headers.getMediaType();
-        var patchType = contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
-            ? PatchApiUseCase.PatchType.JSON_PATCH
-            : PatchApiUseCase.PatchType.MERGE_PATCH;
+        var patchType =
+            contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
+                ? PatchApiUseCase.PatchType.JSON_PATCH
+                : PatchApiUseCase.PatchType.MERGE_PATCH;
 
         var input = PatchApiUseCase.Input.builder()
             .apiId(apiId)
@@ -1245,13 +1248,11 @@ public class ApiResource extends AbstractResource {
     public MigrationReportResponses migrateApi(@PathParam("apiId") String apiId, @QueryParam("mode") MigrateMode mode) {
         var upgradeMode = mode != null ? MigrateApiUseCase.Input.UpgradeMode.valueOf(mode.name()) : null;
         var output = migrateApiUseCase.execute(new MigrateApiUseCase.Input(apiId, upgradeMode, getAuditInfo()));
-        return new MigrationReportResponses()
-            .state(mapState(output.state()))
-            .issues(
-                stream(output.issues())
-                    .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
-                    .toList()
-            );
+        return new MigrationReportResponses().state(mapState(output.state())).issues(
+            stream(output.issues())
+                .map(issue -> new MigrationReportResponsesIssuesInner().message(issue.message()).state(mapState(issue.state())))
+                .toList()
+        );
     }
 
     @POST
@@ -1350,7 +1351,8 @@ public class ApiResource extends AbstractResource {
                 apiEntityV2.setBackgroundUrl(backgroundUrl);
                 apiEntityV2.setBackground(null);
             }
-            default -> {}
+            default -> {
+            }
         }
     }
 
@@ -1359,7 +1361,8 @@ public class ApiResource extends AbstractResource {
             case ApiEntity asApiEntity -> filterSensitiveData(asApiEntity);
             case NativeApiEntity asNativeApiEntity -> filterSensitiveData(asNativeApiEntity);
             case io.gravitee.rest.api.model.api.ApiEntity asApiEntityV2 -> filterSensitiveData(asApiEntityV2);
-            case null, default -> {}
+            case null, default -> {
+            }
         }
     }
 

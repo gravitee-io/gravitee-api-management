@@ -222,7 +222,12 @@ public interface PortalNavigationItemsMapper {
             .count();
         return new ImportPortalNavigationResponse()
             .rootFolder(map((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) output.rootFolder()))
-            .summary(new PortalNavigationItemsFetchSummary().succeeded(succeeded).failed(results.size() - succeeded).results(results));
+            .summary(
+                new PortalNavigationItemsFetchSummary()
+                    .succeeded(succeeded)
+                    .failed(results.size() - succeeded)
+                    .results(results)
+            );
     }
 
     default ImportPortalNavigationUseCase.Input map(String organizationId, String environmentId, ImportPortalNavigationRequest request) {

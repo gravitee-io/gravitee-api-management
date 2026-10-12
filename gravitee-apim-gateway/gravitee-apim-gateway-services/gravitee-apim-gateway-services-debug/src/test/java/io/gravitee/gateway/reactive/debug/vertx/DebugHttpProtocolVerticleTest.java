@@ -132,12 +132,10 @@ class DebugHttpProtocolVerticleTest {
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
-        client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
-            .compose(request -> {
-                request.send().otherwiseEmpty();
-                return request.connection().close();
-            });
+        client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/").compose(request -> {
+            request.send().otherwiseEmpty();
+            return request.connection().close();
+        });
     }
 
     @Test

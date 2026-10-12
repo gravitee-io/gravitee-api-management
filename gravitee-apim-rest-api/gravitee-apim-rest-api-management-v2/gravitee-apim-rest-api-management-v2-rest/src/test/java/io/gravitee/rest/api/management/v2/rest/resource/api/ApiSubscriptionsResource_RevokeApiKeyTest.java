@@ -99,7 +99,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
 
         final Response response = rootTarget().request().post(Entity.json(null));
 
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(NOT_FOUND_404)
+            .asError()
+            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
@@ -123,7 +126,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscr
 
         final Response response = rootTarget().request().post(Entity.json(null));
 
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(NOT_FOUND_404)
+            .asError()
+            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test

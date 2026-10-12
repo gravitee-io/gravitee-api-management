@@ -116,7 +116,7 @@ public class ExecutablePolicy implements Policy {
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         try {
             Object stream = streamMethodHandle.invoke(policy, chain, context, context.request(), context.response());
-            return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
+            return stream != null ? (ReadWriteStream<Buffer>) stream : null;
         } catch (Throwable ex) {
             log.error("Error during {} policy execution", id, ex);
             throw new PolicyException(ex);

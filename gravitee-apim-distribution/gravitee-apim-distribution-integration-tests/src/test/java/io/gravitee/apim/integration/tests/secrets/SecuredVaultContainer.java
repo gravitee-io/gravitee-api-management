@@ -90,7 +90,10 @@ public class SecuredVaultContainer extends GenericContainer<SecuredVaultContaine
             .waitingFor(
                 // Vault is configured to run a plain HTTP listener on port 8280, purely for purposes of detecting
                 // when the Docker container is fully ready.
-                new HttpWaitStrategy().forPort(8280).forPath("/v1/sys/seal-status").forStatusCode(HttpURLConnection.HTTP_OK)
+                new HttpWaitStrategy()
+                    .forPort(8280)
+                    .forPath("/v1/sys/seal-status")
+                    .forStatusCode(HttpURLConnection.HTTP_OK)
             );
     }
 

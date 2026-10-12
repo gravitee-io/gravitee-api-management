@@ -52,10 +52,10 @@ public class HttpHealthCheckHelper {
             isEnabledAtEndpointLevel(endpoint.getDefinition(), tenant) ||
             // Or health check enabled at group level and not explicitly disable at endpoint level.
             ((isNull(endpoint.getDefinition().getServices()) ||
-                    endpoint.getDefinition().getServices().getHealthCheck() == null ||
-                    !endpoint.getDefinition().getServices().getHealthCheck().isEnabled()) &&
-                (!isNull(endpoint.getGroup().getDefinition().getServices()) &&
-                    isServiceEnabled(endpoint.getGroup().getDefinition().getServices().getHealthCheck())))
+                endpoint.getDefinition().getServices().getHealthCheck() == null ||
+                !endpoint.getDefinition().getServices().getHealthCheck().isEnabled()) &&
+                !isNull(endpoint.getGroup().getDefinition().getServices()) &&
+                isServiceEnabled(endpoint.getGroup().getDefinition().getServices().getHealthCheck()))
         );
     }
 
@@ -73,8 +73,6 @@ public class HttpHealthCheckHelper {
     }
 
     private static boolean isServiceEnabled(final Service healthCheckService) {
-        return (
-            healthCheckService != null && (healthCheckService.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheckService.getType()))
-        );
+        return healthCheckService != null && healthCheckService.isEnabled() && HTTP_HEALTH_CHECK_TYPE.equals(healthCheckService.getType());
     }
 }

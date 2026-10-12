@@ -83,9 +83,15 @@ public class RequestPathHandlingBenchmark {
     @Param({ "RAW", "REJECT", "NORMALIZE" })
     public String mode;
 
-    @Param(
-        { "ordinary", "ordinary_deep", "ordinary_uuids", "ordinary_with_dot", "ordinary_encoded", "dot_segments", "encoded_dot_segments" }
-    )
+    @Param({
+        "ordinary",
+        "ordinary_deep",
+        "ordinary_uuids",
+        "ordinary_with_dot",
+        "ordinary_encoded",
+        "dot_segments",
+        "encoded_dot_segments",
+    })
     public String shape;
 
     private RequestPathHandling handling;

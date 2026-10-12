@@ -47,12 +47,10 @@ public class MongoPromotionRepository implements PromotionRepository {
     public Optional<Promotion> findById(String id) throws TechnicalException {
         log.debug("Find promotion by ID [{}]", id);
 
-        return internalRepository
-            .findById(id)
-            .map(promotionMongo -> {
-                log.debug("Find promotion by ID [{}] - Done", id);
-                return map(promotionMongo);
-            });
+        return internalRepository.findById(id).map(promotionMongo -> {
+            log.debug("Find promotion by ID [{}] - Done", id);
+            return map(promotionMongo);
+        });
     }
 
     @Override

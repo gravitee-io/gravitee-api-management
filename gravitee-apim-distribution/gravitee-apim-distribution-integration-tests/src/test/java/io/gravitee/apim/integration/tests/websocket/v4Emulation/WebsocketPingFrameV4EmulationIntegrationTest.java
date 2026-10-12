@@ -37,16 +37,16 @@ public class WebsocketPingFrameV4EmulationIntegrationTest extends AbstractWebsoc
         // use a lax checkpoint because Pong frames may be received unsolicited https://vertx.io/docs/apidocs/io/vertx/core/http/WebSocketBase.html#pongHandler-io.vertx.core.Handler-
         var pongReceived = testContext.laxCheckpoint();
 
-        websocketServerHandler = (serverWebSocket -> {
-                serverConnected.flag();
-                serverWebSocket.exceptionHandler(testContext::failNow);
-                serverWebSocket.frameHandler(frame -> {
-                    if (frame.isPing()) {
-                        testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
-                        pingReceived.flag();
-                    }
-                });
+        websocketServerHandler = serverWebSocket -> {
+            serverConnected.flag();
+            serverWebSocket.exceptionHandler(testContext::failNow);
+            serverWebSocket.frameHandler(frame -> {
+                if (frame.isPing()) {
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    pingReceived.flag();
+                }
             });
+        };
 
         webSocketClient
             .connect("/test")

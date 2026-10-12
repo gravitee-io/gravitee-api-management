@@ -166,13 +166,11 @@ public class GammaModuleAutomationResource extends AbstractResource {
     }
 
     private void checkLicense(GammaAutomationPort port) {
-        port
-            .licenseFeature()
-            .ifPresent(feature -> {
-                if (!licenseManager.getPlatformLicense().isFeatureEnabled(feature)) {
-                    throw new ForbiddenFeatureException(feature);
-                }
-            });
+        port.licenseFeature().ifPresent(feature -> {
+            if (!licenseManager.getPlatformLicense().isFeatureEnabled(feature)) {
+                throw new ForbiddenFeatureException(feature);
+            }
+        });
     }
 
     private void checkPermission(ResourceKind kind, RolePermissionAction... acls) {

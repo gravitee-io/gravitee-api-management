@@ -150,7 +150,9 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
             case API_FIELD:
                 return buildCountStat(
                     // FIXME: This should use a count method instead of a search one
-                    apiServiceV4.findAll(executionContext, getAuthenticatedUser(), isAdmin(), new PageableImpl(1, 1)).getTotalElements()
+                    apiServiceV4
+                        .findAll(executionContext, getAuthenticatedUser(), isAdmin(), new PageableImpl(1, 1))
+                        .getTotalElements()
                 );
             case APPLICATION_FIELD:
                 if (isAdmin()) {

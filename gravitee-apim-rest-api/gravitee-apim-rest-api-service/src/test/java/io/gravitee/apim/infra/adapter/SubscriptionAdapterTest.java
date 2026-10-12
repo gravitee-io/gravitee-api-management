@@ -71,43 +71,41 @@ class SubscriptionAdapterTest {
                 soft.assertThat(subscriptionEntity.getConsumerStatus()).isEqualTo(SubscriptionEntity.ConsumerStatus.STOPPED);
                 soft.assertThat(subscriptionEntity.getProcessedBy()).isEqualTo("a-user");
                 soft.assertThat(subscriptionEntity.getSubscribedBy()).isEqualTo("another-user");
-                soft
-                    .assertThat(subscriptionEntity.getCreatedAt())
-                    .isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getProcessedAt())
-                    .isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getStartingAt())
-                    .isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getEndingAt())
-                    .isEqualTo(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getPausedAt())
-                    .isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getConsumerPausedAt())
-                    .isEqualTo(Instant.parse("2020-02-05T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getClosedAt())
-                    .isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(subscriptionEntity.getUpdatedAt())
-                    .isEqualTo(Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(subscriptionEntity.getCreatedAt()).isEqualTo(
+                    Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getProcessedAt()).isEqualTo(
+                    Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getStartingAt()).isEqualTo(
+                    Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getEndingAt()).isEqualTo(
+                    Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getPausedAt()).isEqualTo(
+                    Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getConsumerPausedAt()).isEqualTo(
+                    Instant.parse("2020-02-05T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getClosedAt()).isEqualTo(
+                    Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
+                soft.assertThat(subscriptionEntity.getUpdatedAt()).isEqualTo(
+                    Instant.parse("2020-02-06T20:22:02.00Z").atZone(ZoneOffset.UTC)
+                );
                 soft.assertThat(subscriptionEntity.getGeneralConditionsContentRevision()).isEqualTo(12);
                 soft.assertThat(subscriptionEntity.getGeneralConditionsContentPageId()).isEqualTo("page-id");
                 soft.assertThat(subscriptionEntity.getGeneralConditionsAccepted()).isTrue();
                 soft.assertThat(subscriptionEntity.getDaysToExpirationOnLastNotification()).isEqualTo(310);
-                soft
-                    .assertThat(subscriptionEntity.getConfiguration())
-                    .isEqualTo(
-                        SubscriptionConfiguration.builder()
-                            .entrypointId("entrypoint-id")
-                            .channel("my-channel")
-                            .entrypointConfiguration("{}")
-                            .build()
-                    );
+                soft.assertThat(subscriptionEntity.getConfiguration()).isEqualTo(
+                    SubscriptionConfiguration.builder()
+                        .entrypointId("entrypoint-id")
+                        .channel("my-channel")
+                        .entrypointConfiguration("{}")
+                        .build()
+                );
                 soft.assertThat(subscriptionEntity.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(subscriptionEntity.getType()).isEqualTo(SubscriptionEntity.Type.STANDARD);
                 soft.assertThat(subscriptionEntity.getFailureCause()).isEqualTo("failure-cause");
@@ -176,13 +174,11 @@ class SubscriptionAdapterTest {
                 soft.assertThat(subscription.getGeneralConditionsAccepted()).isTrue();
                 soft.assertThat(subscription.getDaysToExpirationOnLastNotification()).isEqualTo(310);
 
-                soft
-                    .assertThat(subscription.getConfiguration())
-                    .isEqualTo(
-                        """
-                        {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":{"callback":"http://webhook.site"}
-                        }"""
-                    );
+                soft.assertThat(subscription.getConfiguration()).isEqualTo(
+                    """
+                    {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":{"callback":"http://webhook.site"}
+                    }"""
+                );
                 soft.assertThat(subscription.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(subscription.getType()).isEqualTo(Subscription.Type.STANDARD);
                 soft.assertThat(subscription.getFailureCause()).isEqualTo("failure-cause");

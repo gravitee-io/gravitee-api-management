@@ -80,13 +80,11 @@ public class SearchHistogramQueryAdapter {
         filterArray.add(createTimeRangeFilterNode(query));
 
         // Add query string filter if present
-        query
-            .query()
-            .ifPresent(queryString -> {
-                if (!queryString.trim().isEmpty()) {
-                    filterArray.add(createQueryStringFilterNode(queryString));
-                }
-            });
+        query.query().ifPresent(queryString -> {
+            if (!queryString.trim().isEmpty()) {
+                filterArray.add(createQueryStringFilterNode(queryString));
+            }
+        });
 
         ObjectNode bool = MAPPER.createObjectNode();
         bool.set("filter", filterArray);

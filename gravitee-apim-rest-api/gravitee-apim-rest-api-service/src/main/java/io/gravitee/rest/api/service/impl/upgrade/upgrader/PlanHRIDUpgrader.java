@@ -49,16 +49,14 @@ public class PlanHRIDUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            planRepository
-                .findAll()
-                .forEach(plan -> {
-                    plan.setHrid(plan.getId());
-                    try {
-                        planRepository.update(plan);
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            planRepository.findAll().forEach(plan -> {
+                plan.setHrid(plan.getId());
+                try {
+                    planRepository.update(plan);
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return true;
         } catch (TechnicalException e) {
             log.error("Error applying upgrader", e);

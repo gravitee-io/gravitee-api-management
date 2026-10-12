@@ -130,7 +130,9 @@ class HttpProxyEndpointConnectorTest {
     @BeforeEach
     void init() {
         lenient().when(proxyConnector.connect(ctx)).thenReturn(Completable.complete());
-        lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+        lenient()
+            .when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenReturn(Completable.complete());
 
         lenient().when(deploymentCtx.getTemplateEngine()).thenReturn(templateEngine);
 
@@ -537,8 +539,7 @@ class HttpProxyEndpointConnectorTest {
             when(request.isWebSocket()).thenReturn(true);
 
             // connect will throw an exception
-            cut
-                .connect(ctx)
+            cut.connect(ctx)
                 .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
                 .test()
                 .assertComplete();
@@ -552,8 +553,7 @@ class HttpProxyEndpointConnectorTest {
         void should_use_http_client_factory() {
             // We don't want to test the request itself just that the correct factory is used
             when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
-            cut
-                .connect(ctx)
+            cut.connect(ctx)
                 .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
                 .test()
                 .assertComplete();

@@ -187,7 +187,9 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         var persistedListeners = capturePersistedListeners();
         Assertions.assertThat(persistedListeners).hasSize(1);
         Assertions.assertThat(persistedListeners.getFirst().getType()).isEqualTo(ListenerType.HTTP);
-        Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths()).extracting(Path::getPath).containsExactly("/http");
+        Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths())
+            .extracting(Path::getPath)
+            .containsExactly("/http");
     }
 
     @Test

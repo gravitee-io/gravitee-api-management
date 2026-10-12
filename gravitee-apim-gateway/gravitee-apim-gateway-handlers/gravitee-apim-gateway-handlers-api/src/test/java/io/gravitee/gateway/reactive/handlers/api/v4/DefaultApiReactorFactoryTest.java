@@ -274,7 +274,9 @@ class DefaultApiReactorFactoryTest {
             resourcePluginManager = registerResourcePluginManager();
             policyPluginManager = registerPolicyPluginManager();
             registeredApiTemplateVariableProvider = registerApiTemplateVariableProvider(List.of(mock(TemplateVariableProvider.class)));
-            lenient().when(applicationContext.getBeanNamesForType(CredentialResolver.class)).thenReturn(new String[0]);
+            lenient()
+                .when(applicationContext.getBeanNamesForType(CredentialResolver.class))
+                .thenReturn(new String[0]);
         }
 
         @Test

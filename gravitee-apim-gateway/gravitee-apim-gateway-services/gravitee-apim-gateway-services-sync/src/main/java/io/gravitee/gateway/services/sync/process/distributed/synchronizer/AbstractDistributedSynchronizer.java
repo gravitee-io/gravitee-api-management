@@ -84,7 +84,7 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                     "%s %s(s) synchronized in %sms",
                     count,
                     distributedEventType().name().toLowerCase(),
-                    (System.currentTimeMillis() - launchTime.get())
+                    System.currentTimeMillis() - launchTime.get()
                 );
                 if (initialSync) {
                     log.info(logMsg);

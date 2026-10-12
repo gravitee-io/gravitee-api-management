@@ -92,8 +92,14 @@ class ApiCategoryQueryServiceImplTest {
 
             when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenAnswer(invocation -> {
                 return Set.of(
-                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
+                    Category.builder()
+                        .id(CATEGORY_ID_1)
+                        .key("key-" + CATEGORY_ID_1)
+                        .build(),
+                    Category.builder()
+                        .id(CATEGORY_ID_2)
+                        .key("key-" + CATEGORY_ID_2)
+                        .build()
                 );
             });
 
@@ -141,8 +147,14 @@ class ApiCategoryQueryServiceImplTest {
         void should_return_categories() {
             when(categoryRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenReturn(
                 Set.of(
-                    Category.builder().id(CATEGORY_ID_1).key("key-" + CATEGORY_ID_1).build(),
-                    Category.builder().id(CATEGORY_ID_2).key("key-" + CATEGORY_ID_2).build()
+                    Category.builder()
+                        .id(CATEGORY_ID_1)
+                        .key("key-" + CATEGORY_ID_1)
+                        .build(),
+                    Category.builder()
+                        .id(CATEGORY_ID_2)
+                        .key("key-" + CATEGORY_ID_2)
+                        .build()
                 )
             );
 

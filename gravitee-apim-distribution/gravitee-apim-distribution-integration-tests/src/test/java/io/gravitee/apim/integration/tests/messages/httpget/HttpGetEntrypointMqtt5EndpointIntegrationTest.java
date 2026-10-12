@@ -247,9 +247,10 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient httpClient) {
         final TestObserver<JsonObject> obs = createGetRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient)
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
@@ -257,15 +258,13 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
             .map(body -> new JsonObject(body.toString()))
             .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(jsonBody -> {
-                assertThat(jsonBody.getString("message")).isEqualTo(
-                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
-                );
-                assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(400);
-                return true;
-            });
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(jsonBody -> {
+            assertThat(jsonBody.getString("message")).isEqualTo(
+                "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
+            );
+            assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(400);
+            return true;
+        });
     }
 
     @Test
@@ -277,14 +276,12 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
             .map(body -> new JsonObject(body.toString()))
             .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(jsonBody -> {
-                assertThat(jsonBody.getString("message")).isEqualTo("Endpoint connection failed");
-                assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(500);
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(jsonBody -> {
+            assertThat(jsonBody.getString("message")).isEqualTo("Endpoint connection failed");
+            assertThat(jsonBody.getInteger("http_status_code")).isEqualTo(500);
 
-                return true;
-            });
+            return true;
+        });
     }
 
     @Test
@@ -328,13 +325,11 @@ class HttpGetEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoin
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(String path, String clientIdentifier, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
-                request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.APPLICATION_JSON);
+            request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
+            return request.rxSend();
+        });
     }
 
     @NonNull

@@ -40,6 +40,6 @@ public class PlanFlowResolver extends ConditionalFlowResolver {
     public List<Flow> resolve0(ExecutionContext context) {
         Plan plan = api.getPlan(context.request().metrics().getPlan());
 
-        return (plan != null) ? plan.getFlows() : null;
+        return plan != null ? plan.getFlows() : null;
     }
 }

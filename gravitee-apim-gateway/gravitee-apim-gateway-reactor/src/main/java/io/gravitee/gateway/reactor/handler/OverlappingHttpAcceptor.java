@@ -82,7 +82,7 @@ public class OverlappingHttpAcceptor extends AbstractHttpAcceptor implements Htt
             return false;
         }
         var hostWithoutPort = host.replaceAll(HOST_HEADER_PORT_MATCHER, "");
-        return (this.hasWildCardHost ? hostWithoutPort.endsWith(this.host) : this.host.equalsIgnoreCase(hostWithoutPort));
+        return this.hasWildCardHost ? hostWithoutPort.endsWith(this.host) : this.host.equalsIgnoreCase(hostWithoutPort);
     }
 
     @Override

@@ -505,10 +505,9 @@ class SearchEnvironmentLogsUseCaseTest {
 
         static Stream<Arguments> tenantFiltersProvider() {
             return Stream.of(
-                Arguments.of(
-                    List.of(new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1"))),
-                    new String[] { "tenant-1" }
-                ),
+                Arguments.of(List.of(new Filter(new StringFilter(FilterName.TENANT, Operator.EQ, "tenant-1"))), new String[] {
+                    "tenant-1",
+                }),
                 Arguments.of(
                     List.of(new Filter(new ArrayFilter(FilterName.TENANT, Operator.IN, List.of("tenant-1", "tenant-2")))),
                     new String[] { "tenant-1", "tenant-2" }

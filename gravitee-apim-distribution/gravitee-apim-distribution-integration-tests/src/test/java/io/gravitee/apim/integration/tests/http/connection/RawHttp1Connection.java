@@ -167,7 +167,10 @@ class RawHttp1Connection {
         if (request.chunkedEncoding()) {
             for (int remaining = request.bodySize(); remaining > 0; remaining -= CHUNK_SIZE) {
                 int size = Math.min(CHUNK_SIZE, remaining);
-                bytes.appendString(Integer.toHexString(size) + "\r\n").appendBytes(new byte[size]).appendString("\r\n");
+                bytes
+                    .appendString(Integer.toHexString(size) + "\r\n")
+                    .appendBytes(new byte[size])
+                    .appendString("\r\n");
             }
             bytes.appendString("0\r\n\r\n");
         } else if (request.bodySize() > 0) {

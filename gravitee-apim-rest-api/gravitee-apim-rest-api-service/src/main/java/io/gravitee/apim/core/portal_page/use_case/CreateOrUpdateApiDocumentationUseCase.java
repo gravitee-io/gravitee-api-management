@@ -80,11 +80,9 @@ public class CreateOrUpdateApiDocumentationUseCase {
             )
         );
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize api documentation"));

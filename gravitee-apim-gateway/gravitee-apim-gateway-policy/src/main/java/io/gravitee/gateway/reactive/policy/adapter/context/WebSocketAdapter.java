@@ -53,10 +53,9 @@ public class WebSocketAdapter implements io.gravitee.gateway.api.ws.WebSocket {
 
     @Override
     public io.gravitee.gateway.api.ws.WebSocket write(WebSocketFrame frame) {
-        ((VertxWebSocket) webSocket).writeFrame(frame).subscribe(
-            () -> {},
-            throwable -> log.warn("An error occurred when tyring to write to the websocket", throwable)
-        );
+        ((VertxWebSocket) webSocket)
+            .writeFrame(frame)
+            .subscribe(() -> {}, throwable -> log.warn("An error occurred when tyring to write to the websocket", throwable));
         return this;
     }
 

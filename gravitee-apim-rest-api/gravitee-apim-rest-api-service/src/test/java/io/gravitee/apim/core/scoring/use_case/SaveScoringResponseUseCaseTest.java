@@ -138,7 +138,11 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage()).contains(
@@ -161,7 +165,11 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(asyncJobCrudService.storage()).contains(
@@ -241,7 +249,11 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
@@ -275,7 +287,7 @@ class SaveScoringResponseUseCaseTest {
         // Then
         assertThat(scoringReportCrudService.storage())
             .extracting(ScoringReport::summary)
-            .contains((new ScoringReport.Summary(0.92D, 2L, 1L, 0L, 1L)));
+            .contains(new ScoringReport.Summary(0.92D, 2L, 1L, 0L, 1L));
     }
 
     @Test
@@ -286,12 +298,16 @@ class SaveScoringResponseUseCaseTest {
         );
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_4))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_4)))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage())
             .extracting(ScoringReport::summary)
-            .contains((new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L)));
+            .contains(new ScoringReport.Summary(-1.0D, 0L, 0L, 0L, 0L));
     }
 
     @Test
@@ -299,7 +315,11 @@ class SaveScoringResponseUseCaseTest {
         // Given
 
         // When
-        useCase.execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        useCase
+            .execute(Input.success(JOB_ID, List.of(ANALYZED_ASSET_1)))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(scoringReportCrudService.storage()).isEmpty();

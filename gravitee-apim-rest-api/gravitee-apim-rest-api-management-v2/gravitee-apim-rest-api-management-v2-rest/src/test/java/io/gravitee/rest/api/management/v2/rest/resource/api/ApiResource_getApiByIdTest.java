@@ -277,9 +277,9 @@ public class ApiResource_getApiByIdTest extends ApiResourceTest {
         assertEquals(0, responseApi.getResponseTemplates().size());
         assertNotNull(responseApi.getListeners());
         assertNotNull(responseApi.getListeners().get(0));
-        assertNotNull((responseApi.getListeners().get(0).getHttpListener()).getPathMappings());
-        assertTrue((responseApi.getListeners().get(0).getHttpListener()).getPathMappings().isEmpty());
-        assertNull((responseApi.getListeners().get(0).getHttpListener()).getPaths().get(0).getHost());
+        assertNotNull(responseApi.getListeners().get(0).getHttpListener().getPathMappings());
+        assertTrue(responseApi.getListeners().get(0).getHttpListener().getPathMappings().isEmpty());
+        assertNull(responseApi.getListeners().get(0).getHttpListener().getPaths().get(0).getHost());
     }
 
     @Test

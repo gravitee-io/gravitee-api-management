@@ -51,14 +51,12 @@ public class ClusterRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    updateEnvironmentApiPublisher(executionContext, organization.getId());
-                    initializeClusterRoles(executionContext);
-                    roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                updateEnvironmentApiPublisher(executionContext, organization.getId());
+                initializeClusterRoles(executionContext);
+                roleService.createOrUpdateSystemRoles(executionContext, executionContext.getOrganizationId());
+            });
             return true;
         });
     }

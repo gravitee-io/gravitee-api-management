@@ -510,9 +510,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         io.gravitee.repository.management.model.Membership oldValue,
         io.gravitee.repository.management.model.Membership newValue
     ) {
-        io.gravitee.repository.management.model.MembershipReferenceType referenceType = oldValue != null
-            ? oldValue.getReferenceType()
-            : newValue.getReferenceType();
+        io.gravitee.repository.management.model.MembershipReferenceType referenceType =
+            oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
         String referenceId = oldValue != null ? oldValue.getReferenceId() : newValue.getReferenceId();
         String username = oldValue != null ? oldValue.getMemberId() : newValue.getMemberId();
 
@@ -1078,7 +1077,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
             // Find all application Ids and api Ids linked to all user groups
             if (type.equals(MembershipReferenceType.APPLICATION) || type.equals(MembershipReferenceType.API)) {
-                String[] groupIds = groupService.findByUser(userId).stream().map(GroupEntity::getId).toArray(String[]::new);
+                String[] groupIds = groupService
+                    .findByUser(userId)
+                    .stream()
+                    .map(GroupEntity::getId)
+                    .toArray(String[]::new);
 
                 List<String> resourceIds = new ArrayList<>();
 
@@ -1132,15 +1135,18 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             Metadata metadata = new Metadata();
             if (type.equals(MembershipReferenceType.API)) {
                 ApiCriteria.Builder criteria = new ApiCriteria.Builder();
-                criteria.ids(memberships.stream().map(UserMembership::getReference).toArray(String[]::new));
-                apiRepository
-                    .search(criteria.build(), null, ApiFieldFilter.defaultFields())
-                    .forEach(api -> {
-                        metadata.put(api.getId(), "name", api.getName());
-                        metadata.put(api.getId(), "version", api.getVersion());
-                        metadata.put(api.getId(), "visibility", api.getVisibility());
-                        metadata.put(api.getId(), "environmentId", api.getEnvironmentId());
-                    });
+                criteria.ids(
+                    memberships
+                        .stream()
+                        .map(UserMembership::getReference)
+                        .toArray(String[]::new)
+                );
+                apiRepository.search(criteria.build(), null, ApiFieldFilter.defaultFields()).forEach(api -> {
+                    metadata.put(api.getId(), "name", api.getName());
+                    metadata.put(api.getId(), "version", api.getVersion());
+                    metadata.put(api.getId(), "visibility", api.getVisibility());
+                    metadata.put(api.getId(), "environmentId", api.getEnvironmentId());
+                });
             } else if (type.equals(MembershipReferenceType.APPLICATION)) {
                 applicationRepository
                     .findByIds(memberships.stream().map(UserMembership::getReference).collect(Collectors.toList()))
@@ -1519,9 +1525,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipEntity primaryOwner = getPrimaryOwner(organizationId, referenceType, referenceId);
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
-            Function<GroupEntity, String> poExtractor = referenceType == MembershipReferenceType.API_PRODUCT
-                ? GroupEntity::getApiProductPrimaryOwner
-                : GroupEntity::getApiPrimaryOwner;
+            Function<GroupEntity, String> poExtractor =
+                referenceType == MembershipReferenceType.API_PRODUCT
+                    ? GroupEntity::getApiProductPrimaryOwner
+                    : GroupEntity::getApiPrimaryOwner;
             primaryOwnerId = groupService
                 .findByIds(Set.of(primaryOwnerId))
                 .stream()
@@ -1671,9 +1678,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 Map<String, GroupEntity> groupsById = groupIdsWithPrimaryOwnerRole.isEmpty()
                     ? Map.of()
                     : groupService
-                        .findByIds(groupIdsWithPrimaryOwnerRole)
-                        .stream()
-                        .collect(Collectors.toMap(GroupEntity::getId, Function.identity()));
+                          .findByIds(groupIdsWithPrimaryOwnerRole)
+                          .stream()
+                          .collect(Collectors.toMap(GroupEntity::getId, Function.identity()));
 
                 final PrimaryOwnerEntity finalPrimaryOwner = primaryOwner;
                 userRoles.addAll(

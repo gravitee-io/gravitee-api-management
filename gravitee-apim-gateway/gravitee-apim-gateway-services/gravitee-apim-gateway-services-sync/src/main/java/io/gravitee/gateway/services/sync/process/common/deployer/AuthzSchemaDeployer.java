@@ -43,9 +43,10 @@ public class AuthzSchemaDeployer implements Deployer<AuthzSchemaReactorDeployabl
     @Override
     public Completable deploy(AuthzSchemaReactorDeployable deployable) {
         Set<String> removed = deployable.removedTargetPdpIds();
-        Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removeSchema(deployable.environmentId(), deployable.docId(), removed);
+        Completable eviction =
+            removed == null || removed.isEmpty()
+                ? Completable.complete()
+                : enginePort.removeSchema(deployable.environmentId(), deployable.docId(), removed);
         return eviction
             .andThen(
                 enginePort.addOrUpdateSchema(

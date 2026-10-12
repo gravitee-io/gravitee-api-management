@@ -65,8 +65,7 @@ public class V4ApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api
-                .getPlans()
+            api.getPlans()
                 .stream()
                 .filter(plan -> plan.getStatus() == null)
                 .forEach(plan -> plan.setStatus(PlanStatus.PUBLISHED));

@@ -136,8 +136,8 @@ public class PolicyPluginFactoryImpl implements PolicyPluginFactory {
             ? member.getClass() == Method.class
                 ? ((Method) member).getParameterTypes()
                 : member.getClass() == Constructor.class
-                    ? ((Constructor) member).getParameterTypes()
-                    : null
+                  ? ((Constructor) member).getParameterTypes()
+                  : null
             : null;
     }
 }

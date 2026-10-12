@@ -61,7 +61,7 @@ public class TracingPolicy implements Policy {
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         ReadWriteStream<Buffer> stream = policy.stream(chain, context);
-        return (stream == null) ? null : new TracingReadWriteStream(context, stream, policy);
+        return stream == null ? null : new TracingReadWriteStream(context, stream, policy);
     }
 
     @Override

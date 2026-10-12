@@ -157,7 +157,10 @@ class PortalLinksResourceTest extends AbstractResourceTest {
             );
 
             try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal-link.json")))
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-link.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalLinkUseCase).execute(any(CreateOrUpdatePortalLinkUseCase.Input.class));
@@ -195,7 +198,10 @@ class PortalLinksResourceTest extends AbstractResourceTest {
             );
 
             try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal-link.json")))
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-link.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
 

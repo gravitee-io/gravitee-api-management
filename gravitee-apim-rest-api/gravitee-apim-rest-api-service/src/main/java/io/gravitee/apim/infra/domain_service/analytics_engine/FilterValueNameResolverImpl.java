@@ -55,7 +55,10 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
         }
 
         return switch (filterName) {
-            case API -> apiCrudService.findByIds(ids).stream().collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
+            case API -> apiCrudService
+                .findByIds(ids)
+                .stream()
+                .collect(Collectors.toMap(api -> api.getId(), api -> api.getName()));
             case APPLICATION -> {
                 var names = new HashMap<>(
                     applicationCrudService
@@ -66,7 +69,10 @@ public class FilterValueNameResolverImpl implements FilterValueNameResolver {
                 names.put(UNKNOWN_APPLICATION_ID, UNKNOWN_APPLICATION_NAME);
                 yield names;
             }
-            case PLAN -> planCrudService.findByIds(ids).stream().collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
+            case PLAN -> planCrudService
+                .findByIds(ids)
+                .stream()
+                .collect(Collectors.toMap(plan -> plan.getId(), plan -> plan.getName()));
             case API_PRODUCT -> apiProductQueryService
                 .findByEnvironmentIdAndIdIn(environmentId, new HashSet<>(ids))
                 .stream()

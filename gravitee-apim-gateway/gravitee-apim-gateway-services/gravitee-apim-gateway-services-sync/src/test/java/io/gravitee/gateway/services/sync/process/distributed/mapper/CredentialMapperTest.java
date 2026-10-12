@@ -82,8 +82,7 @@ class CredentialMapperTest {
 
     @Test
     void should_return_empty_with_wrong_payload() {
-        cut
-            .to(DistributedEvent.builder().id("credential-1").syncAction(DistributedSyncAction.DEPLOY).payload("wrong").build())
+        cut.to(DistributedEvent.builder().id("credential-1").syncAction(DistributedSyncAction.DEPLOY).payload("wrong").build())
             .test()
             .assertComplete()
             .assertNoValues();

@@ -40,18 +40,16 @@ import lombok.experimental.SuperBuilder;
     }
 )
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(name = "JKS", value = JKSKeyStore.class),
-        @JsonSubTypes.Type(name = "PEM", value = PEMKeyStore.class),
-        @JsonSubTypes.Type(name = "PKCS12", value = PKCS12KeyStore.class),
-        @JsonSubTypes.Type(value = NoneKeyStore.class),
-        // legacy support
-        @JsonSubTypes.Type(name = "jks", value = JKSKeyStore.class),
-        @JsonSubTypes.Type(name = "pem", value = PEMKeyStore.class),
-        @JsonSubTypes.Type(name = "pkcs12", value = PKCS12KeyStore.class),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(name = "JKS", value = JKSKeyStore.class),
+    @JsonSubTypes.Type(name = "PEM", value = PEMKeyStore.class),
+    @JsonSubTypes.Type(name = "PKCS12", value = PKCS12KeyStore.class),
+    @JsonSubTypes.Type(value = NoneKeyStore.class),
+    // legacy support
+    @JsonSubTypes.Type(name = "jks", value = JKSKeyStore.class),
+    @JsonSubTypes.Type(name = "pem", value = PEMKeyStore.class),
+    @JsonSubTypes.Type(name = "pkcs12", value = PKCS12KeyStore.class),
+})
 @SuperBuilder
 public abstract class KeyStore implements Serializable {
 

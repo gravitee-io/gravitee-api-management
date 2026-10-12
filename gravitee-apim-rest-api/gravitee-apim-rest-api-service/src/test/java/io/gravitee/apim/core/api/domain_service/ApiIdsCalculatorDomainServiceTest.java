@@ -101,18 +101,14 @@ class ApiIdsCalculatorDomainServiceTest {
         void should_generate_ids_for_plans_and_pages_when_absent(Set<PlanWithFlows> plans, List<Page> pages) {
             final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    assertIsUuid(plan.getId());
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    assertIsUuid(page.getId());
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                assertIsUuid(plan.getId());
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                assertIsUuid(page.getId());
+            });
         }
 
         private static Stream<Arguments> providePlansAndPagesWithoutId() {
@@ -138,30 +134,26 @@ class ApiIdsCalculatorDomainServiceTest {
                 .collect(Collectors.toMap(Page::getName, Page::getId));
 
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then keep the original id
-                        assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(plan.getId());
-                    }
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then keep the original id
-                        assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(page.getId());
-                    }
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then keep the original id
+                    assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(plan.getId());
+                }
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then keep the original id
+                    assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(page.getId());
+                }
+            });
         }
 
         private static Stream<Arguments> provideMixedPlansAndPagesWithAndWithoutIds() {
@@ -441,41 +433,37 @@ class ApiIdsCalculatorDomainServiceTest {
             assertIsUuid(result.getApiExport().getId());
 
             // Verify ids has properly been recalculated when empty
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then id must have been recalculated
-                        assertThat(plan.getId()).isNotEqualTo(plansIdByName.get(plan.getName()));
-                    }
-                    assertIsUuid(plan.getId());
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then id must have been recalculated
-                        assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(page.getName()));
-                    }
-                    // one page of the data set has a parent id, verify the matching
-                    if (page.getParentId() != null) {
-                        pagesIdByName.forEach((key, value) -> {
-                            if (value.equals("a-page-id")) {
-                                String pageName = key;
-                                final Optional<Page> parentPage = result
-                                    .getPages()
-                                    .stream()
-                                    .filter(p -> p.getName().equals(pageName))
-                                    .findFirst();
-                                assertThat(parentPage).isNotEmpty();
-                                assertThat(page.getParentId()).isEqualTo(parentPage.get().getId());
-                            }
-                        });
-                    }
-                    assertIsUuid(page.getId());
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then id must have been recalculated
+                    assertThat(plan.getId()).isNotEqualTo(plansIdByName.get(plan.getName()));
+                }
+                assertIsUuid(plan.getId());
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then id must have been recalculated
+                    assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(page.getName()));
+                }
+                // one page of the data set has a parent id, verify the matching
+                if (page.getParentId() != null) {
+                    pagesIdByName.forEach((key, value) -> {
+                        if (value.equals("a-page-id")) {
+                            String pageName = key;
+                            final Optional<Page> parentPage = result
+                                .getPages()
+                                .stream()
+                                .filter(p -> p.getName().equals(pageName))
+                                .findFirst();
+                            assertThat(parentPage).isNotEmpty();
+                            assertThat(page.getParentId()).isEqualTo(parentPage.get().getId());
+                        }
+                    });
+                }
+                assertIsUuid(page.getId());
+            });
         }
 
         @Test
@@ -497,30 +485,26 @@ class ApiIdsCalculatorDomainServiceTest {
             final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
             // Verify ids has properly been recalculated when empty
-            result
-                .getPlans()
-                .forEach(plan -> {
-                    assertThat(plan.getId()).isNotEmpty();
-                    if (plansIdByName.containsKey(plan.getName())) {
-                        // If map contains plan's name, then keep the original id
-                        assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(plan.getId());
-                    }
-                });
-            result
-                .getPages()
-                .forEach(page -> {
-                    assertThat(page.getId()).isNotEmpty();
-                    if (pagesIdByName.containsKey(page.getName())) {
-                        // If map contains page's name, then keep the original id
-                        assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
-                    } else {
-                        // else generate one
-                        assertIsUuid(page.getId());
-                    }
-                });
+            result.getPlans().forEach(plan -> {
+                assertThat(plan.getId()).isNotEmpty();
+                if (plansIdByName.containsKey(plan.getName())) {
+                    // If map contains plan's name, then keep the original id
+                    assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(plan.getId());
+                }
+            });
+            result.getPages().forEach(page -> {
+                assertThat(page.getId()).isNotEmpty();
+                if (pagesIdByName.containsKey(page.getName())) {
+                    // If map contains page's name, then keep the original id
+                    assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
+                } else {
+                    // else generate one
+                    assertIsUuid(page.getId());
+                }
+            });
         }
     }
 

@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 public class BufferUtils {
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
-        if (maxLength != -1 && (buffer.length() + chunk.length()) > maxLength) {
+        if (maxLength != -1 && buffer.length() + chunk.length() > maxLength) {
             final int remainingSpace = maxLength - buffer.length();
             if (remainingSpace > 0) {
                 buffer.appendBuffer(chunk, remainingSpace);

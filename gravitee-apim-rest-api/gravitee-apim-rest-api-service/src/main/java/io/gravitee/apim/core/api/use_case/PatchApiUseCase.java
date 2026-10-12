@@ -644,7 +644,8 @@ public class PatchApiUseCase {
             .stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, e ->
-                    (e.getValue() == null ? Map.<String, PatchableResponseTemplate>of() : e.getValue()).entrySet()
+                    (e.getValue() == null ? Map.<String, PatchableResponseTemplate>of() : e.getValue())
+                        .entrySet()
                         .stream()
                         .filter(inner -> inner.getValue() != null)
                         .collect(Collectors.toMap(Map.Entry::getKey, inner -> inner.getValue().toDomain()))
@@ -846,7 +847,7 @@ public class PatchApiUseCase {
         if (cause instanceof JsonMappingException jme && jme.getPath() != null && !jme.getPath().isEmpty()) {
             var refs = jme.getPath();
             var sb = new StringBuilder("/").append(field);
-            int start = (!refs.isEmpty() && field.equals(refs.getFirst().getFieldName())) ? 1 : 0;
+            int start = !refs.isEmpty() && field.equals(refs.getFirst().getFieldName()) ? 1 : 0;
             for (int i = start; i < refs.size(); i++) {
                 var ref = refs.get(i);
                 if (ref.getFieldName() != null) {
@@ -1028,7 +1029,8 @@ public class PatchApiUseCase {
                 .stream()
                 .collect(
                     Collectors.toMap(Map.Entry::getKey, e ->
-                        (e.getValue() == null ? Map.<String, ResponseTemplate>of() : e.getValue()).entrySet()
+                        (e.getValue() == null ? Map.<String, ResponseTemplate>of() : e.getValue())
+                            .entrySet()
                             .stream()
                             .filter(inner -> inner.getValue() != null)
                             .collect(Collectors.toMap(Map.Entry::getKey, inner -> PatchableResponseTemplate.from(inner.getValue())))

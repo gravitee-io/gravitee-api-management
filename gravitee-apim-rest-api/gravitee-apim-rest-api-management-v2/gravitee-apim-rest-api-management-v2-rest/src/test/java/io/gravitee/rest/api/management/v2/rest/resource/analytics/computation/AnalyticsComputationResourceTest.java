@@ -189,26 +189,26 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @Test
         void should_fail_with_null_filter_value() {
             var json = """
-                {
-                    "timeRange": {
-                        "from": "2025-01-01T00:00:00Z",
-                        "to": "2025-01-02T00:00:00Z"
-                    },
-                    "filters": [
-                        {
-                            "name": "API_TYPE",
-                            "operator": "EQ",
-                            "value": null
-                        }
-                    ],
-                    "metrics": [
-                        {
-                            "name": "HTTP_REQUESTS",
-                            "measures": ["COUNT"]
-                        }
-                    ]
-                }
-                """;
+            {
+                "timeRange": {
+                    "from": "2025-01-01T00:00:00Z",
+                    "to": "2025-01-02T00:00:00Z"
+                },
+                "filters": [
+                    {
+                        "name": "API_TYPE",
+                        "operator": "EQ",
+                        "value": null
+                    }
+                ],
+                "metrics": [
+                    {
+                        "name": "HTTP_REQUESTS",
+                        "measures": ["COUNT"]
+                    }
+                ]
+            }
+            """;
             var response = rootTarget().path("measures").request().post(Entity.json(json));
 
             assertThat(response).hasStatus(400);

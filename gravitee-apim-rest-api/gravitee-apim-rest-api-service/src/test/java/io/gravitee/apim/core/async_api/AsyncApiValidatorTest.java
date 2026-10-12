@@ -37,7 +37,9 @@ class AsyncApiValidatorTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "asyncapi: '3.0.0'\ninfo:\n  title: Test", "asyncapi: '2.6.0'\ninfo:\n  title: Test", "  \n  asyncapi: '3.0.0'  \n  ",
+                "asyncapi: '3.0.0'\ninfo:\n  title: Test",
+                "asyncapi: '2.6.0'\ninfo:\n  title: Test",
+                "  \n  asyncapi: '3.0.0'  \n  ",
             }
         )
         void should_accept_valid_content(String validContent) {

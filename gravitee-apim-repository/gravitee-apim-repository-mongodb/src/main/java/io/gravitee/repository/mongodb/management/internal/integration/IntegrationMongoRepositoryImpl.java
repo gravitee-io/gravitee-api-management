@@ -66,7 +66,7 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
 
         List<IntegrationMongo> integrations = mongoTemplate.find(query, IntegrationMongo.class);
 
-        return new Page<>(integrations, (pageable != null) ? pageable.pageNumber() : 0, integrations.size(), total);
+        return new Page<>(integrations, pageable != null ? pageable.pageNumber() : 0, integrations.size(), total);
     }
 
     @Override
@@ -83,6 +83,6 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
 
         List<IntegrationMongo> integrations = mongoTemplate.find(query, IntegrationMongo.class);
 
-        return new Page<>(integrations, (pageable != null) ? pageable.pageNumber() : 0, integrations.size(), total);
+        return new Page<>(integrations, pageable != null ? pageable.pageNumber() : 0, integrations.size(), total);
     }
 }

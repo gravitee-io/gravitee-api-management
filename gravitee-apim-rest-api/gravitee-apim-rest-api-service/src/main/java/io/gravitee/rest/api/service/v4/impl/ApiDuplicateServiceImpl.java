@@ -76,7 +76,10 @@ public class ApiDuplicateServiceImpl extends AbstractService implements ApiDupli
                     if (duplicateOptions.getContextPath() == null) {
                         throw new ApiDuplicateException("Cannot find a context-path for HTTP Listener");
                     }
-                    return httpListener.toBuilder().paths(List.of(Path.builder().path(duplicateOptions.getContextPath()).build())).build();
+                    return httpListener
+                        .toBuilder()
+                        .paths(List.of(Path.builder().path(duplicateOptions.getContextPath()).build()))
+                        .build();
                 }
                 if (l instanceof TcpListener tcpListener) {
                     if (duplicateOptions.getHost() == null) {

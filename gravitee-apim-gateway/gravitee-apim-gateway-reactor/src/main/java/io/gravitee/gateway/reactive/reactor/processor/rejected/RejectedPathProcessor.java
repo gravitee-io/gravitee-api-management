@@ -82,8 +82,7 @@ public class RejectedPathProcessor implements Processor {
             // holding any non-ASCII character has more bytes than it has characters, and a short
             // Content-Length truncates the response.
             ctx.response().headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(body.length()));
-            ctx
-                .response()
+            ctx.response()
                 .headers()
                 .set(HttpHeaderNames.CONTENT_TYPE, environment.getProperty("http.errors[400].contentType", MediaType.TEXT_PLAIN));
             ctx.response().body(body);

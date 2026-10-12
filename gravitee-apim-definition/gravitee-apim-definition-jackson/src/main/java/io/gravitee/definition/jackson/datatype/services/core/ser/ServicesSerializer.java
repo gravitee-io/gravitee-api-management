@@ -39,15 +39,13 @@ public class ServicesSerializer extends StdScalarSerializer<Services> {
     public void serialize(Services services, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         if (services.getAll() != null && !services.getAll().isEmpty()) {
-            services
-                .getAll()
-                .forEach(service -> {
-                    try {
-                        jgen.writeObjectField(service.getName(), service);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            services.getAll().forEach(service -> {
+                try {
+                    jgen.writeObjectField(service.getName(), service);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         jgen.writeEndObject();
     }

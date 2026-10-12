@@ -271,8 +271,7 @@ class MigrateApiUseCaseTest {
         when(apiService.isSynchronized(any(), any())).thenReturn(false);
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -293,8 +292,7 @@ class MigrateApiUseCaseTest {
     void should_return_fail_when_api_dont_use_v4_emulation_engine() {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -317,8 +315,7 @@ class MigrateApiUseCaseTest {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -346,8 +343,7 @@ class MigrateApiUseCaseTest {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -383,8 +379,7 @@ class MigrateApiUseCaseTest {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -419,8 +414,7 @@ class MigrateApiUseCaseTest {
         // Given
         var api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
         api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
-        api
-            .getApiDefinition()
+        api.getApiDefinition()
             .getProxy()
             .getGroups()
             .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -1134,16 +1128,14 @@ class MigrateApiUseCaseTest {
             .getProxy()
             .getGroups()
             .forEach(group ->
-                group
-                    .getEndpoints()
-                    .forEach(e -> {
-                        EndpointHealthCheckService endpointHealthCheckService = new EndpointHealthCheckService();
-                        endpointHealthCheckService.setInherit(false);
-                        e.setHealthCheck(endpointHealthCheckService);
-                        e.setConfiguration(
-                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
-                        );
-                    })
+                group.getEndpoints().forEach(e -> {
+                    EndpointHealthCheckService endpointHealthCheckService = new EndpointHealthCheckService();
+                    endpointHealthCheckService.setInherit(false);
+                    e.setHealthCheck(endpointHealthCheckService);
+                    e.setConfiguration(
+                        "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
+                    );
+                })
             );
 
         apiCrudService.initWith(java.util.List.of(v2api));
@@ -1222,22 +1214,20 @@ class MigrateApiUseCaseTest {
             .getProxy()
             .getGroups()
             .forEach(group -> {
-                group
-                    .getEndpoints()
-                    .forEach(e -> {
-                        EndpointHealthCheckService endpointHealthCheckService = EndpointHealthCheckService.builder()
-                            .enabled(true) // comes from ScheduledService (superclass)
-                            .schedule("*/1 * * * * *") // run every 30s, for example
-                            .steps(List.of(step2))
-                            .build();
-                        endpointHealthCheckService.setInherit(false);
-                        e.setConfiguration(
-                            "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
-                        );
-                        e.setInherit(false);
+                group.getEndpoints().forEach(e -> {
+                    EndpointHealthCheckService endpointHealthCheckService = EndpointHealthCheckService.builder()
+                        .enabled(true) // comes from ScheduledService (superclass)
+                        .schedule("*/1 * * * * *") // run every 30s, for example
+                        .steps(List.of(step2))
+                        .build();
+                    endpointHealthCheckService.setInherit(false);
+                    e.setConfiguration(
+                        "{\"name\":\"default\",\"target\":\"http://test\",\"weight\":1,\"backup\":false,\"status\":\"UP\",\"tenants\":[],\"type\":\"http\",\"inherit\":true,\"headers\":[],\"proxy\":null,\"http\":null,\"ssl\":null,\"healthcheck\":{\"schedule\":\"0 */1 * * * *\",\"steps\":[{\"name\":\"default-step\",\"request\":{\"path\":\"/hc3\",\"method\":\"GET\",\"headers\":[],\"fromRoot\":false},\"response\":{\"assertions\":[\"#response.status == 202\"]}}],\"enabled\":true,\"inherit\":false}}"
+                    );
+                    e.setInherit(false);
 
-                        e.setHealthCheck(endpointHealthCheckService);
-                    });
+                    e.setHealthCheck(endpointHealthCheckService);
+                });
             });
 
         apiCrudService.initWith(java.util.List.of(v2api));
@@ -1848,16 +1838,14 @@ class MigrateApiUseCaseTest {
             .getProxy()
             .getGroups()
             .forEach(group ->
-                group
-                    .getEndpoints()
-                    .forEach(e -> {
-                        e.setInherit(false);
-                        // Simulate V2 endpoint configuration with extraneous http fields (clearTextUpgrade, maxHeaderSize, maxChunkSize)
-                        // and proxy with type field not allowed by the V4 schema
-                        e.setConfiguration(
-                            "{\"target\":\"https://api.gravitee.io/echo\",\"http\":{\"version\":\"HTTP_1_1\",\"clearTextUpgrade\":true,\"maxHeaderSize\":8192,\"maxChunkSize\":8192,\"readTimeout\":10000},\"proxy\":{\"enabled\":false,\"useSystemProxy\":false,\"type\":\"HTTP\"}}"
-                        );
-                    })
+                group.getEndpoints().forEach(e -> {
+                    e.setInherit(false);
+                    // Simulate V2 endpoint configuration with extraneous http fields (clearTextUpgrade, maxHeaderSize, maxChunkSize)
+                    // and proxy with type field not allowed by the V4 schema
+                    e.setConfiguration(
+                        "{\"target\":\"https://api.gravitee.io/echo\",\"http\":{\"version\":\"HTTP_1_1\",\"clearTextUpgrade\":true,\"maxHeaderSize\":8192,\"maxChunkSize\":8192,\"readTimeout\":10000},\"proxy\":{\"enabled\":false,\"useSystemProxy\":false,\"type\":\"HTTP\"}}"
+                    );
+                })
             );
         apiCrudService.initWith(List.of(v2Api));
 

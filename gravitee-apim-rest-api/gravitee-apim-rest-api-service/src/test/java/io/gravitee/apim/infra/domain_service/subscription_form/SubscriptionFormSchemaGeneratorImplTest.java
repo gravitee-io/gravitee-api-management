@@ -56,8 +56,8 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @Test
     void should_parse_gmd_input_with_all_validation_attributes() {
         String gmd = """
-            <gmd-input fieldKey="company" required="true" minLength="2" maxLength="100" pattern="[A-Za-z]+"/>
-            """;
+        <gmd-input fieldKey="company" required="true" minLength="2" maxLength="100" pattern="[A-Za-z]+"/>
+        """;
 
         SubscriptionFormSchema schema = generator.generate(GraviteeMarkdown.of(gmd));
 
@@ -199,10 +199,10 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @Test
     void should_parse_multiple_fields_preserving_order() {
         String gmd = """
-            <gmd-input fieldKey="company" required="true"/>
-            <gmd-select fieldKey="plan" required="true" options="Free,Pro"/>
-            <gmd-checkbox fieldKey="terms" required="true"/>
-            """;
+        <gmd-input fieldKey="company" required="true"/>
+        <gmd-select fieldKey="plan" required="true" options="Free,Pro"/>
+        <gmd-checkbox fieldKey="terms" required="true"/>
+        """;
 
         List<SubscriptionFormSchema.Field> fields = generator.generate(GraviteeMarkdown.of(gmd)).fields();
 
@@ -213,10 +213,10 @@ class SubscriptionFormSchemaGeneratorImplTest {
     @Test
     void should_ignore_non_form_elements() {
         String gmd = """
-            <p>Some paragraph</p>
-            <gmd-input fieldKey="name" required="true"/>
-            <div class="wrapper">text</div>
-            """;
+        <p>Some paragraph</p>
+        <gmd-input fieldKey="name" required="true"/>
+        <div class="wrapper">text</div>
+        """;
 
         List<SubscriptionFormSchema.Field> fields = generator.generate(GraviteeMarkdown.of(gmd)).fields();
 

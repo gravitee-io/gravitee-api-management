@@ -85,7 +85,15 @@ class ApiTest {
     @Test
     void getPluginsForApiV2WithPlans() {
         Api apiWithPlans = ApiDefinitionFixtures.anApiV2();
-        Plan plan = Plan.builder().flows(List.of(Flow.builder().pre(List.of(Step.builder().policy("json-xml").build())).build())).build();
+        Plan plan = Plan.builder()
+            .flows(
+                List.of(
+                    Flow.builder()
+                        .pre(List.of(Step.builder().policy("json-xml").build()))
+                        .build()
+                )
+            )
+            .build();
         apiWithPlans.setPlans(List.of(plan));
         assertThat(apiWithPlans.getPlugins()).containsOnly(new Plugin("policy", "json-xml"));
     }
@@ -283,7 +291,11 @@ class ApiTest {
     void getPluginsForApiV4WithListeners() {
         io.gravitee.definition.model.v4.Api apiWithListeners = ApiDefinitionFixtures.anApiV4();
         apiWithListeners.setListeners(
-            List.of(SubscriptionListener.builder().entrypoints(List.of(Entrypoint.builder().type("websocket").build())).build())
+            List.of(
+                SubscriptionListener.builder()
+                    .entrypoints(List.of(Entrypoint.builder().type("websocket").build()))
+                    .build()
+            )
         );
         assertThat(apiWithListeners.getPlugins()).containsOnly(new Plugin("entrypoint-connector", "websocket"));
     }
@@ -292,7 +304,11 @@ class ApiTest {
     void getPluginsForApiV4WithEndpoints() {
         io.gravitee.definition.model.v4.Api apiWithEndpoints = ApiDefinitionFixtures.anApiV4();
         apiWithEndpoints.setEndpointGroups(
-            List.of(EndpointGroup.builder().endpoints(List.of(Endpoint.builder().type("mqtt5").build())).build())
+            List.of(
+                EndpointGroup.builder()
+                    .endpoints(List.of(Endpoint.builder().type("mqtt5").build()))
+                    .build()
+            )
         );
         assertThat(apiWithEndpoints.getPlugins()).containsOnly(new Plugin("endpoint-connector", "mqtt5"));
     }

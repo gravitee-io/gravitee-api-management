@@ -61,8 +61,7 @@ class DebugEventFetcherTest {
     void should_fetch_debug_event() {
         Event event = new Event();
         when(eventRepository.search(any())).thenReturn(List.of(event));
-        cut
-            .fetchLatest(null, null, Set.of())
+        cut.fetchLatest(null, null, Set.of())
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(event));
@@ -87,8 +86,7 @@ class DebugEventFetcherTest {
                 )
             )
         ).thenReturn(List.of(event));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(event));

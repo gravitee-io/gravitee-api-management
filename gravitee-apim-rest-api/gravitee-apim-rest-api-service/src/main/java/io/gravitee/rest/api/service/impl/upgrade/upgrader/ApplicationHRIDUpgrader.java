@@ -61,15 +61,13 @@ public class ApplicationHRIDUpgrader implements Upgrader {
     }
 
     private void setHRIDs(ExecutionContext executionContext) throws TechnicalException {
-        applicationRepository
-            .findAllByEnvironment(executionContext.getEnvironmentId())
-            .forEach(application -> {
-                application.setHrid(application.getId());
-                try {
-                    applicationRepository.update(application);
-                } catch (TechnicalException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        applicationRepository.findAllByEnvironment(executionContext.getEnvironmentId()).forEach(application -> {
+            application.setHrid(application.getId());
+            try {
+                applicationRepository.update(application);
+            } catch (TechnicalException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

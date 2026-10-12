@@ -46,7 +46,7 @@ abstract class JdbcAbstractPageableRepository<T> extends JdbcAbstractRepository<
             return new Page<>(emptyList(), page.pageNumber(), 0, items.size());
         }
 
-        if ((start == 0) && (page.pageNumber() > 0)) {
+        if (start == 0 && page.pageNumber() > 0) {
             start = page.pageNumber() * page.pageSize();
         }
         int rows = page.pageSize();

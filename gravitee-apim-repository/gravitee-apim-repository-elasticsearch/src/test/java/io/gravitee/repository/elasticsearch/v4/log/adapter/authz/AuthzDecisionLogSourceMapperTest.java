@@ -82,12 +82,10 @@ class AuthzDecisionLogSourceMapperTest {
             soft.assertThat(decision.outcome()).isEqualTo("DENY");
             soft.assertThat(decision.enforced()).isEqualTo("DENY");
             soft.assertThat(decision.indeterminateCause()).isNull();
-            soft
-                .assertThat(decision.matchedRules())
-                .containsExactly(
-                    new AuthzDecisionLog.MatchedRule("p1", "deny-writers", "2026-09-23T10:00:00Z", "FORBID"),
-                    new AuthzDecisionLog.MatchedRule("p2", "deny-admins", null, "FORBID")
-                );
+            soft.assertThat(decision.matchedRules()).containsExactly(
+                new AuthzDecisionLog.MatchedRule("p1", "deny-writers", "2026-09-23T10:00:00Z", "FORBID"),
+                new AuthzDecisionLog.MatchedRule("p2", "deny-admins", null, "FORBID")
+            );
             soft.assertThat(decision.reasons()).containsExactly("Forbidden by policy 'deny-writers'");
             soft.assertThat(decision.subjectType()).isEqualTo("User");
             soft.assertThat(decision.subjectId()).isEqualTo("alice");

@@ -22,6 +22,7 @@ package io.gravitee.repository.management.model;
 public enum MetadataReferenceType {
     @Deprecated
     DEFAULT,
+
     API,
     APPLICATION,
     ENVIRONMENT,

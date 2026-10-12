@@ -65,7 +65,11 @@ class ApiMapperTest {
         io.gravitee.definition.model.Api apiDef = new io.gravitee.definition.model.Api();
         apiDef.setId("apiId");
         apiDef.setDefinitionVersion(DefinitionVersion.V2);
-        apiDef.setProxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/path"))).build());
+        apiDef.setProxy(
+            Proxy.builder()
+                .virtualHosts(List.of(new VirtualHost("/path")))
+                .build()
+        );
         io.gravitee.gateway.handlers.api.definition.Api api = new io.gravitee.gateway.handlers.api.definition.Api(apiDef);
 
         DistributedEvent distributedEvent = DistributedEvent.builder()
@@ -82,8 +86,7 @@ class ApiMapperTest {
             .syncAction(SyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(reactorDeployable -> {
                 assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
@@ -115,8 +118,7 @@ class ApiMapperTest {
             .syncAction(SyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(reactorDeployable -> {
                 assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
@@ -147,8 +149,7 @@ class ApiMapperTest {
             .syncAction(SyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(reactorDeployable -> {
                 assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
@@ -179,8 +180,7 @@ class ApiMapperTest {
             .syncAction(SyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(reactorDeployable -> {
                 assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
@@ -210,8 +210,7 @@ class ApiMapperTest {
             .apiKeys(List.of(apiKey))
             .subscriptions(List.of(subscription))
             .build();
-        cut
-            .to(apiReactorDeployable)
+        cut.to(apiReactorDeployable)
             .test()
             .assertValueCount(3)
             .assertValueAt(0, distributedEvent -> {

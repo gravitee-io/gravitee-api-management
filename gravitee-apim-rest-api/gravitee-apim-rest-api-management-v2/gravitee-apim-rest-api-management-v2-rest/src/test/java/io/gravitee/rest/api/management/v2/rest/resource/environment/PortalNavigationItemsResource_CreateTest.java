@@ -209,22 +209,24 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
                 .fetchCron("0 */10 * * * *")
         );
 
-        final var output =
-            ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) PortalNavigationItemsFixtures.aPortalNavigationPage(
-                    ORGANIZATION,
-                    ENVIRONMENT
-                )).toBuilder()
-                .source(
-                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
-                        .sourceType("github-fetcher")
-                        .sourceConfiguration("{\"repository\":\"docs\"}")
-                        .useAutoFetch(true)
-                        .fetchCron("0 */10 * * * *")
-                        .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
-                        .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
-                        .build()
-                )
-                .build();
+        final var output = (
+            (io.gravitee.apim.core.portal_page.model.PortalNavigationPage) PortalNavigationItemsFixtures.aPortalNavigationPage(
+                ORGANIZATION,
+                ENVIRONMENT
+            )
+        )
+            .toBuilder()
+            .source(
+                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                    .sourceType("github-fetcher")
+                    .sourceConfiguration("{\"repository\":\"docs\"}")
+                    .useAutoFetch(true)
+                    .fetchCron("0 */10 * * * *")
+                    .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                    .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
+                    .build()
+            )
+            .build();
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         // When

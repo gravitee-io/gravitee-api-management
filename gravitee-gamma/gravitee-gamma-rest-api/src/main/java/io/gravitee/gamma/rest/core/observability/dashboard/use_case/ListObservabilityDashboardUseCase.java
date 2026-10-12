@@ -72,16 +72,16 @@ public class ListObservabilityDashboardUseCase {
         return input.modules().isEmpty()
             ? all
             : all
-                .stream()
-                .filter(dashboard -> dashboard.belongsToOneOf(input.modules()))
-                .toList();
+                  .stream()
+                  .filter(dashboard -> dashboard.belongsToOneOf(input.modules()))
+                  .toList();
     }
 
     private static int resolvePage(Input input) {
-        return (input.page() != null && input.page() > 0) ? input.page() : DEFAULT_PAGE;
+        return input.page() != null && input.page() > 0 ? input.page() : DEFAULT_PAGE;
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return input.perPage() != null && input.perPage() > 0 ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
     }
 }

@@ -133,53 +133,53 @@ class HttpProxyEndpointConnectorFactoryTest {
     static final String CONFIG = "{\n" + "  \"target\": \"https://localhost:8082/echo?foo=bar\"\n" + "}";
 
     static final String SHARED_CONFIG = """
-        {
-               "http": {
-                   "keepAlive": true,
-                   "followRedirects": false,
-                   "readTimeout": 10000,
-                   "idleTimeout": 60000,
-                   "keepAliveTimeout": 30000,
-                   "connectTimeout": 5000,
-                   "propagateClientAcceptEncoding": true,
-                   "useCompression": false,
-                   "maxConcurrentConnections": 20,
-                   "version": "HTTP_1_1",
-                   "pipelining": false,
-                   "clearTextUpgrade": true
+    {
+           "http": {
+               "keepAlive": true,
+               "followRedirects": false,
+               "readTimeout": 10000,
+               "idleTimeout": 60000,
+               "keepAliveTimeout": 30000,
+               "connectTimeout": 5000,
+               "propagateClientAcceptEncoding": true,
+               "useCompression": false,
+               "maxConcurrentConnections": 20,
+               "version": "HTTP_1_1",
+               "pipelining": false,
+               "clearTextUpgrade": true
+           },
+           "proxy": {
+               "enabled": false,
+               "useSystemProxy": false,
+               "host": "localhost",
+               "port": 8080,
+               "username": "user",
+               "password": "pwd",
+               "type": "HTTP"
+           },
+           "headers": [
+               {
+                   "name": "X-Header1",
+                   "value": "Value1"
                },
-               "proxy": {
-                   "enabled": false,
-                   "useSystemProxy": false,
-                   "host": "localhost",
-                   "port": 8080,
-                   "username": "user",
-                   "password": "pwd",
-                   "type": "HTTP"
-               },
-               "headers": [
-                   {
-                       "name": "X-Header1",
-                       "value": "Value1"
-                   },
-                   {
-                       "name": "X-Header2",
-                       "value": "Value2"
-                   }
-               ],
-               "ssl": {
-                   "keyStore": {
-                       "type": "PKCS12",
-                       "content": "MIIG/Tsbfs1Cgn....",
-                       "password": "truststore-secret"
-                   },
-                   "hostnameVerifier": false,
-                   "trustStore": {
-                       "type": "PKCS12",
-                       "content": "MIIG/gIBAzCCBrcGCS....",
-                       "password": "truststore-secret"
-                   },
-                   "trustAll": false
+               {
+                   "name": "X-Header2",
+                   "value": "Value2"
                }
-        }""";
+           ],
+           "ssl": {
+               "keyStore": {
+                   "type": "PKCS12",
+                   "content": "MIIG/Tsbfs1Cgn....",
+                   "password": "truststore-secret"
+               },
+               "hostnameVerifier": false,
+               "trustStore": {
+                   "type": "PKCS12",
+                   "content": "MIIG/gIBAzCCBrcGCS....",
+                   "password": "truststore-secret"
+               },
+               "trustAll": false
+           }
+    }""";
 }

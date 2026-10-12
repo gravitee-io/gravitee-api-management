@@ -142,8 +142,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         if (aa.equals("Name changed 3 times")) {
             var tt = "Name changed 3 times";
         }
-        assertThat((page.getContent().get(0)).getName()).isEqualTo("Name changed 4 times");
-        assertThat((page.getContent().get(1)).getName()).isEqualTo("Name changed 5 times");
+        assertThat(page.getContent().get(0).getName()).isEqualTo("Name changed 4 times");
+        assertThat(page.getContent().get(1).getName()).isEqualTo("Name changed 5 times");
         assertThat(page.getTotalElements()).isEqualTo(10);
     }
 
@@ -183,8 +183,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         final var page = sharedPolicyGroupHistoryRepository.search(criteria, new PageableBuilder().pageNumber(0).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
-        assertThat((page.getContent().get(0)).getName()).isEqualTo("Name changed 0 times");
-        assertThat((page.getContent().get(1)).getName()).isEqualTo("Name changed 1 times");
+        assertThat(page.getContent().get(0).getName()).isEqualTo("Name changed 0 times");
+        assertThat(page.getContent().get(1).getName()).isEqualTo("Name changed 1 times");
         assertThat(page.getTotalElements()).isEqualTo(10);
 
         final var page2 = sharedPolicyGroupHistoryRepository.search(
@@ -194,8 +194,8 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         );
         assertThat(page2).isNotNull();
         assertThat(page2.getContent()).hasSize(2);
-        assertThat((page2.getContent().get(0)).getName()).isEqualTo("Name changed 9 times");
-        assertThat((page2.getContent().get(1)).getName()).isEqualTo("Name changed 8 times");
+        assertThat(page2.getContent().get(0).getName()).isEqualTo("Name changed 9 times");
+        assertThat(page2.getContent().get(1).getName()).isEqualTo("Name changed 8 times");
         assertThat(page2.getTotalElements()).isEqualTo(10);
     }
 

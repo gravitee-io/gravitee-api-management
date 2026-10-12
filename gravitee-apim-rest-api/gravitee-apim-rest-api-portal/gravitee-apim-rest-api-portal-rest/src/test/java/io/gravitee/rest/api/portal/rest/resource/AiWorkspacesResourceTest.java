@@ -108,7 +108,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         when(
             parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
         ).thenReturn(true);
-        doReturn(Set.of(application("app-1", USER_NAME))).when(applicationService).findByUser(any(ExecutionContext.class), eq(USER_NAME));
+        doReturn(Set.of(application("app-1", USER_NAME)))
+            .when(applicationService)
+            .findByUser(any(ExecutionContext.class), eq(USER_NAME));
     }
 
     @AfterEach
@@ -497,7 +499,13 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
             .type(ApiType.LLM_PROXY)
             .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(Path.builder().path(path).build()))
+                                .build()
+                        )
+                    )
                     .endpointGroups(
                         List.of(
                             EndpointGroup.builder()
@@ -524,7 +532,13 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
             .type(ApiType.LLM_PROXY)
             .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(Path.builder().path(path).build()))
+                                .build()
+                        )
+                    )
                     .build()
             )
             .build();

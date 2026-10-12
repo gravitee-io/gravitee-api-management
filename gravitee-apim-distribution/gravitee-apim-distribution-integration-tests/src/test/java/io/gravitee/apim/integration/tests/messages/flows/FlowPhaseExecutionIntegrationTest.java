@@ -138,13 +138,11 @@ public class FlowPhaseExecutionIntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition
-                    .getFlows()
-                    .forEach(flow -> {
-                        flow
-                            .selectorByType(SelectorType.CHANNEL)
-                            .ifPresent(selector -> ((ChannelSelector) selector).setChannelOperator(Operator.EQUALS));
-                    });
+                definition.getFlows().forEach(flow -> {
+                    flow.selectorByType(SelectorType.CHANNEL).ifPresent(selector ->
+                        ((ChannelSelector) selector).setChannelOperator(Operator.EQUALS)
+                    );
+                });
             }
         }
 
@@ -220,12 +218,10 @@ public class FlowPhaseExecutionIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi(
-        {
-            "/apis/v4/messages/flows/api-conditional-flows.json",
-            "/apis/v4/messages/flows/api-conditional-flows-double-evaluation-case.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/flows/api-conditional-flows.json",
+        "/apis/v4/messages/flows/api-conditional-flows-double-evaluation-case.json",
+    })
     @DisplayName("Flows with condition")
     class ConditionalFlows extends TestPreparer {
 

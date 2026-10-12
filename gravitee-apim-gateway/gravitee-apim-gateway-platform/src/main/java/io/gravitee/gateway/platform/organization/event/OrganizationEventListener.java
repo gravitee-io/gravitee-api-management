@@ -29,7 +29,8 @@ import java.util.Objects;
  */
 public class OrganizationEventListener
     extends AbstractService<OrganizationEventListener>
-    implements EventListener<OrganizationEvent, ReactableOrganization> {
+    implements EventListener<OrganizationEvent, ReactableOrganization>
+{
 
     private final OrganizationReactorRegistry v3OrganizationReactorRegistry;
     private final OrganizationReactorRegistry organizationReactorRegistry;

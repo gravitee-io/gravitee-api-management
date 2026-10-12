@@ -113,19 +113,17 @@ public class PortalPageMediaResource extends AbstractResource {
         mediaEntity.setFileName(originalFileName);
 
         mediaId = mediaService.savePortalMedia(GraviteeContext.getExecutionContext(), mediaEntity);
-        pageService
-            .attachMedia(page, mediaId, fileName == null ? originalFileName : fileName)
-            .ifPresent(pageEntity ->
-                pageEntity
-                    .getAttachedMedia()
-                    .stream()
-                    .filter(media -> media.getMediaHash().equals(mediaId))
-                    .findFirst()
-                    .ifPresent(createdMedia -> {
-                        mediaEntity.setCreateAt(createdMedia.getAttachedAt());
-                        mediaEntity.setHash(createdMedia.getMediaHash());
-                    })
-            );
+        pageService.attachMedia(page, mediaId, fileName == null ? originalFileName : fileName).ifPresent(pageEntity ->
+            pageEntity
+                .getAttachedMedia()
+                .stream()
+                .filter(media -> media.getMediaHash().equals(mediaId))
+                .findFirst()
+                .ifPresent(createdMedia -> {
+                    mediaEntity.setCreateAt(createdMedia.getAttachedAt());
+                    mediaEntity.setHash(createdMedia.getMediaHash());
+                })
+        );
 
         //remove data before sending entity
         mediaEntity.setData(null);

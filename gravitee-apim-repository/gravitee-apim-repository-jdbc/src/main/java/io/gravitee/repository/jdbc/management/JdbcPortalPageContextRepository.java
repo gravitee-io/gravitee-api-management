@@ -33,7 +33,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcPortalPageContextRepository
     extends JdbcAbstractCrudRepository<PortalPageContext, String>
-    implements PortalPageContextRepository {
+    implements PortalPageContextRepository
+{
 
     JdbcPortalPageContextRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_page_contexts");

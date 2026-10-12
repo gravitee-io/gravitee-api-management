@@ -419,42 +419,36 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                         Collectors.toMap(RoleMappingEntity::getCondition, roleMapping -> {
                             List<String> lstRoles = new ArrayList<>();
                             if (roleMapping.getOrganizations() != null && !roleMapping.getOrganizations().isEmpty()) {
-                                roleMapping
-                                    .getOrganizations()
-                                    .forEach(organizationRoleName -> {
-                                        // Ensure that the role is existing
+                                roleMapping.getOrganizations().forEach(organizationRoleName -> {
+                                    // Ensure that the role is existing
+                                    roleService.findByScopeAndName(
+                                        RoleScope.ORGANIZATION,
+                                        organizationRoleName,
+                                        executionContext.getOrganizationId()
+                                    );
+                                    lstRoles.add(
+                                        io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() + ":" + organizationRoleName
+                                    );
+                                });
+                            }
+                            if (roleMapping.getEnvironments() != null && !roleMapping.getEnvironments().isEmpty()) {
+                                roleMapping.getEnvironments().forEach((environmentId, environmentRoles) -> {
+                                    // Ensure that the role is existing
+                                    environmentRoles.forEach(environmentRoleName -> {
                                         roleService.findByScopeAndName(
-                                            RoleScope.ORGANIZATION,
-                                            organizationRoleName,
+                                            RoleScope.ENVIRONMENT,
+                                            environmentRoleName,
                                             executionContext.getOrganizationId()
                                         );
                                         lstRoles.add(
-                                            io.gravitee.repository.management.model.RoleScope.ORGANIZATION.name() +
+                                            io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() +
                                                 ":" +
-                                                organizationRoleName
+                                                environmentId +
+                                                ":" +
+                                                environmentRoleName
                                         );
                                     });
-                            }
-                            if (roleMapping.getEnvironments() != null && !roleMapping.getEnvironments().isEmpty()) {
-                                roleMapping
-                                    .getEnvironments()
-                                    .forEach((environmentId, environmentRoles) -> {
-                                        // Ensure that the role is existing
-                                        environmentRoles.forEach(environmentRoleName -> {
-                                            roleService.findByScopeAndName(
-                                                RoleScope.ENVIRONMENT,
-                                                environmentRoleName,
-                                                executionContext.getOrganizationId()
-                                            );
-                                            lstRoles.add(
-                                                io.gravitee.repository.management.model.RoleScope.ENVIRONMENT.name() +
-                                                    ":" +
-                                                    environmentId +
-                                                    ":" +
-                                                    environmentRoleName
-                                            );
-                                        });
-                                    });
+                                });
                             }
 
                             String[] roles = new String[lstRoles.size()];

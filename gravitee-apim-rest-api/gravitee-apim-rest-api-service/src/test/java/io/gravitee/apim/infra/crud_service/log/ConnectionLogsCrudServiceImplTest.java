@@ -464,7 +464,9 @@ class ConnectionLogsCrudServiceImplTest {
             assertThat(queryContext.getEnvId()).isEqualTo("DEFAULT");
 
             assertThat(captorMetricsQuery.getValue()).isEqualTo(
-                MetricsQuery.builder().filter(MetricsQuery.Filter.builder().applicationIds(Set.of("application-id")).build()).build()
+                MetricsQuery.builder()
+                    .filter(MetricsQuery.Filter.builder().applicationIds(Set.of("application-id")).build())
+                    .build()
             );
         }
 

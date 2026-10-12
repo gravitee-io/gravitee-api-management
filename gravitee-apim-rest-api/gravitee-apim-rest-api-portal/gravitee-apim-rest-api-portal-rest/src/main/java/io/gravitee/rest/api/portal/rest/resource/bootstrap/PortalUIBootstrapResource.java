@@ -80,12 +80,14 @@ public class PortalUIBootstrapResource {
             environmentId = enforceEnvironmentId;
             organizationId = environmentService.findById(environmentId).getOrganizationId();
         } else {
-            environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
-            organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+            environmentId =
+                GraviteeContext.getCurrentEnvironment() != null
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
+            organizationId =
+                GraviteeContext.getCurrentOrganization() != null
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
 
         String portalApiUrl = installationAccessQueryService.getPortalAPIUrl(environmentId);

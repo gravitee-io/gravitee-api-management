@@ -79,9 +79,11 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_parse_multiple_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field2;value2", "field3;value3" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "field1;value1",
+                "field2;value2",
+                "field3;value3",
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -104,9 +106,11 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_skip_invalid_format_entries() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "invalid-format", "field2;value2" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "field1;value1",
+                "invalid-format",
+                "field2;value2",
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1");
             assertThat(result.get("field2")).containsExactly("value2");
@@ -131,9 +135,10 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_handle_multiple_values_for_multiple_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "int_webhook_resp-status;200,500", "string_webhook_url;https://example.com,https://test.com" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "int_webhook_resp-status;200,500",
+                "string_webhook_url;https://example.com,https://test.com",
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("int_webhook_resp-status")).containsExactly("200", "500");
             assertThat(result.get("string_webhook_url")).containsExactly("https://example.com", "https://test.com");
@@ -141,18 +146,22 @@ class ApiMessageLogsMapperTest {
 
         @Test
         void should_merge_values_when_same_field_appears_multiple_times() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field1;value2", "field1;value3,value4" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "field1;value1",
+                "field1;value2",
+                "field1;value3,value4",
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value2", "value3", "value4");
         }
 
         @Test
         void should_merge_values_for_same_field_with_different_fields() {
-            Map<String, List<String>> result = mapper.mapAdditionalParams(
-                new String[] { "field1;value1", "field2;value2", "field1;value3" }
-            );
+            Map<String, List<String>> result = mapper.mapAdditionalParams(new String[] {
+                "field1;value1",
+                "field2;value2",
+                "field1;value3",
+            });
             assertThat(result).isNotNull();
             assertThat(result.get("field1")).containsExactly("value1", "value3");
             assertThat(result.get("field2")).containsExactly("value2");

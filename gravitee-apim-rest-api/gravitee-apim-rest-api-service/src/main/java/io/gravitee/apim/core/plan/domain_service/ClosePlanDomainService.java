@@ -53,15 +53,13 @@ public class ClosePlanDomainService {
     }
 
     public void close(String planId, AuditInfo auditInfo) {
-        subscriptionQueryService
-            .findActiveSubscriptionsByPlan(planId)
-            .forEach(subscription -> {
-                try {
-                    closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
-                } catch (Exception e) {
-                    log.warn("Could not close subscription {} while closing plan {}", subscription.getId(), planId, e);
-                }
-            });
+        subscriptionQueryService.findActiveSubscriptionsByPlan(planId).forEach(subscription -> {
+            try {
+                closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
+            } catch (Exception e) {
+                log.warn("Could not close subscription {} while closing plan {}", subscription.getId(), planId, e);
+            }
+        });
 
         var planToClose = planCrudService.getById(planId);
         final Plan closedPlan = planToClose.close();

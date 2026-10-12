@@ -58,10 +58,12 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
-            .put(
-                EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
             .put(EnvironmentPermission.TAG.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
@@ -103,10 +105,12 @@ public interface DefaultRoleEntityDefinition {
         ENVIRONMENT,
         false,
         Maps.<String, char[]>builder()
-            .put(
-                EnvironmentPermission.EDGE_CONFIGURATION.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.EDGE_CONFIGURATION.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
             .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
@@ -121,10 +125,12 @@ public interface DefaultRoleEntityDefinition {
         false,
         Maps.<String, char[]>builder()
             .put(EnvironmentPermission.AM_CONFIGURATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
-            .put(
-                EnvironmentPermission.AGENT_IDENTITY.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.AGENT_IDENTITY.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
             .build()
     );
 
@@ -134,24 +140,32 @@ public interface DefaultRoleEntityDefinition {
         ENVIRONMENT,
         false,
         Maps.<String, char[]>builder()
-            .put(
-                EnvironmentPermission.AUTHZ_ENTITIES.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(
-                EnvironmentPermission.AUTHZ_POLICIES.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.AUTHZ_ENTITIES.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
+            .put(EnvironmentPermission.AUTHZ_POLICIES.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
             .put(EnvironmentPermission.AUTHZ_PDP.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.AUTHZ_SCHEMA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(
-                EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
-            .put(
-                EnvironmentPermission.AUTHZ_SCIM_SYNC.getName(),
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            .put(EnvironmentPermission.AUTHZ_SCIM_CONNECTION.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
+            .put(EnvironmentPermission.AUTHZ_SCIM_SYNC.getName(), new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
             .build()
     );
 

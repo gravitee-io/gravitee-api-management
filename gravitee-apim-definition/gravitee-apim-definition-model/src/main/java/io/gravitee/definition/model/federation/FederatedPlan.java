@@ -80,7 +80,7 @@ public class FederatedPlan implements Serializable {
 
     @JsonIgnore
     public final boolean isOAuth() {
-        return (this.getSecurity() != null && "oauth2".equalsIgnoreCase(this.getSecurity().getType()));
+        return this.getSecurity() != null && "oauth2".equalsIgnoreCase(this.getSecurity().getType());
     }
 
     public FederatedPlan update(FederatedPlan plan) {

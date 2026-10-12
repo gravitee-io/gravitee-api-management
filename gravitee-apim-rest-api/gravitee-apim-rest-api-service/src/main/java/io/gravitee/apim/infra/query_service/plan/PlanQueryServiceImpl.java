@@ -52,8 +52,10 @@ public class PlanQueryServiceImpl implements PlanQueryService {
                 .filter(
                     plan ->
                         Objects.equals(plan.getGeneralConditions(), pageId) &&
-                        !(io.gravitee.repository.management.model.Plan.Status.CLOSED == plan.getStatus() ||
-                            io.gravitee.repository.management.model.Plan.Status.STAGING == plan.getStatus())
+                        !(
+                            io.gravitee.repository.management.model.Plan.Status.CLOSED == plan.getStatus() ||
+                            io.gravitee.repository.management.model.Plan.Status.STAGING == plan.getStatus()
+                        )
                 )
                 .map(PlanAdapter.INSTANCE::fromRepository)
                 .collect(Collectors.toList());

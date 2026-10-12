@@ -1084,7 +1084,9 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_add_mcp_proxy_tool_terms_filter() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyTools(Set.of("tool-a")).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().mcpProxyTools(Set.of("tool-a")).build())
+                .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_TOOL.v4Metrics())).isTrue();
         }
@@ -1100,7 +1102,9 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_add_mcp_proxy_prompt_terms_filter() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyPrompts(Set.of("prompt-a")).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().mcpProxyPrompts(Set.of("prompt-a")).build())
+                .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_PROMPT.v4Metrics())).isTrue();
         }
@@ -1268,7 +1272,9 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_scope_the_failure_origin_clause_to_native_documents() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE")).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE")).build())
+                .build();
 
             var clause = mustClauses(query).getJsonObject(0).getJsonObject("bool");
             assertThat(clause.getJsonArray("must").encode()).contains(STATUS_FIELD).contains("\"exists\"");
@@ -1298,7 +1304,9 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_ignore_unknown_origin_values_and_empty_sets() {
-            var unknown = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("BOGUS")).build()).build();
+            var unknown = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("BOGUS")).build())
+                .build();
             var empty = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of()).build()).build();
 
             assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(unknown)).getJsonObject("query")).isNull();
@@ -1306,7 +1314,9 @@ class SearchMetricsQueryAdapterTest {
         }
 
         private JsonObject singleOriginPredicate(String origin) {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of(origin)).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of(origin)).build())
+                .build();
             var must = mustClauses(query);
             assertThat(must).hasSize(1);
             var should = must.getJsonObject(0).getJsonObject("bool").getJsonArray("should");
@@ -1338,7 +1348,9 @@ class SearchMetricsQueryAdapterTest {
          */
         @Test
         void should_query_the_tenant_field_directly_for_both_indexes() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().tenants(Set.of("tenant-a")).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().tenants(Set.of("tenant-a")).build())
+                .build();
 
             var mustClauses = new JsonObject(SearchMetricsQueryAdapter.adapt(query))
                 .getJsonObject("query")
@@ -1353,7 +1365,9 @@ class SearchMetricsQueryAdapterTest {
 
         @Test
         void should_not_add_tenants_filter_when_null() {
-            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(null).build()).build();
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).tenants(null).build())
+                .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.TENANT)).isFalse();
         }

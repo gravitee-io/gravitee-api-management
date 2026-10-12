@@ -300,7 +300,9 @@ class SpiFilterRegistryTest {
      * scope decision filters to the decisions screen, and is deliberately not offered as an API kind.
      */
     private static String[] pickableApiTypeNames() {
-        return ApiType.API_KINDS.stream().map(Enum::name).toArray(String[]::new);
+        return ApiType.API_KINDS.stream()
+            .map(Enum::name)
+            .toArray(String[]::new);
     }
 
     private static FilterSpec byName(FilterRegistry registry, String name) {

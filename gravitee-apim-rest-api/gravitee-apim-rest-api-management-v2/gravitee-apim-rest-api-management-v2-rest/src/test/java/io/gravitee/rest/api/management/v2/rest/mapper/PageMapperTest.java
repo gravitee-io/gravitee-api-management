@@ -55,11 +55,11 @@ class PageMapperTest extends AbstractMapperTest {
         assertEquals("http-fetcher", pageSource.getType());
 
         var expectedConfig = """
-            {
-              "useSystemProxy" : false,
-              "autoFetch" : false,
-              "url" : "https://apim-master-api.team-apim.gravitee.dev/management/openapi.yaml"
-            }""";
+        {
+          "useSystemProxy" : false,
+          "autoFetch" : false,
+          "url" : "https://apim-master-api.team-apim.gravitee.dev/management/openapi.yaml"
+        }""";
         assertNotNull(pageSource.getConfiguration());
         assertEquals(expectedConfig, pageSource.getConfiguration().toString());
     }

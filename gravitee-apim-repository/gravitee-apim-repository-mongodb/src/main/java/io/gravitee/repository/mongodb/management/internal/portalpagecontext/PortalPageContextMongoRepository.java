@@ -28,7 +28,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PortalPageContextMongoRepository
-    extends MongoRepository<PortalPageContextMongo, String>, PortalPageContextMongoRepositoryCustom {
+    extends MongoRepository<PortalPageContextMongo, String>, PortalPageContextMongoRepositoryCustom
+{
     /**
      * Find all portal page contexts by context type and environment ID.
      */

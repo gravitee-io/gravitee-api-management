@@ -85,8 +85,7 @@ public class HelloReplyAdapterTest {
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(environmentService.getDefaultOrInitialize()).thenReturn(defaultEnvironment);
 
-        cut
-            .adapt(null, helloReply)
+        cut.adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {
@@ -120,8 +119,7 @@ public class HelloReplyAdapterTest {
         when(installationService.getOrInitialize()).thenReturn(new InstallationEntity());
         when(organizationService.getDefaultOrInitialize()).thenReturn(defaultOrganization);
 
-        cut
-            .adapt(null, helloReply)
+        cut.adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {
@@ -169,8 +167,7 @@ public class HelloReplyAdapterTest {
             HelloReplyPayload.builder().installationId("new-installation-id").installationStatus("new-installation-status").build()
         );
 
-        cut
-            .adapt(null, helloReply)
+        cut.adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {

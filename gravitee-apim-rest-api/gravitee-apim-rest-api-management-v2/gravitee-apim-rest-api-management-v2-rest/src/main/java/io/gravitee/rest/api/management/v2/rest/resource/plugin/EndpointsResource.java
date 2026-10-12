@@ -46,9 +46,10 @@ public class EndpointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEndpoints() {
-        String organizationId = GraviteeContext.getCurrentOrganization() != null
-            ? GraviteeContext.getCurrentOrganization()
-            : GraviteeContext.getDefaultOrganization();
+        String organizationId =
+            GraviteeContext.getCurrentOrganization() != null
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization();
         return ConnectorPluginMapper.INSTANCE.mapCorePlugin(
             getEndpointPluginsUseCase.getEndpointPluginsByOrganization(new GetEndpointPluginsUseCase.Input(organizationId)).plugins()
         );

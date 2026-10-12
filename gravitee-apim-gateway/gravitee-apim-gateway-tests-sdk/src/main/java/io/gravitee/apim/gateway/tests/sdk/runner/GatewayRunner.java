@@ -345,12 +345,10 @@ public class GatewayRunner {
         System.setProperty("services.core.http.port", "0");
         System.setProperty("services.core.http.enabled", String.valueOf(false));
 
-        gatewayConfiguration
-            .systemProperties()
-            .forEach((k, v) -> {
-                configuredSystemProperties.put(k, v);
-                System.setProperty(String.valueOf(k), String.valueOf(v));
-            });
+        gatewayConfiguration.systemProperties().forEach((k, v) -> {
+            configuredSystemProperties.put(k, v);
+            System.setProperty(String.valueOf(k), String.valueOf(v));
+        });
     }
 
     private void applyOnGraviteeYaml(ApplicationContext context, Properties extraProperties) {
@@ -1055,11 +1053,9 @@ public class GatewayRunner {
 
         final HashMap<String, String> variables = new HashMap<>();
 
-        gatewayDynamicConfig
-            .httpPorts()
-            .forEach((id, port) -> {
-                variables.put("GATEWAY_" + id.toUpperCase() + "_PORT", "" + port);
-            });
+        gatewayDynamicConfig.httpPorts().forEach((id, port) -> {
+            variables.put("GATEWAY_" + id.toUpperCase() + "_PORT", "" + port);
+        });
 
         testInstance.configurePlaceHolderVariables(variables);
 
@@ -1227,7 +1223,7 @@ public class GatewayRunner {
         // Ignore java:S1872 which explains that class names are not unique, they are only when they are within a package.
         // Here, we just enforce the class name is "Handler" because system property "java.protocol.handler.pkgs" will only look for class of this name and inherting from URLStreamHandler
         assert handlerClass.getSimpleName().equals("Handler") : "A URLStreamHandler must be in a class named 'Handler'; not " +
-        handlerClass.getSimpleName();
+            handlerClass.getSimpleName();
 
         final String protocolHandlersPackage =
             handlerClass.getPackage().getName().substring(0, lastDot) + (originalProperty.isEmpty() ? "" : "|" + originalProperty);

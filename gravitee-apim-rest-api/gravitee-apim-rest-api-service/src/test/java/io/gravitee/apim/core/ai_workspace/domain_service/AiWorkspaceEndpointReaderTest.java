@@ -78,7 +78,13 @@ class AiWorkspaceEndpointReaderTest {
             .type(type)
             .apiDefinitionHttpV4(
                 io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(Path.builder().path(path).build()))
+                                .build()
+                        )
+                    )
                     .build()
             )
             .build();

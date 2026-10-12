@@ -95,7 +95,9 @@ class ApiKeyDeployerTest {
 
         @Test
         void should_ignore_do_post_action() {
-            cut.doAfterDeployment((ApiKeyDeployable) null).test().assertComplete();
+            cut.doAfterDeployment((ApiKeyDeployable) null)
+                .test()
+                .assertComplete();
             verifyNoInteractions(apiKeyService);
         }
     }

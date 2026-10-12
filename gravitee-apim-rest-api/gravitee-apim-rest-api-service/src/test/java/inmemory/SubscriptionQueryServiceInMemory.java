@@ -96,8 +96,7 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                         SubscriptionEntity.Status.ACCEPTED,
                         SubscriptionEntity.Status.PENDING,
                         SubscriptionEntity.Status.PAUSED
-                    ).contains(subscription.getStatus()) &&
-                    subscription.getPlanId().equals(planId)
+                    ).contains(subscription.getStatus()) && subscription.getPlanId().equals(planId)
             )
             .toList();
     }
@@ -141,8 +140,7 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
                         SubscriptionEntity.Status.ACCEPTED,
                         SubscriptionEntity.Status.PENDING,
                         SubscriptionEntity.Status.PAUSED
-                    ).contains(subscription.getStatus()) &&
-                    applicationId.equals(subscription.getApplicationId())
+                    ).contains(subscription.getStatus()) && applicationId.equals(subscription.getApplicationId())
             )
             .filter(subscription -> {
                 try {

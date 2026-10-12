@@ -221,7 +221,9 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         when(userService.findById(any(), eq(USER_NAME))).thenReturn(existing);
         when(userService.update(any(), eq(ID), any(UpdateUserEntity.class))).thenReturn(existing);
 
-        final Response response = orgTarget().request().put(Entity.json(Map.of("picture", "")));
+        final Response response = orgTarget()
+            .request()
+            .put(Entity.json(Map.of("picture", "")));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
@@ -245,7 +247,9 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         when(userService.findById(any(), eq(USER_NAME))).thenReturn(existing);
         when(userService.update(any(), eq(ID), any(UpdateUserEntity.class))).thenReturn(existing);
 
-        final Response response = orgTarget().request().put(Entity.json(Map.of("firstname", "paula")));
+        final Response response = orgTarget()
+            .request()
+            .put(Entity.json(Map.of("firstname", "paula")));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 

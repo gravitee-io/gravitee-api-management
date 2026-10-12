@@ -332,11 +332,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
                 )
             );
 
-            validationResult
-                .severe()
-                .ifPresent(errors -> {
-                    throw new InvalidPathsException(errors.iterator().next().getMessage());
-                });
+            validationResult.severe().ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
 
             var sanitizedPaths = validationResult
                 .map(VerifyApiPathDomainService.Input::paths)

@@ -78,7 +78,8 @@ public class CurrentThemeDomainService {
     }
 
     private Optional<Theme> findFallback(Theme deactivated) {
-        return this.themeQueryService.findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
+        return this.themeQueryService
+            .findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
             .stream()
             .filter(theme -> !Objects.equals(theme.getId(), deactivated.getId()))
             .sorted(FALLBACK_PREFERENCE)

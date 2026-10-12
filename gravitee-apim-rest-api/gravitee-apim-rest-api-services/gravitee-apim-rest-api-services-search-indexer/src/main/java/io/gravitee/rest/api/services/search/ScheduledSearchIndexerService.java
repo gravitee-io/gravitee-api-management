@@ -98,13 +98,11 @@ public class ScheduledSearchIndexerService extends AbstractService implements Ru
         query.setTags(Collections.singletonList(CommandTags.DATA_TO_INDEX));
 
         try {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext organizationContext = new ExecutionContext(organization);
-                    List<CommandEntity> commands = commandService.search(organizationContext, query);
-                    processCommands(organization, commands);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext organizationContext = new ExecutionContext(organization);
+                List<CommandEntity> commands = commandService.search(organizationContext, query);
+                processCommands(organization, commands);
+            });
         } catch (TechnicalException e) {
             log.error("An error occurred while trying to process organization commands", e);
         }

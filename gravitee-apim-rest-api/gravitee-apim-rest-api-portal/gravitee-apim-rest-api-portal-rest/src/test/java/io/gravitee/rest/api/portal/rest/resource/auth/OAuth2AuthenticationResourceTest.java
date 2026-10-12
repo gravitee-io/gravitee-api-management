@@ -425,7 +425,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
         mockConnectedUser();
 
-        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+        Response response = target()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         WireMock.verify(
@@ -444,7 +446,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         mockUserInfo(okJson(IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset())));
         mockConnectedUser();
 
-        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+        Response response = target()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         // The default this endpoint has always used, and the claim the backwards compatibility argument rests on
@@ -477,7 +481,9 @@ class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
             post("/token").willReturn(aResponse().withStatus(HttpStatusCode.UNAUTHORIZED_401).withBody(PROVIDER_REJECTION_BODY))
         );
 
-        Response response = target().request().post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
+        Response response = target()
+            .request()
+            .post(form(createPayload("the_client_id", "http://localhost/callback", "CoDe")));
 
         assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
         String body = response.readEntity(String.class);

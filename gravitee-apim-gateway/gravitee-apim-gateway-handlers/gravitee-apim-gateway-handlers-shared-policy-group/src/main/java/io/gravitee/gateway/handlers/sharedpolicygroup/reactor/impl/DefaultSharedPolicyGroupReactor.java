@@ -28,7 +28,8 @@ import lombok.CustomLog;
 @CustomLog
 public class DefaultSharedPolicyGroupReactor
     extends AbstractLifecycleComponent<SharedPolicyGroupReactor>
-    implements SharedPolicyGroupReactor {
+    implements SharedPolicyGroupReactor
+{
 
     private final ReactableSharedPolicyGroup reactableSharedPolicyGroup;
     private final SharedPolicyGroupPolicyChainFactory policyChainFactory;

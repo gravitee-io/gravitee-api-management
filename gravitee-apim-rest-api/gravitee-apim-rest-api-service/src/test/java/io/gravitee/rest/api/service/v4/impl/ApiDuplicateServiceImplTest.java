@@ -387,18 +387,16 @@ public class ApiDuplicateServiceImplTest {
         var captor = ArgumentCaptor.forClass(PlanEntity.class);
         verify(planService, times(sourceApi.getPlans().size())).createOrUpdatePlan(any(), captor.capture());
 
-        captor
-            .getAllValues()
-            .forEach(plan -> {
-                Assertions.assertThat(plan.getReferenceId())
-                    .as("Plan referenceId should point to the duplicate API, not the source")
-                    .isEqualTo(DUPLICATE_API_ID);
-                Assertions.assertThat(plan.getApiId()).as("Plan apiId should point to the duplicate API").isEqualTo(DUPLICATE_API_ID);
-                Assertions.assertThat(plan.getReferenceType())
-                    .as("Plan referenceType should be non-null after duplication")
-                    .isNotNull()
-                    .isEqualTo(GenericPlanEntity.ReferenceType.API);
-            });
+        captor.getAllValues().forEach(plan -> {
+            Assertions.assertThat(plan.getReferenceId())
+                .as("Plan referenceId should point to the duplicate API, not the source")
+                .isEqualTo(DUPLICATE_API_ID);
+            Assertions.assertThat(plan.getApiId()).as("Plan apiId should point to the duplicate API").isEqualTo(DUPLICATE_API_ID);
+            Assertions.assertThat(plan.getReferenceType())
+                .as("Plan referenceType should be non-null after duplication")
+                .isNotNull()
+                .isEqualTo(GenericPlanEntity.ReferenceType.API);
+        });
     }
 
     @Test

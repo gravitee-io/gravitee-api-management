@@ -105,9 +105,9 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("api-key").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
@@ -151,9 +151,9 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("API_KEY").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("API_KEY").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
@@ -175,7 +175,9 @@ public class PlanCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.getById(planId));
 
             // Then
-            assertThat(throwable).isInstanceOf(PlanNotFoundException.class).hasMessage("Plan [" + planId + "] cannot be found.");
+            assertThat(throwable)
+                .isInstanceOf(PlanNotFoundException.class)
+                .hasMessage("Plan [" + planId + "] cannot be found.");
         }
 
         @Test
@@ -228,9 +230,9 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("api-key").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);

@@ -503,16 +503,14 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     .environmentId(executionContext.getEnvironmentId())
                     .actor(getAuthenticatedUserAsAuditActor())
                     .build();
-                subscriptionService
-                    .findByPlan(executionContext, planId)
-                    .forEach(subscription -> {
-                        try {
-                            closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
-                        } catch (SubscriptionNotClosableException snce) {
-                            // subscription status could not be closed (already closed or rejected)
-                            // ignore it
-                        }
-                    });
+                subscriptionService.findByPlan(executionContext, planId).forEach(subscription -> {
+                    try {
+                        closeSubscriptionDomainService.closeSubscription(subscription.getId(), auditInfo);
+                    } catch (SubscriptionNotClosableException snce) {
+                        // subscription status could not be closed (already closed or rejected)
+                        // ignore it
+                    }
+                });
             }
 
             // Save plan
@@ -644,9 +642,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 .filter(plan1 -> Plan.Status.PUBLISHED.equals(plan1.getStatus()))
                 .sorted(Comparator.comparingInt(Plan::getOrder))
                 .collect(Collectors.toList());
-            plan.setOrder(
-                orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1)
-            );
+            plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1);
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());
@@ -749,7 +745,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             // we update the first range only because of https://github.com/gravitee-io/issues/issues/751
             // if orders are good in the repository, we should not update the first range
             for (int i = 0; i < plansToReorder.length; i++) {
-                int newOrder = (i + 1) < planToReorder.getOrder() ? (i + 1) : (i + 2);
+                int newOrder = i + 1 < planToReorder.getOrder() ? i + 1 : i + 2;
                 if (plansToReorder[i].getOrder() != newOrder) {
                     plansToReorder[i].setOrder(newOrder);
                     planRepository.update(plansToReorder[i]);

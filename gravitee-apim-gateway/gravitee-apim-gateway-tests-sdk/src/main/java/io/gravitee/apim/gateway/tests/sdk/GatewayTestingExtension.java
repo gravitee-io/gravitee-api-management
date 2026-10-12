@@ -51,7 +51,8 @@ import org.slf4j.LoggerFactory;
  * @author GraviteeSource Team
  */
 public class GatewayTestingExtension
-    implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver {
+    implements BeforeAllCallback, BeforeEachCallback, AfterEachCallback, AfterAllCallback, ParameterResolver
+{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GatewayTestingExtension.class);
     public static final String GATEWAY_DYNAMIC_CONFIG_KEY = "integration-test-gateway-dynamic-config";

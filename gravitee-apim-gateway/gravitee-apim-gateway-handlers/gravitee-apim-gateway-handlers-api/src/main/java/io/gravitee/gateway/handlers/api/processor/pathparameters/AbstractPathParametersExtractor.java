@@ -133,20 +133,18 @@ public abstract class AbstractPathParametersExtractor<A, F, P> {
     }
 
     private void computePathParam(final PathParameterHttpMethod method, final String requestPathInfo, Map<String, String> pathParameters) {
-        patternsByHttpMethod
-            .get(method)
-            .forEach(pattern -> {
-                String path = requestPathInfo;
-                try {
-                    path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
-                } catch (IllegalArgumentException ignored) {
-                    // Keep path as it is in case of exception
-                }
+        patternsByHttpMethod.get(method).forEach(pattern -> {
+            String path = requestPathInfo;
+            try {
+                path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
+            } catch (IllegalArgumentException ignored) {
+                // Keep path as it is in case of exception
+            }
 
-                final Matcher matcher = pattern.getPathPattern().matcher(path);
-                if (matcher.find()) {
-                    pattern.getParameters().forEach(p -> pathParameters.put(p.getName(), matcher.group(p.getId())));
-                }
-            });
+            final Matcher matcher = pattern.getPathPattern().matcher(path);
+            if (matcher.find()) {
+                pattern.getParameters().forEach(p -> pathParameters.put(p.getName(), matcher.group(p.getId())));
+            }
+        });
     }
 }

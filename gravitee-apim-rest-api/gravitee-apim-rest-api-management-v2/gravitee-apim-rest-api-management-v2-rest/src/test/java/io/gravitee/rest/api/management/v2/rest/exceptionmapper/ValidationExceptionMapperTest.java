@@ -49,7 +49,7 @@ class ValidationExceptionMapperTest {
             assertThat(response.getEntity())
                 .isInstanceOf(Error.class)
                 .satisfies(errorObject -> {
-                    Error error = ((Error) errorObject);
+                    Error error = (Error) errorObject;
                     assertThat(error.getHttpStatus()).isEqualTo(exception.getHttpStatusCode());
                     assertThat(error.getMessage()).isEqualTo(exception.getMessage());
                     assertThat(error.getDetails())

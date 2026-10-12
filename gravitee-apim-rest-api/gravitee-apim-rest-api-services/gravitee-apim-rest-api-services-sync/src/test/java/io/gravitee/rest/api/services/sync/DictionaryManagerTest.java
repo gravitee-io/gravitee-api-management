@@ -160,7 +160,7 @@ public class DictionaryManagerTest {
         cut.stop(DICTIONARY_ID);
         verify(eventManager, times(1)).publishEvent(
             eq(DictionaryEvent.STOP),
-            argThat(dictionary -> (((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID)))
+            argThat(dictionary -> ((DictionaryEntity) dictionary).getId().equals(DICTIONARY_ID))
         );
     }
 }

@@ -202,6 +202,6 @@ public class ApiV4CategoriesUpgraderTest {
 
         verify(apiRepository, never()).search(any(), any(), any());
         verify(apiRepository, never()).update(any());
-        assert (result);
+        assert result;
     }
 }

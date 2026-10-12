@@ -127,7 +127,9 @@ class IndexPreparerIntegrationTest {
         // from one and leave the other intact.
         for (String type : DATA_STREAM_TYPES) {
             String stored = storedTemplate("_index_template", "gravitee-ism-override-" + type);
-            assertThat(stored).as("%s template", type).contains("policy-" + type);
+            assertThat(stored)
+                .as("%s template", type)
+                .contains("policy-" + type);
             assertThat(stored).as("%s template", type).doesNotContain("rollover_alias");
         }
 

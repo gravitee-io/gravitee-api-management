@@ -301,8 +301,7 @@ class HttpEndpointInvokerTest {
             Completable.error(new InterruptionFailureException(i.getArgument(0)))
         );
 
-        cut
-            .invoke(ctx)
+        cut.invoke(ctx)
             .test()
             .assertError(e -> {
                 assertTrue(e instanceof InterruptionFailureException);

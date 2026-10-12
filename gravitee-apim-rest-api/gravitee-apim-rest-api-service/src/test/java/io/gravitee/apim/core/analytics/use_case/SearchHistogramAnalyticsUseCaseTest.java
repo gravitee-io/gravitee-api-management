@@ -308,7 +308,14 @@ class SearchHistogramAnalyticsUseCaseTest {
 
     @Test
     void shouldThrowWhenApiNotInEnvironment() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().environmentId("definitely not" + ENV_ID).build()));
+        apiCrudService.initWith(
+            List.of(
+                ApiFixtures.aProxyApiV4()
+                    .toBuilder()
+                    .environmentId("definitely not" + ENV_ID)
+                    .build()
+            )
+        );
         var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiNotFoundException.class);

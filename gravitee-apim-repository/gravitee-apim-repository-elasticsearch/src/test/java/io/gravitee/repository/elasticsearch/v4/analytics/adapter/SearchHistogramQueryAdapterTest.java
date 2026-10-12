@@ -140,32 +140,32 @@ class SearchHistogramQueryAdapterTest {
         void should_parse_histogram_aggregation_response() throws Exception {
             ObjectMapper mapper = new ObjectMapper();
             String json = """
-                {
-                  "aggregations": {
-                    "by_date": {
-                      "buckets": [
-                        {
-                          "key": 1751414400000,
-                          "by_status": {
-                            "buckets": [
-                              { "key": "200", "doc_count": 1 }
-                            ]
-                          }
-                        },
-                        {
-                          "key": 1751587200000,
-                          "by_status": {
-                            "buckets": [
-                              { "key": "404", "doc_count": 2 },
-                              { "key": "202", "doc_count": 1 }
-                            ]
-                          }
-                        }
-                      ]
+            {
+              "aggregations": {
+                "by_date": {
+                  "buckets": [
+                    {
+                      "key": 1751414400000,
+                      "by_status": {
+                        "buckets": [
+                          { "key": "200", "doc_count": 1 }
+                        ]
+                      }
+                    },
+                    {
+                      "key": 1751587200000,
+                      "by_status": {
+                        "buckets": [
+                          { "key": "404", "doc_count": 2 },
+                          { "key": "202", "doc_count": 1 }
+                        ]
+                      }
                     }
-                  }
+                  ]
                 }
-                """;
+              }
+            }
+            """;
             SearchResponse response = new SearchResponse();
             Aggregation byDateAgg = new Aggregation();
             ArrayNode bucketsNode = (ArrayNode) mapper.readTree(json).get("aggregations").get("by_date").get("buckets");
@@ -202,27 +202,27 @@ class SearchHistogramQueryAdapterTest {
         void should_parse_avg_aggregation_response() throws Exception {
             ObjectMapper mapper = new ObjectMapper();
             String json = """
-                {
-                  "aggregations": {
-                    "by_date": {
-                      "buckets": [
-                        {
-                          "key": 1751414400000,
-                          "avg_gateway-response-time-ms": {
-                            "value": 120.5
-                          }
-                        },
-                        {
-                          "key": 1751587200000,
-                          "avg_gateway-response-time-ms": {
-                            "value": 110.0
-                          }
-                        }
-                      ]
+            {
+              "aggregations": {
+                "by_date": {
+                  "buckets": [
+                    {
+                      "key": 1751414400000,
+                      "avg_gateway-response-time-ms": {
+                        "value": 120.5
+                      }
+                    },
+                    {
+                      "key": 1751587200000,
+                      "avg_gateway-response-time-ms": {
+                        "value": 110.0
+                      }
                     }
-                  }
+                  ]
                 }
-                """;
+              }
+            }
+            """;
             SearchResponse response = new SearchResponse();
             Aggregation byDateAgg = new Aggregation();
             ArrayNode bucketsNode = (ArrayNode) mapper.readTree(json).get("aggregations").get("by_date").get("buckets");

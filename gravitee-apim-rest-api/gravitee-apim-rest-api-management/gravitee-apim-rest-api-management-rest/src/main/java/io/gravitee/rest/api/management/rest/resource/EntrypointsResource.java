@@ -63,12 +63,10 @@ public class EntrypointsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "404", description = "Entrypoint not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+    })
     public EntrypointEntity getEntrypoint(final @PathParam("entrypoint") String entrypointId) {
         return entrypointService.findById(GraviteeContext.getExecutionContext(), entrypointId);
     }
@@ -88,12 +86,10 @@ public class EntrypointsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.READ),
+    })
     public List<EntrypointEntity> getEntrypoints() {
         return entrypointService
             .findAll(GraviteeContext.getExecutionContext())
@@ -115,12 +111,10 @@ public class EntrypointsResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EntrypointEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.CREATE),
+    })
     public EntrypointEntity createEntrypoint(@Valid @NotNull final NewEntryPointEntity entrypoint) {
         return entrypointService.create(GraviteeContext.getExecutionContext(), entrypoint);
     }
@@ -138,12 +132,10 @@ public class EntrypointsResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = EntrypointEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.UPDATE),
+    })
     public EntrypointEntity updateEntrypoint(@Valid @NotNull final UpdateEntryPointEntity entrypoint) {
         return entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
     }
@@ -157,12 +149,10 @@ public class EntrypointsResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "204", description = "Entrrypoint successfully deleted")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.ORGANIZATION_ENTRYPOINT, acls = RolePermissionAction.DELETE),
+    })
     public void deleteEntrypoint(@PathParam("entrypoint") String entrypoint) {
         entrypointService.delete(GraviteeContext.getExecutionContext(), entrypoint);
     }

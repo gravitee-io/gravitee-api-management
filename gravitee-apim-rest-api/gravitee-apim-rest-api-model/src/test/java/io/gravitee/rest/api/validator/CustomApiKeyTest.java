@@ -37,18 +37,16 @@ public class CustomApiKeyTest {
     private Validator validator;
 
     public static Iterable<Object[]> data() {
-        return Arrays.asList(
-            new Object[][] {
-                { "Contains_at_least_8_chars", 0, null },
-                { "less8", 1, "Should have length between 8 and 128 characters" },
-                {
-                    "VeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128chars",
-                    1,
-                    "Should have length between 8 and 128 characters",
-                },
-                { "No pattern compliant", 1, "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)" },
-            }
-        );
+        return Arrays.asList(new Object[][] {
+            { "Contains_at_least_8_chars", 0, null },
+            { "less8", 1, "Should have length between 8 and 128 characters" },
+            {
+                "VeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128charsVeryLongLengthTOHaveMoreThan128chars",
+                1,
+                "Should have length between 8 and 128 characters",
+            },
+            { "No pattern compliant", 1, "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)" },
+        });
     }
 
     @BeforeEach

@@ -110,9 +110,7 @@ public class ApiPathIndexationObserver implements IndexationObserver {
     }
 
     private static boolean isApiIndexable(Indexable source) {
-        return (
-            source instanceof IndexableApi || source instanceof io.gravitee.rest.api.model.api.ApiEntity || source instanceof ApiEntity
-        );
+        return source instanceof IndexableApi || source instanceof io.gravitee.rest.api.model.api.ApiEntity || source instanceof ApiEntity;
     }
 
     private Optional<ApiPathSnapshot> extract(Indexable source) {

@@ -106,7 +106,9 @@ class DebugCompletionProcessorTest {
 
         lenient().when(mockResponse.headers()).thenReturn(HttpHeaders.create());
         lenient().when(mockResponse.status()).thenReturn(200);
-        lenient().when(mockResponse.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("{}")));
+        lenient()
+            .when(mockResponse.bodyOrEmpty())
+            .thenReturn(Single.just(Buffer.buffer("{}")));
 
         InvokerResponse invokerResponse = debugCtx.getInvokerResponse();
         invokerResponse.setStatus(200);

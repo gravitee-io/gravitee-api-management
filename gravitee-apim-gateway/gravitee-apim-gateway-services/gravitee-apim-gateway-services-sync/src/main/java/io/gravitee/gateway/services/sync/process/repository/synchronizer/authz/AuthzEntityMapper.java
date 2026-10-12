@@ -68,9 +68,8 @@ public class AuthzEntityMapper {
                 }
                 // UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
                 // engine still receives the removeEntity — without this, the orphan entity lingers.
-                AuthzEntityReactorDeployable.Kind kind = wire.getKind() != null
-                    ? toGatewayKind(wire.getKind())
-                    : AuthzEntityReactorDeployable.Kind.RESOURCE;
+                AuthzEntityReactorDeployable.Kind kind =
+                    wire.getKind() != null ? toGatewayKind(wire.getKind()) : AuthzEntityReactorDeployable.Kind.RESOURCE;
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
                     .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))

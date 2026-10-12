@@ -90,7 +90,9 @@ class ApiEntrypointServiceImplTest {
         when(parameterService.find(any(), eq(Key.PORTAL_KAFKA_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("9092");
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
@@ -114,7 +116,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
@@ -138,7 +142,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
@@ -419,7 +425,9 @@ class ApiEntrypointServiceImplTest {
     void shouldReturnHttpEntrypointListenerForV4HttpApi() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
@@ -456,7 +464,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setTags(Set.of("tag"));
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
         when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
             List.of(
@@ -482,7 +492,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
         when(accessPointQueryService.getGatewayAccessPoints(any())).thenReturn(
             List.of(
@@ -861,7 +873,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -891,7 +905,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -918,7 +934,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
@@ -945,7 +963,9 @@ class ApiEntrypointServiceImplTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().host("host").path("path").build()))
+            .build();
         apiEntity.setListeners(List.of(httpListener));
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();

@@ -81,13 +81,15 @@ public class NativeApiLogsResource extends AbstractResource {
         // link computed from the real total would point at a page that answers 400. Bounding it here keeps
         // every page the API advertises a page the API can serve.
         long reachable = reachableTotal(output.response(), paginationParam);
-        return new NativeApiLogsResponse()
-            .data(data)
-            .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
-            .links(computePaginationLinks(reachable, paginationParam))
-            // Only when it bites. Sending it on every response would have every client carry a branch for a
-            // case most APIs never reach.
-            .reachableCount(reachable < output.response().total() ? reachable : null);
+        return (
+            new NativeApiLogsResponse()
+                .data(data)
+                .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
+                .links(computePaginationLinks(reachable, paginationParam))
+                // Only when it bites. Sending it on every response would have every client carry a branch for a
+                // case most APIs never reach.
+                .reachableCount(reachable < output.response().total() ? reachable : null)
+        );
     }
 
     @GET

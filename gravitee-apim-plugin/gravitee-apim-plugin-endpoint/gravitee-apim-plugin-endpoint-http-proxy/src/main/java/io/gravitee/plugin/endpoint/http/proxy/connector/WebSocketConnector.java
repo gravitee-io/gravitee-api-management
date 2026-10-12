@@ -98,11 +98,9 @@ public class WebSocketConnector extends HttpConnector {
                 .flatMap(endpointWebSocket -> {
                     endpointWebSocket.pause();
 
-                    endpointWebSocket
-                        .headers()
-                        .forEach((name, value) -> {
-                            ctx.response().headers().add(name, value);
-                        });
+                    endpointWebSocket.headers().forEach((name, value) -> {
+                        ctx.response().headers().add(name, value);
+                    });
 
                     for (CharSequence header : hopHeaders()) {
                         ctx.response().headers().remove(header.toString());
@@ -118,15 +116,17 @@ public class WebSocketConnector extends HttpConnector {
                             // Entrypoint to Endpoint
                             serverWebSocket.frameHandler(endpointWebSocket::writeFrame);
                             serverWebSocket.closeHandler(v ->
-                                // Use NOOP Subscriber to completable could be ignored
-                                endpointWebSocket.close()
+                                endpointWebSocket
+                                    // Use NOOP Subscriber to completable could be ignored
+                                    .close()
                             );
 
                             // Endpoint to Entrypoint
                             endpointWebSocket.frameHandler(serverWebSocket::writeFrame);
                             endpointWebSocket.closeHandler(v ->
-                                // Use NOOP Subscriber to completable could be ignored
-                                serverWebSocket.close()
+                                serverWebSocket
+                                    // Use NOOP Subscriber to completable could be ignored
+                                    .close()
                             );
                             endpointWebSocket.exceptionHandler(throwable -> serverWebSocket.close((short) HttpStatusCode.BAD_REQUEST_400));
                             endpointWebSocket.resume();

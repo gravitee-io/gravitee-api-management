@@ -90,7 +90,10 @@ public class SharedPolicyGroupResource_GetTest extends AbstractResourceTest {
         var response = rootTarget().request().get();
 
         // Then
-        assertThat(response).hasStatus(404).asError().hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(404)
+            .asError()
+            .hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
         verify(getSharedPolicyGroupUseCase).execute(new GetSharedPolicyGroupUseCase.Input(ENV_ID, SHARED_POLICY_GROUP_ID));
     }
 }

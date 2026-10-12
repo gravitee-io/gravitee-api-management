@@ -105,7 +105,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     public void setContextPath(String contextPath) {
         ObjectNode proxy = getSpec().get(PROXY_FIELD).deepCopy();
-        ArrayNode virtualHosts = (ArrayNode) proxy.get((VIRTUAL_HOSTS_FIELD));
+        ArrayNode virtualHosts = (ArrayNode) proxy.get(VIRTUAL_HOSTS_FIELD);
         ObjectNode virtualHost = ((ObjectNode) virtualHosts.iterator().next()).put(VIRTUAL_HOST_PATH_FIELD, contextPath);
         virtualHost.put(VIRTUAL_HOST_PATH_FIELD, contextPath);
         getSpec().set(PROXY_FIELD, proxy);

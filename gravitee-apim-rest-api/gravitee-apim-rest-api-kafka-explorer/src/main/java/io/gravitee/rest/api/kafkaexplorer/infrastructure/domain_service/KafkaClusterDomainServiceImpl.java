@@ -622,10 +622,10 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
             kafkaConsumer.assign(targetPartitions);
             kafkaConsumer.seekToEnd(targetPartitions);
 
-            long deadline = System.currentTimeMillis() + (durationSeconds * 1000L);
+            long deadline = System.currentTimeMillis() + durationSeconds * 1000L;
             int sent = 0;
-            String lowerKeyFilter = (keyFilter != null && !keyFilter.isBlank()) ? keyFilter.toLowerCase() : null;
-            String lowerValueFilter = (valueFilter != null && !valueFilter.isBlank()) ? valueFilter.toLowerCase() : null;
+            String lowerKeyFilter = keyFilter != null && !keyFilter.isBlank() ? keyFilter.toLowerCase() : null;
+            String lowerValueFilter = valueFilter != null && !valueFilter.isBlank() ? valueFilter.toLowerCase() : null;
 
             while (System.currentTimeMillis() < deadline && sent < maxMessages) {
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(500));
@@ -1114,7 +1114,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                     properties.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, readFileContent(pem.getPath()));
                 }
             }
-            default -> {}
+            default -> {
+            }
         }
     }
 
@@ -1156,7 +1157,8 @@ public class KafkaClusterDomainServiceImpl implements KafkaClusterDomainService 
                     properties.put(SslConfigs.SSL_KEYSTORE_KEY_CONFIG, readFileContent(pem.getKeyPath()));
                 }
             }
-            default -> {}
+            default -> {
+            }
         }
     }
 

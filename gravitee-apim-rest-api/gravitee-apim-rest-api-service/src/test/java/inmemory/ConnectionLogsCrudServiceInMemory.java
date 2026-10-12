@@ -113,9 +113,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
             connectionLogDetailTotal = connectionLogDetailResults.size();
 
-            var connectionLogDetailResultPage = connectionLogDetailResults.size() <= pageSize
-                ? connectionLogDetailResults
-                : connectionLogDetailResults.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
+            var connectionLogDetailResultPage =
+                connectionLogDetailResults.size() <= pageSize
+                    ? connectionLogDetailResults
+                    : connectionLogDetailResults.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
             connectionLogFilterBuilder.requestIds(
                 connectionLogDetailResultPage.stream().map(ConnectionLogDetail::getRequestId).collect(Collectors.toSet())
@@ -157,7 +158,11 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
     @Override
     public List<String> searchApiConnectionLogErrorKeys(ExecutionContext executionContext, String apiId, Long from, Long to) {
-        var logsFilters = SearchLogsFilters.builder().apiIds(apiId != null ? Set.of(apiId) : null).from(from).to(to).build();
+        var logsFilters = SearchLogsFilters.builder()
+            .apiIds(apiId != null ? Set.of(apiId) : null)
+            .from(from)
+            .to(to)
+            .build();
         var predicate = getBaseConnectionLogPredicate(logsFilters);
         return connectionLogs
             .storage()

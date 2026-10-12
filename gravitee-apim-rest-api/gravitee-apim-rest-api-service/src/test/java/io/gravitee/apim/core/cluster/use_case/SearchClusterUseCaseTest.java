@@ -296,7 +296,9 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                     .build()
             )
         );
-        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        lenient()
+            .when(permissionDomainService.hasPermission(any(), any(), any(), any(), any()))
+            .thenReturn(true);
 
         var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, null, true, "admin"));
 

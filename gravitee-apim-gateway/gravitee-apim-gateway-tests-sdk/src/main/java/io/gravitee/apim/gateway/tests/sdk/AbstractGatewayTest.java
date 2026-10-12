@@ -92,7 +92,8 @@ public abstract class AbstractGatewayTest
         DictionaryDeployer,
         ApplicationContextAware,
         SharedPolicyGroupDeployer,
-        ApiProductDeployer {
+        ApiProductDeployer
+{
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
@@ -492,8 +493,7 @@ public abstract class AbstractGatewayTest
         Consumer<io.gravitee.definition.model.v4.endpointgroup.Endpoint> endpointConsumer
     ) {
         if (api.getEndpointGroups() != null) {
-            api
-                .getEndpointGroups()
+            api.getEndpointGroups()
                 .stream()
                 .flatMap(endpointGroup -> endpointGroup.getEndpoints().stream())
                 .forEach(endpointConsumer);

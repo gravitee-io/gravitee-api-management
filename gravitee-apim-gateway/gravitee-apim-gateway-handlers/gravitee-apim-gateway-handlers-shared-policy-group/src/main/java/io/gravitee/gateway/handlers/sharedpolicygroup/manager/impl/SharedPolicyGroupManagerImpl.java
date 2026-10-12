@@ -58,29 +58,26 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
 
-        eventManager.subscribeForEvents(
-            event -> {
-                if (!(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent)) {
-                    return;
-                }
-                if (!(secretDiscoveryEvent.definition() instanceof Definition definition)) {
-                    return;
-                }
-                if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
-                    return;
-                }
-                ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(
-                    new SharedPolicyGroupKey(definition.id(), secretDiscoveryEvent.envId())
-                );
-                if (spg == null) {
-                    log.trace("Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager", definition.id());
-                    return;
-                }
-                log.info("Secret value changed for Shared Policy Group {}, updating it", definition.id());
-                eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, spg);
-            },
-            SecretDiscoveryEventType.VALUE_CHANGED
-        );
+        eventManager.subscribeForEvents(event -> {
+            if (!(event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent)) {
+                return;
+            }
+            if (!(secretDiscoveryEvent.definition() instanceof Definition definition)) {
+                return;
+            }
+            if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
+                return;
+            }
+            ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(
+                new SharedPolicyGroupKey(definition.id(), secretDiscoveryEvent.envId())
+            );
+            if (spg == null) {
+                log.trace("Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager", definition.id());
+                return;
+            }
+            log.info("Secret value changed for Shared Policy Group {}, updating it", definition.id());
+            eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, spg);
+        }, SecretDiscoveryEventType.VALUE_CHANGED);
     }
 
     @Override
@@ -120,7 +117,7 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
             final List<Callable<Boolean>> toInvoke = sharedPolicyGroups
                 .values()
                 .stream()
-                .map(sharedPolicyGroup -> ((Callable<Boolean>) () -> register(sharedPolicyGroup, true)))
+                .map(sharedPolicyGroup -> (Callable<Boolean>) () -> register(sharedPolicyGroup, true))
                 .toList();
 
             try {
@@ -134,7 +131,7 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                 refreshAllExecutor.shutdown();
             }
 
-            log.info("Shared Policy Groups refresh done in {}ms", (System.currentTimeMillis() - begin));
+            log.info("Shared Policy Groups refresh done in {}ms", System.currentTimeMillis() - begin);
         }
     }
 

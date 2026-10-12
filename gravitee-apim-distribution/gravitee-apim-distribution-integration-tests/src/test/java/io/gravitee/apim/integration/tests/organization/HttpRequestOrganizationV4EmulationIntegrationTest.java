@@ -43,13 +43,11 @@ import org.junit.jupiter.api.Test;
  * @author GraviteeSource Team
  */
 @GatewayTest
-@DeployOrganizations(
-    {
-        @DeployOrganization(organization = "/organizations/organization-1-add-header-1.json", apis = { "/organizations/apis/api-1.json" }),
-        @DeployOrganization(organization = "/organizations/organization-2-add-header-2.json", apis = { "/organizations/apis/api-2.json" }),
-        @DeployOrganization(organization = "/organizations/organization-3.json"),
-    }
-)
+@DeployOrganizations({
+    @DeployOrganization(organization = "/organizations/organization-1-add-header-1.json", apis = { "/organizations/apis/api-1.json" }),
+    @DeployOrganization(organization = "/organizations/organization-2-add-header-2.json", apis = { "/organizations/apis/api-2.json" }),
+    @DeployOrganization(organization = "/organizations/organization-3.json"),
+})
 class HttpRequestOrganizationV4EmulationIntegrationTest extends AbstractGatewayTest {
 
     @Override

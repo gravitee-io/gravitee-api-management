@@ -60,8 +60,7 @@ public class HttpHealthCheckRequestTest {
         assertThat(cut.headers()).isNotNull();
         assertThat(cut.headers().size()).isEqualTo(0);
         assertThat(cut.body()).isNotNull();
-        cut
-            .body()
+        cut.body()
             .test()
             .await()
             .assertValue(boby -> config.getBody().equals(boby.toString()));

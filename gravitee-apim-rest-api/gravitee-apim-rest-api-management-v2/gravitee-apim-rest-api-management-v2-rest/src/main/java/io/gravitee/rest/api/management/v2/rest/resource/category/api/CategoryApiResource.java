@@ -53,16 +53,18 @@ public class CategoryApiResource extends AbstractResource {
             throw new BadRequestException("Order cannot be null");
         }
 
-        var result = this.updateCategoryApiOrderUseCase.execute(
-            new UpdateCategoryApiOrderUseCase.Input(
-                GraviteeContext.getExecutionContext(),
-                categoryIdOrKey,
-                apiId,
-                getAuthenticatedUser(),
-                isAdmin(),
-                updateCategoryApi.getOrder().intValue()
+        var result = this.updateCategoryApiOrderUseCase
+            .execute(
+                new UpdateCategoryApiOrderUseCase.Input(
+                    GraviteeContext.getExecutionContext(),
+                    categoryIdOrKey,
+                    apiId,
+                    getAuthenticatedUser(),
+                    isAdmin(),
+                    updateCategoryApi.getOrder().intValue()
+                )
             )
-        ).result();
+            .result();
 
         return Response.ok().entity(CategoryApiMapper.INSTANCE.map(result.apiCategoryOrder(), result.api())).build();
     }

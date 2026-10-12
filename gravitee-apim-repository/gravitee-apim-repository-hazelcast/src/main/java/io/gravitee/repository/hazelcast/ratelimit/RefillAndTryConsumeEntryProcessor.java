@@ -33,7 +33,8 @@ import java.util.concurrent.TimeUnit;
  * same inputs and reach the same state as the primary.
  */
 public final class RefillAndTryConsumeEntryProcessor
-    implements EntryProcessor<String, TokenBucket, TokenBucketConsumeResult>, Serializable {
+    implements EntryProcessor<String, TokenBucket, TokenBucketConsumeResult>, Serializable
+{
 
     private static final long serialVersionUID = 1L;
 

@@ -85,19 +85,17 @@ public class GenericNotificationConfigUpgrader implements Upgrader {
         Set<Environment> environments,
         GenericNotificationConfig genericNotificationConfig
     ) {
-        Stream<GenericNotificationConfig> stream = environments
-            .stream()
-            .map(environment -> {
-                GenericNotificationConfig genericNotificationConfigToCreate = duplicate(environment, genericNotificationConfig);
-                try {
-                    return genericNotificationConfigRepository.create(genericNotificationConfigToCreate);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(
-                        "Failed to duplicate portalNotificationConfig " + genericNotificationConfig + " to " + environment,
-                        e
-                    );
-                }
-            });
+        Stream<GenericNotificationConfig> stream = environments.stream().map(environment -> {
+            GenericNotificationConfig genericNotificationConfigToCreate = duplicate(environment, genericNotificationConfig);
+            try {
+                return genericNotificationConfigRepository.create(genericNotificationConfigToCreate);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(
+                    "Failed to duplicate portalNotificationConfig " + genericNotificationConfig + " to " + environment,
+                    e
+                );
+            }
+        });
         try {
             genericNotificationConfigRepository.delete(genericNotificationConfig.getId());
         } catch (TechnicalException e) {

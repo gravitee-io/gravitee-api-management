@@ -159,10 +159,8 @@ public class ApiProductSubscriptionRefresher {
     }
 
     private void quietly(final Runnable action, final String itemId, final String type) {
-        SyncIsolation.isolate(
-            () -> "deploy %s [%s]".formatted(type, itemId),
-            action,
-            t -> log.warn("Failed to deploy {} [{}]", type, itemId, t)
+        SyncIsolation.isolate(() -> "deploy %s [%s]".formatted(type, itemId), action, t ->
+            log.warn("Failed to deploy {} [{}]", type, itemId, t)
         );
     }
 

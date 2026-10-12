@@ -273,8 +273,7 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_failover_singlecase_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
 
-        api
-            .getProxy()
+        api.getProxy()
             .getGroups()
             .iterator()
             .next()

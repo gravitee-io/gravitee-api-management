@@ -52,12 +52,10 @@ class EventBusAuthzEnginePortTest {
             HostedScopesFixtures.servingAll(),
             new AuthzAppliedRevisions()
         );
-        fakePluginConsumer = vertx
-            .eventBus()
-            .<JsonObject>consumer(SCOPE_ADDRESS, msg -> {
-                received.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        fakePluginConsumer = vertx.eventBus().<JsonObject>consumer(SCOPE_ADDRESS, msg -> {
+            received.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
     }
 
     @AfterEach
@@ -76,64 +74,49 @@ class EventBusAuthzEnginePortTest {
 
     @Test
     void addOrUpdateEntity_publishes_op_with_uid_attributes_parents(VertxTestContext ctx) {
-        port
-            .addOrUpdateEntity(
-                ENV,
-                "Resource::\"api.bookings\"",
-                Map.of("region", "eu", "active", true),
-                List.of("Resource::\"api.parent\""),
-                Set.of(SCOPE),
-                1L
-            )
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body).isNotNull();
-                        assertThat(body.getString("op")).isEqualTo("addOrUpdateEntity");
-                        assertThat(body.getString("uid")).isEqualTo("Resource::\"api.bookings\"");
-                        assertThat(body.getJsonObject("attributes").getString("region")).isEqualTo("eu");
-                        assertThat(body.getJsonObject("attributes").getBoolean("active")).isTrue();
-                        assertThat(body.getJsonArray("parents").getString(0)).isEqualTo("Resource::\"api.parent\"");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdateEntity(
+            ENV,
+            "Resource::\"api.bookings\"",
+            Map.of("region", "eu", "active", true),
+            List.of("Resource::\"api.parent\""),
+            Set.of(SCOPE),
+            1L
+        ).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body).isNotNull();
+                assertThat(body.getString("op")).isEqualTo("addOrUpdateEntity");
+                assertThat(body.getString("uid")).isEqualTo("Resource::\"api.bookings\"");
+                assertThat(body.getJsonObject("attributes").getString("region")).isEqualTo("eu");
+                assertThat(body.getJsonObject("attributes").getBoolean("active")).isTrue();
+                assertThat(body.getJsonArray("parents").getString(0)).isEqualTo("Resource::\"api.parent\"");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void addOrUpdateEntity_omits_attributes_field_when_empty(VertxTestContext ctx) {
-        port
-            .addOrUpdateEntity(ENV, "Resource::\"api.x\"", Map.of(), List.of(), Set.of(SCOPE), 1L)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.containsKey("attributes")).isFalse();
-                        assertThat(body.containsKey("parents")).isFalse();
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdateEntity(ENV, "Resource::\"api.x\"", Map.of(), List.of(), Set.of(SCOPE), 1L).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body.containsKey("attributes")).isFalse();
+                assertThat(body.containsKey("parents")).isFalse();
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void removeEntity_publishes_op_and_uid_only(VertxTestContext ctx) {
-        port
-            .removeEntity(ENV, "Resource::\"api.bookings\"", Set.of(SCOPE))
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.getString("op")).isEqualTo("removeEntity");
-                        assertThat(body.getString("uid")).isEqualTo("Resource::\"api.bookings\"");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.removeEntity(ENV, "Resource::\"api.bookings\"", Set.of(SCOPE)).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body.getString("op")).isEqualTo("removeEntity");
+                assertThat(body.getString("uid")).isEqualTo("Resource::\"api.bookings\"");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
@@ -144,26 +127,21 @@ class EventBusAuthzEnginePortTest {
             new AuthzAppliedRevisions()
         );
         ConcurrentLinkedQueue<JsonObject> defaultReceived = new ConcurrentLinkedQueue<>();
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
-                defaultReceived.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
+            defaultReceived.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
 
         tagPort
             .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"), 1L, null)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = defaultReceived.poll();
-                        assertThat(body).isNotNull();
-                        assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+            .subscribe(() -> {
+                ctx.verify(() -> {
+                    JsonObject body = defaultReceived.poll();
+                    assertThat(body).isNotNull();
+                    assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
+                });
+                ctx.completeNow();
+            }, ctx::failNow);
     }
 
     @Test
@@ -174,23 +152,18 @@ class EventBusAuthzEnginePortTest {
             new AuthzAppliedRevisions()
         );
         ConcurrentLinkedQueue<JsonObject> defaultReceived = new ConcurrentLinkedQueue<>();
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
-                defaultReceived.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
+            defaultReceived.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
 
         // The node carries tag "eu", not "us" — "default@us" is not served here, so routing is a no-op.
         tagPort
             .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"), 1L, null)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> assertThat(defaultReceived).isEmpty());
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+            .subscribe(() -> {
+                ctx.verify(() -> assertThat(defaultReceived).isEmpty());
+                ctx.completeNow();
+            }, ctx::failNow);
     }
 
     @Test
@@ -199,122 +172,94 @@ class EventBusAuthzEnginePortTest {
         // listens on the unscoped address, so a wildcard doc must still reach it — otherwise default-scoped
         // evaluations would never see a "*" policy/entity.
         ConcurrentLinkedQueue<JsonObject> defaultReceived = new ConcurrentLinkedQueue<>();
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
-                defaultReceived.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
+            defaultReceived.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
 
-        port
-            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("*"), 1L, null)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = defaultReceived.poll();
-                        assertThat(body).isNotNull();
-                        assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
-                        assertThat(body.getString("docId")).isEqualTo("doc-1");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("*"), 1L, null).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = defaultReceived.poll();
+                assertThat(body).isNotNull();
+                assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
+                assertThat(body.getString("docId")).isEqualTo("doc-1");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void addOrUpdatePolicy_publishes_op_docId_name_policyText(VertxTestContext ctx) {
-        port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
-                        assertThat(body.getString("docId")).isEqualTo("p-1");
-                        assertThat(body.getString("name")).isEqualTo("Allow read");
-                        assertThat(body.getString("policyText")).isEqualTo("permit(principal, action, resource);");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body.getString("op")).isEqualTo("addOrUpdatePolicy");
+                assertThat(body.getString("docId")).isEqualTo("p-1");
+                assertThat(body.getString("name")).isEqualTo("Allow read");
+                assertThat(body.getString("policyText")).isEqualTo("permit(principal, action, resource);");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void addOrUpdatePolicy_carries_the_policy_revision(VertxTestContext ctx) {
-        port
-            .addOrUpdatePolicy(
-                ENV,
-                "doc-1",
-                "orders",
-                "permit(principal, action, resource);",
-                Set.of(SCOPE),
-                1_000L,
-                "2026-09-23T10:00:00Z"
-            )
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.getString("revision")).isEqualTo("2026-09-23T10:00:00Z");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdatePolicy(
+            ENV,
+            "doc-1",
+            "orders",
+            "permit(principal, action, resource);",
+            Set.of(SCOPE),
+            1_000L,
+            "2026-09-23T10:00:00Z"
+        ).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body.getString("revision")).isEqualTo("2026-09-23T10:00:00Z");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void addOrUpdatePolicy_without_revision_sends_no_revision_key(VertxTestContext ctx) {
-        port
-            .addOrUpdatePolicy(ENV, "doc-1", "orders", "permit(principal, action, resource);", Set.of(SCOPE), 1_000L, null)
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.containsKey("revision")).isFalse();
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.addOrUpdatePolicy(ENV, "doc-1", "orders", "permit(principal, action, resource);", Set.of(SCOPE), 1_000L, null).subscribe(
+            () -> {
+                ctx.verify(() -> {
+                    JsonObject body = received.poll();
+                    assertThat(body.containsKey("revision")).isFalse();
+                });
+                ctx.completeNow();
+            },
+            ctx::failNow
+        );
     }
 
     @Test
     void removePolicy_publishes_op_and_docId(VertxTestContext ctx) {
-        port
-            .removePolicy(ENV, "p-1", Set.of(SCOPE))
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        JsonObject body = received.poll();
-                        assertThat(body.getString("op")).isEqualTo("removePolicy");
-                        assertThat(body.getString("docId")).isEqualTo("p-1");
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+        port.removePolicy(ENV, "p-1", Set.of(SCOPE)).subscribe(() -> {
+            ctx.verify(() -> {
+                JsonObject body = received.poll();
+                assertThat(body.getString("op")).isEqualTo("removePolicy");
+                assertThat(body.getString("docId")).isEqualTo("p-1");
+            });
+            ctx.completeNow();
+        }, ctx::failNow);
     }
 
     @Test
     void commit_publishes_just_op(VertxTestContext ctx) {
-        port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null)
+        port.addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null)
             .andThen(port.commit())
-            .subscribe(
-                () -> {
-                    ctx.verify(() -> {
-                        received.poll(); // the staged mutation
-                        JsonObject body = received.poll();
-                        assertThat(body.getString("op")).isEqualTo("commit");
-                        assertThat(body.size()).isEqualTo(1);
-                    });
-                    ctx.completeNow();
-                },
-                ctx::failNow
-            );
+            .subscribe(() -> {
+                ctx.verify(() -> {
+                    received.poll(); // the staged mutation
+                    JsonObject body = received.poll();
+                    assertThat(body.getString("op")).isEqualTo("commit");
+                    assertThat(body.size()).isEqualTo(1);
+                });
+                ctx.completeNow();
+            }, ctx::failNow);
     }
 
     @Test
@@ -322,15 +267,10 @@ class EventBusAuthzEnginePortTest {
         // The scope is armed (staged successfully), then its plugin consumer is torn down (eviction)
         // before the commit lands. A per-address NO_HANDLERS must NOT fail the commit — a scope that
         // was evicted between stage and commit cannot be allowed to wedge the whole sync cycle.
-        port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null)
-            .subscribe(
-                () -> {
-                    fakePluginConsumer.unregister();
-                    port.commit().subscribe(ctx::completeNow, t -> ctx.failNow("Per-address NO_HANDLERS must be swallowed, got: " + t));
-                },
-                ctx::failNow
-            );
+        port.addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null).subscribe(() -> {
+            fakePluginConsumer.unregister();
+            port.commit().subscribe(ctx::completeNow, t -> ctx.failNow("Per-address NO_HANDLERS must be swallowed, got: " + t));
+        }, ctx::failNow);
     }
 
     @Test
@@ -342,30 +282,24 @@ class EventBusAuthzEnginePortTest {
             .eventBus()
             .<JsonObject>consumer(deadAddress, msg -> msg.reply(new JsonObject().put("commitGeneration", 1L)));
 
-        port
-            .addOrUpdatePolicy(ENV, "p-dead", "x", "permit();", Set.of(deadScope), 1L, null)
+        port.addOrUpdatePolicy(ENV, "p-dead", "x", "permit();", Set.of(deadScope), 1L, null)
             .andThen(port.addOrUpdatePolicy(ENV, "p-live", "x", "permit();", Set.of(SCOPE), 1L, null))
-            .subscribe(
-                () -> {
-                    deadConsumer.unregister();
-                    received.clear(); // drop the staged mutations; keep only what the commit produces
-                    port
-                        .commit()
-                        .subscribe(
-                            () -> {
-                                ctx.verify(() -> {
-                                    // the live scope still received its commit (the dead one was skipped)
-                                    JsonObject live = received.poll();
-                                    assertThat(live).isNotNull();
-                                    assertThat(live.getString("op")).isEqualTo("commit");
-                                });
-                                ctx.completeNow();
-                            },
-                            t -> ctx.failNow("One evicted address must not fail the whole commit, got: " + t)
-                        );
-                },
-                ctx::failNow
-            );
+            .subscribe(() -> {
+                deadConsumer.unregister();
+                received.clear(); // drop the staged mutations; keep only what the commit produces
+                port.commit().subscribe(
+                    () -> {
+                        ctx.verify(() -> {
+                            // the live scope still received its commit (the dead one was skipped)
+                            JsonObject live = received.poll();
+                            assertThat(live).isNotNull();
+                            assertThat(live.getString("op")).isEqualTo("commit");
+                        });
+                        ctx.completeNow();
+                    },
+                    t -> ctx.failNow("One evicted address must not fail the whole commit, got: " + t)
+                );
+            }, ctx::failNow);
     }
 
     @Test
@@ -374,35 +308,29 @@ class EventBusAuthzEnginePortTest {
         // fails with NO_HANDLERS. That failed stage must NOT leave the address armed, otherwise the
         // next commit would seal a generation the engine never received the mutation for (fail-open).
         String missingScope = "scope-without-consumer";
-        port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit();", Set.of(missingScope), 1L, null)
-            .subscribe(
-                () -> ctx.failNow("Expected the stage to fail with NO_HANDLERS"),
-                stageError -> {
-                    // Now commit: the failed address must not be among the committed ones. Only the
-                    // healthy SCOPE address (which we DID stage successfully below) should be committed.
-                    port
-                        .addOrUpdatePolicy(ENV, "p-2", "Allow read", "permit();", Set.of(SCOPE), 1L, null)
-                        .andThen(port.commit())
-                        .subscribe(
-                            () -> {
-                                ctx.verify(() -> {
-                                    // healthy scope got its mutation + a commit; failed scope got neither.
-                                    JsonObject staged = received.poll();
-                                    assertThat(staged).isNotNull();
-                                    assertThat(staged.getString("op")).isEqualTo("addOrUpdatePolicy");
-                                    JsonObject commit = received.poll();
-                                    assertThat(commit).isNotNull();
-                                    assertThat(commit.getString("op")).isEqualTo("commit");
-                                    // nothing else (the failed scope was never committed)
-                                    assertThat(received.poll()).isNull();
-                                });
-                                ctx.completeNow();
-                            },
-                            ctx::failNow
-                        );
-                }
-            );
+        port.addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit();", Set.of(missingScope), 1L, null).subscribe(
+            () -> ctx.failNow("Expected the stage to fail with NO_HANDLERS"),
+            stageError -> {
+                // Now commit: the failed address must not be among the committed ones. Only the
+                // healthy SCOPE address (which we DID stage successfully below) should be committed.
+                port.addOrUpdatePolicy(ENV, "p-2", "Allow read", "permit();", Set.of(SCOPE), 1L, null)
+                    .andThen(port.commit())
+                    .subscribe(() -> {
+                        ctx.verify(() -> {
+                            // healthy scope got its mutation + a commit; failed scope got neither.
+                            JsonObject staged = received.poll();
+                            assertThat(staged).isNotNull();
+                            assertThat(staged.getString("op")).isEqualTo("addOrUpdatePolicy");
+                            JsonObject commit = received.poll();
+                            assertThat(commit).isNotNull();
+                            assertThat(commit.getString("op")).isEqualTo("commit");
+                            // nothing else (the failed scope was never committed)
+                            assertThat(received.poll()).isNull();
+                        });
+                        ctx.completeNow();
+                    }, ctx::failNow);
+            }
+        );
     }
 
     @Test
@@ -411,34 +339,27 @@ class EventBusAuthzEnginePortTest {
         // sync cycle when the PDP plugin is unhealthy. Stage a mutation, then swap in a consumer that
         // never replies. The commit must give up at the configured timeout (not 30s) and, because a
         // wedged scope must not fail the whole cycle, complete rather than propagate the timeout.
-        port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null)
-            .subscribe(
+        port.addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L, null).subscribe(() -> {
+            fakePluginConsumer.unregister();
+            MessageConsumer<JsonObject> blackHole = vertx.eventBus().<JsonObject>consumer(SCOPE_ADDRESS, msg -> {});
+            long start = System.currentTimeMillis();
+            port.commit().subscribe(
                 () -> {
-                    fakePluginConsumer.unregister();
-                    MessageConsumer<JsonObject> blackHole = vertx.eventBus().<JsonObject>consumer(SCOPE_ADDRESS, msg -> {});
-                    long start = System.currentTimeMillis();
-                    port
-                        .commit()
-                        .subscribe(
-                            () -> {
-                                blackHole.unregister();
-                                ctx.verify(() -> {
-                                    long elapsed = System.currentTimeMillis() - start;
-                                    assertThat(elapsed)
-                                        .as("Should give up at the port's configured timeout, not the Vertx default 30s")
-                                        .isLessThan(EventBusAuthzEnginePort.REPLY_TIMEOUT_MS + 2_000L);
-                                });
-                                ctx.completeNow();
-                            },
-                            t -> {
-                                blackHole.unregister();
-                                ctx.failNow("A wedged scope must not fail the whole commit, got: " + t);
-                            }
-                        );
+                    blackHole.unregister();
+                    ctx.verify(() -> {
+                        long elapsed = System.currentTimeMillis() - start;
+                        assertThat(elapsed)
+                            .as("Should give up at the port's configured timeout, not the Vertx default 30s")
+                            .isLessThan(EventBusAuthzEnginePort.REPLY_TIMEOUT_MS + 2_000L);
+                    });
+                    ctx.completeNow();
                 },
-                ctx::failNow
+                t -> {
+                    blackHole.unregister();
+                    ctx.failNow("A wedged scope must not fail the whole commit, got: " + t);
+                }
             );
+        }, ctx::failNow);
     }
 
     @Test
@@ -446,12 +367,10 @@ class EventBusAuthzEnginePortTest {
         String scopeB = "scope-b";
         String addressB = EventBusAuthzEnginePort.SCOPE_ADDRESS_PREFIX + ENV + ":" + scopeB;
         ConcurrentLinkedQueue<JsonObject> bReceived = new ConcurrentLinkedQueue<>();
-        MessageConsumer<JsonObject> bConsumer = vertx
-            .eventBus()
-            .<JsonObject>consumer(addressB, msg -> {
-                bReceived.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        MessageConsumer<JsonObject> bConsumer = vertx.eventBus().<JsonObject>consumer(addressB, msg -> {
+            bReceived.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
 
         // Arm scope A by staging a mutation (do NOT commit it).
         port.addOrUpdatePolicy(ENV, "p-a", "n", "permit();", Set.of(SCOPE), 1L, null).blockingAwait();
@@ -486,12 +405,10 @@ class EventBusAuthzEnginePortTest {
         }
 
         // Revive a healthy consumer: a further commit must NOT reach the abandoned address.
-        MessageConsumer<JsonObject> revived = vertx
-            .eventBus()
-            .<JsonObject>consumer(SCOPE_ADDRESS, msg -> {
-                received.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 2L));
-            });
+        MessageConsumer<JsonObject> revived = vertx.eventBus().<JsonObject>consumer(SCOPE_ADDRESS, msg -> {
+            received.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 2L));
+        });
         port.commit().blockingAwait();
         revived.unregister();
 
@@ -540,12 +457,10 @@ class EventBusAuthzEnginePortTest {
         );
 
         ConcurrentLinkedQueue<JsonObject> def = new ConcurrentLinkedQueue<>();
-        MessageConsumer<JsonObject> defConsumer = vertx
-            .eventBus()
-            .<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
-                def.add(msg.body());
-                msg.reply(new JsonObject());
-            });
+        MessageConsumer<JsonObject> defConsumer = vertx.eventBus().<JsonObject>consumer(EventBusAuthzEnginePort.DEFAULT_ADDRESS, msg -> {
+            def.add(msg.body());
+            msg.reply(new JsonObject());
+        });
 
         scopedPort.addOrUpdatePolicy(ENV, "p", "n", "permit();", Set.of("default"), 1L, null).blockingAwait();
 
@@ -590,17 +505,15 @@ class EventBusAuthzEnginePortTest {
         String scope = "s-commit-fail";
         String address = EventBusAuthzEnginePort.SCOPE_ADDRESS_PREFIX + ENV + ":" + scope;
         ConcurrentLinkedQueue<JsonObject> got = new ConcurrentLinkedQueue<>();
-        MessageConsumer<JsonObject> consumer = vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                JsonObject body = msg.body();
-                got.add(body);
-                if ("commit".equals(body.getString("op"))) {
-                    msg.reply(new JsonObject()); // missing commitGeneration -> verifyCommitReply fails
-                } else {
-                    msg.reply(new JsonObject().put("commitGeneration", 1L));
-                }
-            });
+        MessageConsumer<JsonObject> consumer = vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            JsonObject body = msg.body();
+            got.add(body);
+            if ("commit".equals(body.getString("op"))) {
+                msg.reply(new JsonObject()); // missing commitGeneration -> verifyCommitReply fails
+            } else {
+                msg.reply(new JsonObject().put("commitGeneration", 1L));
+            }
+        });
 
         port.addOrUpdatePolicy(ENV, "doc", "n", "permit();", Set.of(scope), 100L, null).blockingAwait();
         for (int i = 0; i <= EventBusAuthzEnginePort.MAX_COMMIT_ATTEMPTS; i++) {
@@ -656,12 +569,10 @@ class EventBusAuthzEnginePortTest {
         String remoteScope = "scope-remote";
         String remoteAddress = EventBusAuthzEnginePort.SCOPE_ADDRESS_PREFIX + ENV + ":" + remoteScope;
         ConcurrentLinkedQueue<JsonObject> remoteReceived = new ConcurrentLinkedQueue<>();
-        MessageConsumer<JsonObject> remoteConsumer = vertx
-            .eventBus()
-            .<JsonObject>consumer(remoteAddress, msg -> {
-                remoteReceived.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        MessageConsumer<JsonObject> remoteConsumer = vertx.eventBus().<JsonObject>consumer(remoteAddress, msg -> {
+            remoteReceived.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
 
         // First call: scope not served — must not send and must not record as applied
         controlledPort.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(remoteScope), 100L, null).blockingAwait();

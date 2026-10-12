@@ -66,7 +66,9 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setLabel("Test");
 
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
-        final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/" + field.getKey())
+            .request()
+            .put(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(customUserFieldService, never()).update(eq(GraviteeContext.getExecutionContext()), any());

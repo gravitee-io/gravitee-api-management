@@ -97,14 +97,15 @@ class ReorderPlanDomainServiceTest {
             existingOrder
                 .entrySet()
                 .stream()
-                .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless()
-                        .toBuilder()
-                        .id(entry.getKey())
-                        .order(entry.getValue())
-                        .referenceId(API_PRODUCT_ID)
-                        .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
-                        .build()
+                .map(
+                    entry ->
+                        (Plan) PlanFixtures.HttpV4.aKeyless()
+                            .toBuilder()
+                            .id(entry.getKey())
+                            .order(entry.getValue())
+                            .referenceId(API_PRODUCT_ID)
+                            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                            .build()
                 )
                 .toList()
         );
@@ -131,8 +132,9 @@ class ReorderPlanDomainServiceTest {
             existingOrder
                 .entrySet()
                 .stream()
-                .map(entry ->
-                    (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build()
+                .map(
+                    entry ->
+                        (Plan) PlanFixtures.HttpV4.aKeyless().toBuilder().id(entry.getKey()).apiId(API_ID).order(entry.getValue()).build()
                 )
                 .toList()
         );

@@ -34,7 +34,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcAiWorkspaceComponentRepository
     extends JdbcAbstractCrudRepository<AiWorkspaceComponent, String>
-    implements AiWorkspaceComponentRepository {
+    implements AiWorkspaceComponentRepository
+{
 
     JdbcAiWorkspaceComponentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "ai_workspace_components");

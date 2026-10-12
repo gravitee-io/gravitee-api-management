@@ -46,7 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(value = "graviteeTransactionManager", rollbackFor = Exception.class)
 public class JdbcSubscriptionFormRepository
     extends JdbcAbstractCrudRepository<SubscriptionForm, String>
-    implements SubscriptionFormRepository {
+    implements SubscriptionFormRepository
+{
 
     private final String SUBSCRIPTION_FORM_APIS;
 

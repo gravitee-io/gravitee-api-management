@@ -69,7 +69,7 @@ public class ApiProductSearchQueryServiceInMemory extends AbstractQueryServiceIn
         Stream<ApiProduct> stream = storage
             .stream()
             .filter(apiProduct -> Objects.equals(apiProduct.getEnvironmentId(), environmentId))
-            .filter(apiProduct -> ids == null || ids.isEmpty() || (ids.contains(apiProduct.getId())))
+            .filter(apiProduct -> ids == null || ids.isEmpty() || ids.contains(apiProduct.getId()))
             .filter(apiProduct -> kindFilter == null || kindFilter.matches(apiProduct))
             .filter(apiProduct -> {
                 if (query == null || query.isBlank()) return true;

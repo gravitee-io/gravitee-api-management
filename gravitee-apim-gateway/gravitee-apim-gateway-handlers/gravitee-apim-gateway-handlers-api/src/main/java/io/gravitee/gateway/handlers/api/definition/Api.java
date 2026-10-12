@@ -72,27 +72,24 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.Api> 
         Set<io.gravitee.definition.model.Policy> policies = new HashSet<>();
 
         // Load policies from Plans
-        definition
-            .getPlans()
-            .forEach(plan -> {
-                String security = plan.getSecurity();
-                Policy secPolicy = buildSecurityPolicy(security);
+        definition.getPlans().forEach(plan -> {
+            String security = plan.getSecurity();
+            Policy secPolicy = buildSecurityPolicy(security);
 
-                if (secPolicy.getName() != null) {
-                    policies.add(secPolicy);
-                }
+            if (secPolicy.getName() != null) {
+                policies.add(secPolicy);
+            }
 
-                if (plan.getFlows() != null) {
-                    plan
-                        .getFlows()
-                        .stream()
-                        .filter(Flow::isEnabled)
-                        .forEach(flow -> {
-                            policies.addAll(getPolicies(flow.getPre()));
-                            policies.addAll(getPolicies(flow.getPost()));
-                        });
-                }
-            });
+            if (plan.getFlows() != null) {
+                plan.getFlows()
+                    .stream()
+                    .filter(Flow::isEnabled)
+                    .forEach(flow -> {
+                        policies.addAll(getPolicies(flow.getPre()));
+                        policies.addAll(getPolicies(flow.getPost()));
+                    });
+            }
+        });
 
         // Load policies from flows
         if (definition.getFlows() != null) {

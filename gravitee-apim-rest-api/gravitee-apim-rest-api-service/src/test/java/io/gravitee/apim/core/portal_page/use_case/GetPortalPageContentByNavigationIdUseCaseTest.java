@@ -283,9 +283,9 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         assertThat(output.renderedContent().value()).isEqualTo("templated");
         assertThat(
-            ((GraviteeMarkdownPageContent) pageContentQueryService
-                    .findById(PortalPageContentId.of(PAGE11_CONTENT_ID))
-                    .orElseThrow()).getContent().value()
+            ((GraviteeMarkdownPageContent) pageContentQueryService.findById(PortalPageContentId.of(PAGE11_CONTENT_ID)).orElseThrow())
+                .getContent()
+                .value()
         ).isEqualTo("Page 11 content");
         var captor = ArgumentCaptor.forClass(PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput.class);
         verify(portalNavigationTemplatingService).renderGraviteeMarkdown(captor.capture());

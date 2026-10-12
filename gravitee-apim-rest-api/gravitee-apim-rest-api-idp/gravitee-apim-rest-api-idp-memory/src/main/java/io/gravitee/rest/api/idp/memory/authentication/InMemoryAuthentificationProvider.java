@@ -42,7 +42,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Import(InMemoryAuthenticationProviderConfiguration.class)
 public class InMemoryAuthentificationProvider
     extends AbstractUserDetailsAuthenticationProvider
-    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider>
+{
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,7 +61,7 @@ public class InMemoryAuthentificationProvider
 
         while (found) {
             String user = environment.getProperty("users[" + userIdx + "].user");
-            found = (user != null && user.isEmpty());
+            found = user != null && user.isEmpty();
 
             if (found) {
                 String username = environment.getProperty("users[" + userIdx + "].username");

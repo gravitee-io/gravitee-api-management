@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 @Component("EndpointConnectorPluginServiceImplV4")
 public class EndpointConnectorPluginServiceImpl
     extends AbstractConnectorPluginService<EndpointConnectorPlugin<?, ?>>
-    implements EndpointConnectorPluginService {
+    implements EndpointConnectorPluginService
+{
 
     public EndpointConnectorPluginServiceImpl(
         JsonSchemaService jsonSchemaService,

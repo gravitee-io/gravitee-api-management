@@ -108,7 +108,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     protected ApiDuplicatorServiceImpl apiDuplicatorService;
 
     @Spy
-    private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+    private ObjectMapper objectMapper = new ServiceConfiguration().objectMapper();
 
     @Mock
     private ApiService apiService;

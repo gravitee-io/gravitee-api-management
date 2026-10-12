@@ -492,13 +492,11 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 .doFinally(() -> {
                     final Span rootSpan = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ROOT_SPAN);
                     final Throwable throwable = ctx.getInternalAttribute(ATTR_INTERNAL_TRACING_ERROR);
-                    ctx
-                        .getTracer()
-                        .endWithResponseAndError(
-                            rootSpan,
-                            new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
-                            throwable
-                        );
+                    ctx.getTracer().endWithResponseAndError(
+                        rootSpan,
+                        new ObservableHttpServerResponse(httpServerRequest.getDelegate().response()),
+                        throwable
+                    );
                 }),
             ctx
         );

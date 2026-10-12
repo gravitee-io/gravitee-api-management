@@ -203,7 +203,7 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private Throwable rewriteServerNull(NoStackTraceTimeoutException e, HttpExecutionContext ctx) {
         String msg = e.getMessage();
         String endpoint = ctx.metrics().getEndpoint();
-        return (msg != null && msg.endsWith(SERVER_NULL_PATTERN) && endpoint != null)
+        return msg != null && msg.endsWith(SERVER_NULL_PATTERN) && endpoint != null
             ? new NoStackTraceTimeoutException(msg.replace(SERVER_NULL_PATTERN, " for endpoint " + endpoint))
             : e;
     }

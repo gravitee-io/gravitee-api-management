@@ -78,16 +78,14 @@ class HttpProxyEndpointConfigurationFactoryTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "/api/v1,http://192.168.1.100:8080/api/v1",
-            "/api/v1/,http://192.168.1.100:8080/api/v1",
-            "'',http://192.168.1.100:8080",
-            "/,http://192.168.1.100:8080",
-            "/app/,http://192.168.1.100:8080/app",
-            "/service/endpoint/,http://192.168.1.100:8080/service/endpoint",
-        }
-    )
+    @CsvSource({
+        "/api/v1,http://192.168.1.100:8080/api/v1",
+        "/api/v1/,http://192.168.1.100:8080/api/v1",
+        "'',http://192.168.1.100:8080",
+        "/,http://192.168.1.100:8080",
+        "/app/,http://192.168.1.100:8080/app",
+        "/service/endpoint/,http://192.168.1.100:8080/service/endpoint",
+    })
     void should_build_configuration_with_path(String path, String expectedTarget) {
         Service service = new Service().setAddress("192.168.1.100").setPort(8080).setMeta(Map.of(CONSUL_METADATA_PATH, path));
 

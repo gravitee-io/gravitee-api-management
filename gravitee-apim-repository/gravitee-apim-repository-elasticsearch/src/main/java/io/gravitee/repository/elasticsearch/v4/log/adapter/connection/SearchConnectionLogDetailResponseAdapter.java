@@ -103,21 +103,21 @@ public class SearchConnectionLogDetailResponseAdapter {
     private static ConnectionLogDetail.Request buildRequest(JsonNode json) {
         return null != json
             ? ConnectionLogDetail.Request.builder()
-                .uri(asTextOrNull(json.get("uri")))
-                .method(asTextOrNull(json.get("method")))
-                .headers(buildHeaders(json.get("headers")))
-                .body(asTextOrNull(json.get("body")))
-                .build()
+                  .uri(asTextOrNull(json.get("uri")))
+                  .method(asTextOrNull(json.get("method")))
+                  .headers(buildHeaders(json.get("headers")))
+                  .body(asTextOrNull(json.get("body")))
+                  .build()
             : null;
     }
 
     private static ConnectionLogDetail.Response buildResponse(JsonNode json) {
         return null != json
             ? ConnectionLogDetail.Response.builder()
-                .status(asIntOr(json.get("status"), 0))
-                .headers(buildHeaders(json.get("headers")))
-                .body(asTextOrNull(json.get("body")))
-                .build()
+                  .status(asIntOr(json.get("status"), 0))
+                  .headers(buildHeaders(json.get("headers")))
+                  .body(asTextOrNull(json.get("body")))
+                  .build()
             : null;
     }
 

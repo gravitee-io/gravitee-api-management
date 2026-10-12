@@ -89,8 +89,9 @@ public class ApiDeployerStatement {
         applicationContext = container.applicationContext();
         final Environment environment = applicationContext.getBean(Environment.class);
 
-        DefaultListableBeanFactory beanFactory =
-            (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
+            (ConfigurableApplicationContext) applicationContext
+        ).getBeanFactory();
 
         FakeReporter fakeReporter = (FakeReporter) applicationContext.getBean("fakeReporter");
         ReporterManager reporterManager = applicationContext.getBean(ReporterManager.class);
@@ -101,7 +102,7 @@ public class ApiDeployerStatement {
         }
 
         if (target instanceof PluginRegister) {
-            final PluginRegister register = ((PluginRegister) target);
+            final PluginRegister register = (PluginRegister) target;
 
             // Register connectors
             ConnectorPluginManager cpm = container.applicationContext().getBean(ConnectorPluginManager.class);

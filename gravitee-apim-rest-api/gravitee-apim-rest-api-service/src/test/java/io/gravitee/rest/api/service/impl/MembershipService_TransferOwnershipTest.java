@@ -742,7 +742,9 @@ public class MembershipService_TransferOwnershipTest {
 
         UserEntity newOwner = new UserEntity();
         newOwner.setId(newOwnerId);
-        lenient().when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(newOwnerId), false)).thenReturn(Set.of(newOwner));
+        lenient()
+            .when(userService.findByIds(EXECUTION_CONTEXT, Collections.singletonList(newOwnerId), false))
+            .thenReturn(Set.of(newOwner));
         lenient().when(userService.findById(EXECUTION_CONTEXT, newOwnerId)).thenReturn(newOwner);
 
         // Current primary owner is USER_ID

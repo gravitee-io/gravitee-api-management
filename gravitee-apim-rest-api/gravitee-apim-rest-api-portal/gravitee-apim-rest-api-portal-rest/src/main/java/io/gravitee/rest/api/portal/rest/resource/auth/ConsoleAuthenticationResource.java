@@ -68,9 +68,10 @@ public class ConsoleAuthenticationResource extends AbstractAuthenticationResourc
 
             // Initialize execution context from management API token.
             final String organizationId = jwt.getClaim(JWTHelper.Claims.ORG).asString();
-            final String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
+            final String environmentId =
+                GraviteeContext.getCurrentEnvironment() != null
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
 
             ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
             GraviteeContext.fromExecutionContext(executionContext);

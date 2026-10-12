@@ -176,8 +176,7 @@ public class VertxHttpHeaders implements HttpHeaders, MultiValueMap<String, Stri
         final MultiMap multimap = HeadersMultiMap.httpHeaders();
 
         // Flatten the Map<String, List<String>> to be able to add each entry one by one to a new Multimap object
-        map
-            .entrySet()
+        map.entrySet()
             .stream()
             .flatMap(entry ->
                 entry

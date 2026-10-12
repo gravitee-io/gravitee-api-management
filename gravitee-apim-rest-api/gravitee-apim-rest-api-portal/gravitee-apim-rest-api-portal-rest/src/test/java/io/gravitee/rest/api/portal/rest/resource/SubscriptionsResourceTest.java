@@ -299,7 +299,9 @@ public class SubscriptionsResourceTest extends AbstractResourceTest {
         mockApiProductPlan();
         initApiProduct();
 
-        Response response = target().request().post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
+        Response response = target()
+            .request()
+            .post(Entity.json(new SubscriptionInput().application(APPLICATION).plan(PLAN)));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
         verify(createSubscriptionUseCase, never()).execute(any());

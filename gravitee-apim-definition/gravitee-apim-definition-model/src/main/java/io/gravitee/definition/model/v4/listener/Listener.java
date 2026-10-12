@@ -44,13 +44,11 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
-        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+    @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
+})
 @Schema(
     name = "ListenerV4",
     discriminatorProperty = "type",

@@ -135,7 +135,7 @@ class ApiDefinitionResourceTest {
 
         assertTrue(resource.getSpec().has("contextRef"));
 
-        ObjectNode contextRef = ((ObjectNode) resource.getSpec().get("contextRef"));
+        ObjectNode contextRef = (ObjectNode) resource.getSpec().get("contextRef");
 
         assertTrue(contextRef.has("name"));
         assertTrue(contextRef.has("namespace"));

@@ -139,11 +139,11 @@ public class AnalyticsParam {
     }
 
     public List<Range> getRanges() {
-        return (ranges == null) ? null : ranges.getValues();
+        return ranges == null ? null : ranges.getValues();
     }
 
     public List<Aggregation> getAggregations() {
-        return (aggregations == null) ? null : aggregations.getValues();
+        return aggregations == null ? null : aggregations.getValues();
     }
 
     @QueryParam("order")

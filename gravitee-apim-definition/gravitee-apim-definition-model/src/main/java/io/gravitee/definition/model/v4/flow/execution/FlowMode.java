@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public enum FlowMode {
     @JsonEnumDefaultValue
     DEFAULT("default"),
+
     BEST_MATCH("best-match");
 
     @JsonValue

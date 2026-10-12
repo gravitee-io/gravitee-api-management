@@ -395,7 +395,12 @@ class JdbcScoringReportRepository extends JdbcAbstractRepository<JdbcScoringRow>
                     .map(row ->
                         new ScoringReport.ScoringError(
                             row.getErrorCode(),
-                            Arrays.asList(row.getPath().substring(1, row.getPath().length() - 1).split(", "))
+                            Arrays.asList(
+                                row
+                                    .getPath()
+                                    .substring(1, row.getPath().length() - 1)
+                                    .split(", ")
+                            )
                         )
                     )
                     .toList();

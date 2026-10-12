@@ -145,25 +145,23 @@ public class TemplateDataFetcher {
 
     private Optional<ApiProductTemplateModel> buildApiProductNotificationTemplateData(String organizationId, String apiProductId) {
         try {
-            return apiProductsRepository
-                .findById(apiProductId)
-                .map(apiProduct -> {
-                    ApiProductTemplateModel model = toApiProductTemplateModel(apiProduct);
-                    try {
-                        var primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(organizationId, apiProductId);
-                        model.setPrimaryOwner(
-                            new PrimaryOwnerEntity(
-                                primaryOwner.id(),
-                                primaryOwner.email(),
-                                primaryOwner.displayName(),
-                                primaryOwner.type() != null ? primaryOwner.type().name() : null
-                            )
-                        );
-                    } catch (ApiProductPrimaryOwnerNotFoundException e) {
-                        log.debug("No primary owner found for API Product {}", apiProductId);
-                    }
-                    return model;
-                });
+            return apiProductsRepository.findById(apiProductId).map(apiProduct -> {
+                ApiProductTemplateModel model = toApiProductTemplateModel(apiProduct);
+                try {
+                    var primaryOwner = apiProductPrimaryOwnerDomainService.getApiProductPrimaryOwner(organizationId, apiProductId);
+                    model.setPrimaryOwner(
+                        new PrimaryOwnerEntity(
+                            primaryOwner.id(),
+                            primaryOwner.email(),
+                            primaryOwner.displayName(),
+                            primaryOwner.type() != null ? primaryOwner.type().name() : null
+                        )
+                    );
+                } catch (ApiProductPrimaryOwnerNotFoundException e) {
+                    log.debug("No primary owner found for API Product {}", apiProductId);
+                }
+                return model;
+            });
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -207,42 +205,40 @@ public class TemplateDataFetcher {
 
     private Optional<ApiNotificationTemplateData> buildApiNotificationTemplateData(String organizationId, String apiId) {
         try {
-            return apiRepository
-                .findById(apiId)
-                .map(api -> {
-                    var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId);
-                    var metadata = apiMetadataDecoderDomainService.decodeMetadata(
-                        api.getEnvironmentId(),
-                        apiId,
-                        ApiMetadataDecodeContext.builder()
-                            .name(api.getName())
-                            .description(api.getDescription())
-                            .createdAt(api.getCreatedAt())
-                            .updatedAt(api.getUpdatedAt())
-                            .primaryOwner(
-                                new PrimaryOwnerApiTemplateData(
-                                    apiPrimaryOwner.id(),
-                                    apiPrimaryOwner.displayName(),
-                                    apiPrimaryOwner.email(),
-                                    apiPrimaryOwner.type().name()
-                                )
-                            )
-                            .build()
-                    );
-
-                    return ApiNotificationTemplateData.builder()
-                        .id(api.getId())
+            return apiRepository.findById(apiId).map(api -> {
+                var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId);
+                var metadata = apiMetadataDecoderDomainService.decodeMetadata(
+                    api.getEnvironmentId(),
+                    apiId,
+                    ApiMetadataDecodeContext.builder()
                         .name(api.getName())
-                        .apiVersion(api.getVersion())
                         .description(api.getDescription())
-                        .definitionVersion(api.getDefinitionVersion())
                         .createdAt(api.getCreatedAt())
                         .updatedAt(api.getUpdatedAt())
-                        .deployedAt(api.getDeployedAt())
-                        .primaryOwner(PrimaryOwnerNotificationTemplateData.from(apiPrimaryOwner))
-                        .metadata(metadata)
-                        .build();
-                });
+                        .primaryOwner(
+                            new PrimaryOwnerApiTemplateData(
+                                apiPrimaryOwner.id(),
+                                apiPrimaryOwner.displayName(),
+                                apiPrimaryOwner.email(),
+                                apiPrimaryOwner.type().name()
+                            )
+                        )
+                        .build()
+                );
+
+                return ApiNotificationTemplateData.builder()
+                    .id(api.getId())
+                    .name(api.getName())
+                    .apiVersion(api.getVersion())
+                    .description(api.getDescription())
+                    .definitionVersion(api.getDefinitionVersion())
+                    .createdAt(api.getCreatedAt())
+                    .updatedAt(api.getUpdatedAt())
+                    .deployedAt(api.getDeployedAt())
+                    .primaryOwner(PrimaryOwnerNotificationTemplateData.from(apiPrimaryOwner))
+                    .metadata(metadata)
+                    .build();
+            });
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -253,22 +249,20 @@ public class TemplateDataFetcher {
         String applicationId
     ) {
         try {
-            return applicationRepository
-                .findById(applicationId)
-                .map(application -> {
-                    var primaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(organizationId, applicationId);
-                    return ApplicationNotificationTemplateData.builder()
-                        .id(application.getId())
-                        .name(application.getName())
-                        .type(application.getType().name())
-                        .description(application.getDescription())
-                        .status(application.getStatus().name())
-                        .primaryOwner(PrimaryOwnerNotificationTemplateData.from(primaryOwner))
-                        .createdAt(application.getCreatedAt())
-                        .updatedAt(application.getUpdatedAt())
-                        .apiKeyMode(application.getApiKeyMode().name())
-                        .build();
-                });
+            return applicationRepository.findById(applicationId).map(application -> {
+                var primaryOwner = applicationPrimaryOwnerDomainService.getApplicationPrimaryOwner(organizationId, applicationId);
+                return ApplicationNotificationTemplateData.builder()
+                    .id(application.getId())
+                    .name(application.getName())
+                    .type(application.getType().name())
+                    .description(application.getDescription())
+                    .status(application.getStatus().name())
+                    .primaryOwner(PrimaryOwnerNotificationTemplateData.from(primaryOwner))
+                    .createdAt(application.getCreatedAt())
+                    .updatedAt(application.getUpdatedAt())
+                    .apiKeyMode(application.getApiKeyMode().name())
+                    .build();
+            });
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
@@ -276,23 +270,21 @@ public class TemplateDataFetcher {
 
     private Optional<PlanNotificationTemplateData> buildPlanNotificationTemplateData(String planId) {
         try {
-            return planRepository
-                .findById(planId)
-                .map(plan ->
-                    PlanNotificationTemplateData.builder()
-                        .id(plan.getId())
-                        .name(plan.getName())
-                        .description(plan.getDescription())
-                        .order(plan.getOrder())
-                        .createdAt(plan.getCreatedAt())
-                        .updatedAt(plan.getUpdatedAt())
-                        .publishedAt(plan.getPublishedAt())
-                        .closedAt(plan.getClosedAt())
-                        .commentMessage(plan.getCommentMessage())
-                        .security(plan.getSecurity() != null ? plan.getSecurity().name() : null)
-                        .validation(plan.getValidation().name())
-                        .build()
-                );
+            return planRepository.findById(planId).map(plan ->
+                PlanNotificationTemplateData.builder()
+                    .id(plan.getId())
+                    .name(plan.getName())
+                    .description(plan.getDescription())
+                    .order(plan.getOrder())
+                    .createdAt(plan.getCreatedAt())
+                    .updatedAt(plan.getUpdatedAt())
+                    .publishedAt(plan.getPublishedAt())
+                    .closedAt(plan.getClosedAt())
+                    .commentMessage(plan.getCommentMessage())
+                    .security(plan.getSecurity() != null ? plan.getSecurity().name() : null)
+                    .validation(plan.getValidation().name())
+                    .build()
+            );
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }

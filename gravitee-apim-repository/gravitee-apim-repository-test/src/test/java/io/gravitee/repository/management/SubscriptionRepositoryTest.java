@@ -158,7 +158,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldFindByIds() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub1", "sub3", "sub4")).build()
+            SubscriptionCriteria.builder()
+                .ids(List.of("sub1", "sub3", "sub4"))
+                .build()
         );
 
         assertNotNull(subscriptions);
@@ -535,7 +537,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldSearchByIdsSortedById() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
+            SubscriptionCriteria.builder()
+                .ids(List.of("sub4", "sub3", "sub1"))
+                .build(),
             new SortableBuilder().order(Order.ASC).field("id").build()
         );
 
@@ -551,7 +555,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldSearchByIdsSortedByCreated() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(
-            SubscriptionCriteria.builder().ids(List.of("sub4", "sub3", "sub1")).build(),
+            SubscriptionCriteria.builder()
+                .ids(List.of("sub4", "sub3", "sub1"))
+                .build(),
             new SortableBuilder().order(Order.ASC).field("createdAt").build()
         );
 

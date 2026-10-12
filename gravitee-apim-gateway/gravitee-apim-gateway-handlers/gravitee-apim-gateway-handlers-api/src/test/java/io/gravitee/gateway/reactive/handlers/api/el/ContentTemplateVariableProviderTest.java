@@ -669,11 +669,11 @@ class ContentTemplateVariableProviderTest {
         }
 
         private static final String XXE_PAYLOAD = """
-            <!DOCTYPE root [
-                <!ENTITY xxe SYSTEM "http://localhost/never-fetched.dtd">
-            ]>
-            <root>&xxe;</root>
-            """;
+        <!DOCTYPE root [
+            <!ENTITY xxe SYSTEM "http://localhost/never-fetched.dtd">
+        ]>
+        <root>&xxe;</root>
+        """;
     }
 
     private static String readRootText(XMLInputFactory factory, String xml) throws XMLStreamException {

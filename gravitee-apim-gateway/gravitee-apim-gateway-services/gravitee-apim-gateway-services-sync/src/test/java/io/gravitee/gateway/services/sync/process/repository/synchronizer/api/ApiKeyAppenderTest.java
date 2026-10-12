@@ -126,7 +126,13 @@ class ApiKeyAppenderTest {
         // 5 subscription ids → 2 chunks of size 3 (last chunk has 2). A federated api key tied to
         // subscriptions across both chunks must be emitted exactly once.
         List<Subscription> subs = IntStream.range(0, 5)
-            .mapToObj(i -> Subscription.builder().id("sub" + i).api("api1").plan("plan1").build())
+            .mapToObj(i ->
+                Subscription.builder()
+                    .id("sub" + i)
+                    .api("api1")
+                    .plan("plan1")
+                    .build()
+            )
             .toList();
         ApiReactorDeployable deployable = ApiReactorDeployable.builder()
             .apiId("api1")

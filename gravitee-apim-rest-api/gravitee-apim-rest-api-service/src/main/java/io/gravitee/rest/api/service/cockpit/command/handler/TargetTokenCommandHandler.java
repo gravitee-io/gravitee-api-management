@@ -150,9 +150,10 @@ public class TargetTokenCommandHandler implements CommandHandler<TargetTokenComm
     }
 
     private boolean assignEnvironmentRole(ExecutionContext context, TargetTokenCommandPayload payload, UserEntity user) {
-        NewRoleEntity newRole = payload.scope() == TargetTokenCommandPayload.Scope.FEDERATION
-            ? ROLE_ENVIRONMENT_FEDERATION_AGENT
-            : ROLE_ENVIRONMENT_API_PUBLISHER;
+        NewRoleEntity newRole =
+            payload.scope() == TargetTokenCommandPayload.Scope.FEDERATION
+                ? ROLE_ENVIRONMENT_FEDERATION_AGENT
+                : ROLE_ENVIRONMENT_API_PUBLISHER;
 
         if (roleService.findByScopeAndName(RoleScope.ENVIRONMENT, newRole.getName(), payload.organizationId()).isEmpty()) {
             log.error(

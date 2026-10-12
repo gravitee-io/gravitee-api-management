@@ -535,7 +535,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } else {
             group.setEndpoints(new HashSet<>());
             for (int i = 0; i < endpoints.length; i++) {
-                group.getEndpoints().add(Endpoint.builder().name("server" + (i + 1)).target(endpoints[i]).build());
+                group.getEndpoints().add(
+                    Endpoint.builder()
+                        .name("server" + (i + 1))
+                        .target(endpoints[i])
+                        .build()
+                );
             }
         }
         proxy.setGroups(singleton(group));
@@ -583,11 +588,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 )
             );
 
-            validationResult
-                .severe()
-                .ifPresent(errors -> {
-                    throw new InvalidPathsException(errors.iterator().next().getMessage());
-                });
+            validationResult.severe().ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
 
             var sanitizedVirtualHosts = validationResult
                 .map(VerifyApiPathDomainService.Input::paths)
@@ -826,9 +829,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         EndpointGroup endpointGroup = api.getProxy().getGroups().iterator().next();
         //Is service discovery enabled ?
-        EndpointDiscoveryService endpointDiscoveryService = endpointGroup.getServices() == null
-            ? null
-            : endpointGroup.getServices().get(EndpointDiscoveryService.class);
+        EndpointDiscoveryService endpointDiscoveryService =
+            endpointGroup.getServices() == null ? null : endpointGroup.getServices().get(EndpointDiscoveryService.class);
         if (
             (endpointDiscoveryService == null || !endpointDiscoveryService.isEnabled()) &&
             (endpointGroup.getEndpoints() == null || endpointGroup.getEndpoints().isEmpty())
@@ -1089,33 +1091,31 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ApiEntity updatedApi = update(executionContext, apiId, updateApiEntity);
 
         if (swaggerApiEntity.getMetadata() != null && !swaggerApiEntity.getMetadata().isEmpty()) {
-            swaggerApiEntity
-                .getMetadata()
-                .forEach(data -> {
-                    try {
-                        final ApiMetadataEntity apiMetadataEntity = this.apiMetadataService.findByIdAndApi(
-                            executionContext,
-                            data.getKey(),
-                            apiId
-                        );
-                        UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
-                        updateApiMetadataEntity.setApiId(apiId);
-                        updateApiMetadataEntity.setFormat(data.getFormat());
-                        updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
-                        updateApiMetadataEntity.setName(data.getName());
-                        updateApiMetadataEntity.setValue(data.getValue());
-                        ApiMetadataEntity metadata = this.apiMetadataService.update(executionContext, updateApiMetadataEntity);
-                        updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
-                    } catch (ApiMetadataNotFoundException amnfe) {
-                        NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                        newMD.setApiId(apiId);
-                        newMD.setFormat(data.getFormat());
-                        newMD.setName(data.getName());
-                        newMD.setValue(data.getValue());
-                        ApiMetadataEntity metadata = this.apiMetadataService.create(executionContext, newMD);
-                        updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
-                    }
-                });
+            swaggerApiEntity.getMetadata().forEach(data -> {
+                try {
+                    final ApiMetadataEntity apiMetadataEntity = this.apiMetadataService.findByIdAndApi(
+                        executionContext,
+                        data.getKey(),
+                        apiId
+                    );
+                    UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
+                    updateApiMetadataEntity.setApiId(apiId);
+                    updateApiMetadataEntity.setFormat(data.getFormat());
+                    updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
+                    updateApiMetadataEntity.setName(data.getName());
+                    updateApiMetadataEntity.setValue(data.getValue());
+                    ApiMetadataEntity metadata = this.apiMetadataService.update(executionContext, updateApiMetadataEntity);
+                    updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
+                } catch (ApiMetadataNotFoundException amnfe) {
+                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                    newMD.setApiId(apiId);
+                    newMD.setFormat(data.getFormat());
+                    newMD.setName(data.getName());
+                    newMD.setValue(data.getValue());
+                    ApiMetadataEntity metadata = this.apiMetadataService.create(executionContext, newMD);
+                    updatedApi.getMetadata().put(metadata.getKey(), metadata.getValue());
+                }
+            });
         }
 
         searchEngineService.index(executionContext, updatedApi, false);
@@ -1170,11 +1170,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 )
             );
 
-            validationResult
-                .severe()
-                .ifPresent(errors -> {
-                    throw new InvalidPathsException(errors.iterator().next().getMessage());
-                });
+            validationResult.severe().ifPresent(errors -> {
+                throw new InvalidPathsException(errors.iterator().next().getMessage());
+            });
 
             var sanitizedVirtualHosts = validationResult
                 .map(VerifyApiPathDomainService.Input::paths)
@@ -1260,49 +1258,43 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     planStatuses.putAll(existingPlans.stream().collect(toMap(PlanEntity::getId, PlanEntity::getStatus)));
                 }
 
-                updateApiEntity
-                    .getPlans()
-                    .forEach(planToUpdate -> {
-                        if (
-                            !planStatuses.containsKey(planToUpdate.getId()) ||
-                            (planStatuses.containsKey(planToUpdate.getId()) &&
-                                planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-                                planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus())
-                        ) {
-                            throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
-                        }
+                updateApiEntity.getPlans().forEach(planToUpdate -> {
+                    if (
+                        !planStatuses.containsKey(planToUpdate.getId()) ||
+                        (planStatuses.containsKey(planToUpdate.getId()) &&
+                            planStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
+                            planStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus())
+                    ) {
+                        throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
+                    }
 
-                        try {
-                            tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
-                        } catch (TagNotAllowedException e) {
-                            final var missingTags = planToUpdate
-                                .getTags()
-                                .stream()
-                                .filter(tag -> !updateApiEntity.getTags().contains(tag))
-                                .collect(Collectors.toList());
-                            throw new InvalidDataException(
-                                "Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'"
-                            );
-                        }
-                    });
+                    try {
+                        tagsValidationService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), updateApiEntity.getTags());
+                    } catch (TagNotAllowedException e) {
+                        final var missingTags = planToUpdate
+                            .getTags()
+                            .stream()
+                            .filter(tag -> !updateApiEntity.getTags().contains(tag))
+                            .collect(Collectors.toList());
+                        throw new InvalidDataException("Sharding tags " + missingTags + " used by plan '" + planToUpdate.getName() + "'");
+                    }
+                });
             }
 
             // encrypt API properties
             encryptProperties(apiToCheck.getPropertyList(), updateApiEntity.getPropertyList());
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
-                planService
-                    .findByApi(executionContext, apiId)
-                    .forEach(plan -> {
-                        if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
-                            planService.deprecate(executionContext, plan.getId(), true);
-                            updateApiEntity
-                                .getPlans()
-                                .stream()
-                                .filter(p -> p.getId().equals(plan.getId()))
-                                .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
-                        }
-                    });
+                planService.findByApi(executionContext, apiId).forEach(plan -> {
+                    if (PlanStatus.PUBLISHED.equals(plan.getStatus()) || PlanStatus.STAGING.equals(plan.getStatus())) {
+                        planService.deprecate(executionContext, plan.getId(), true);
+                        updateApiEntity
+                            .getPlans()
+                            .stream()
+                            .filter(p -> p.getId().equals(plan.getId()))
+                            .forEach(p -> p.setStatus(PlanStatus.DEPRECATED));
+                    }
+                });
             }
 
             Api api = convert(executionContext, apiId, updateApiEntity, apiToUpdate.getDefinition());
@@ -1378,14 +1370,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
 
                 // update API plans
-                updateApiEntity
-                    .getPlans()
-                    .forEach(plan -> {
-                        plan.setReferenceId(api.getId());
-                        plan.setEnvironmentId(api.getEnvironmentId());
-                        plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-                        planService.createOrUpdatePlan(executionContext, plan);
-                    });
+                updateApiEntity.getPlans().forEach(plan -> {
+                    plan.setReferenceId(api.getId());
+                    plan.setEnvironmentId(api.getEnvironmentId());
+                    plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+                    planService.createOrUpdatePlan(executionContext, plan);
+                });
             }
 
             // Update api category order entries
@@ -1549,11 +1539,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         checkFlowsPolicyConfiguration(flows);
 
         if (plans != null) {
-            plans
-                .stream()
-                .forEach(plan -> {
-                    checkFlowsPolicyConfiguration(plan.getFlows());
-                });
+            plans.stream().forEach(plan -> {
+                checkFlowsPolicyConfiguration(plan.getFlows());
+            });
         }
     }
 
@@ -1602,15 +1590,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private void validateRegexfields(final UpdateApiEntity updateApiEntity) {
         // validate regex on pathMappings
         if (updateApiEntity.getPathMappings() != null) {
-            updateApiEntity
-                .getPathMappings()
-                .forEach(pathMapping -> {
-                    try {
-                        Pattern.compile(pathMapping);
-                    } catch (java.util.regex.PatternSyntaxException pse) {
-                        throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
-                    }
-                });
+            updateApiEntity.getPathMappings().forEach(pathMapping -> {
+                try {
+                    Pattern.compile(pathMapping);
+                } catch (java.util.regex.PatternSyntaxException pse) {
+                    throw new TechnicalManagementException("An error occurs while trying to parse the path mapping" + pathMapping, pse);
+                }
+            });
         }
     }
 
@@ -2487,11 +2473,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .stream()
                         .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
                         .flatMap(role ->
-                            this.membershipService.getMembershipsByReferenceAndRole(
-                                MembershipReferenceType.GROUP,
-                                group,
-                                role.getId()
-                            ).stream()
+                            this.membershipService
+                                .getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId())
+                                .stream()
                         )
                         .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                         .map(MembershipEntity::getMemberId)
@@ -2627,11 +2611,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api.AuditEvent auditEvent;
             if (
                 (loggingToUpdate == null || loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
-                (loggingUpdated != null && !loggingUpdated.getMode().equals(LoggingMode.NONE))
+                loggingUpdated != null &&
+                !loggingUpdated.getMode().equals(LoggingMode.NONE)
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_ENABLED;
             } else if (
-                (loggingToUpdate != null && !loggingToUpdate.getMode().equals(LoggingMode.NONE)) &&
+                loggingToUpdate != null &&
+                !loggingToUpdate.getMode().equals(LoggingMode.NONE) &&
                 (loggingUpdated == null || loggingUpdated.getMode().equals(LoggingMode.NONE))
             ) {
                 auditEvent = Api.AuditEvent.API_LOGGING_DISABLED;
@@ -2771,17 +2757,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<ApiEntity> subsetApis = subsetApiIds.isEmpty()
             ? emptyList()
             : convert(
-                executionContext,
-                apiRepository
-                    .search(
-                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).ids(subsetApiIds).build(),
-                        null,
-                        // Dumb pageable because we do it with a subset of ids from the engine search
-                        new PageableBuilder().pageNumber(0).pageSize(subsetApiIds.size()).build(),
-                        ApiFieldFilter.allFields()
-                    )
-                    .getContent()
-            );
+                  executionContext,
+                  apiRepository
+                      .search(
+                          new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).ids(subsetApiIds).build(),
+                          null,
+                          // Dumb pageable because we do it with a subset of ids from the engine search
+                          new PageableBuilder()
+                              .pageNumber(0)
+                              .pageSize(subsetApiIds.size())
+                              .build(),
+                          ApiFieldFilter.allFields()
+                      )
+                      .getContent()
+              );
         subsetApis.sort((o1, o2) -> orderingComparator.compare(o1.getId(), o2.getId()));
         return new Page<>(subsetApis, pageable.getPageNumber(), pageable.getPageSize(), apiIds.size());
     }
@@ -2799,12 +2788,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     protected void encryptProperties(List<Property> storedProperties, List<PropertyEntity> properties) {
-        Map<String, Property> storedByKey = storedProperties == null
-            ? Map.of()
-            : storedProperties
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        Map<String, Property> storedByKey =
+            storedProperties == null
+                ? Map.of()
+                : storedProperties
+                      .stream()
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
         for (PropertyEntity property : properties) {
             encryptProperty(storedByKey, property);
         }

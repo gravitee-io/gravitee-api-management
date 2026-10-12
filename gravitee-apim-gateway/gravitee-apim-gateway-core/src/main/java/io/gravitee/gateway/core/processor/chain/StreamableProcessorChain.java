@@ -24,8 +24,11 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface StreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
-    extends ProcessorChain<T, P>, ReadWriteStream<S>, StreamableProcessor<T, S> {
+public interface StreamableProcessorChain<
+    T,
+    S,
+    P extends StreamableProcessor<T, S>
+> extends ProcessorChain<T, P>, ReadWriteStream<S>, StreamableProcessor<T, S> {
     @Override
     StreamableProcessorChain<T, S, P> handler(Handler<T> handler);
 

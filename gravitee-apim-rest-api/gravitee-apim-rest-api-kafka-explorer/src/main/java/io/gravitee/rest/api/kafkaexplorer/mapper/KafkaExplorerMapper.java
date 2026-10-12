@@ -69,16 +69,14 @@ public interface KafkaExplorerMapper {
     io.gravitee.rest.api.kafkaexplorer.rest.model.BrokerLogDirEntry map(BrokerLogDirEntry entry);
 
     default ListTopicsResponse map(TopicsPage topicsPage, int page, int perPage) {
-        return new ListTopicsResponse()
-            .data(mapTopics(topicsPage.data()))
-            .pagination(
-                new Pagination()
-                    .page(page)
-                    .perPage(perPage)
-                    .pageCount((int) Math.ceil((double) topicsPage.totalCount() / perPage))
-                    .pageItemsCount(topicsPage.data().size())
-                    .totalCount(topicsPage.totalCount())
-            );
+        return new ListTopicsResponse().data(mapTopics(topicsPage.data())).pagination(
+            new Pagination()
+                .page(page)
+                .perPage(perPage)
+                .pageCount((int) Math.ceil((double) topicsPage.totalCount() / perPage))
+                .pageItemsCount(topicsPage.data().size())
+                .totalCount(topicsPage.totalCount())
+        );
     }
 
     ConsumerGroupSummary map(ConsumerGroup consumerGroup);
@@ -86,16 +84,14 @@ public interface KafkaExplorerMapper {
     List<ConsumerGroupSummary> mapConsumerGroups(List<ConsumerGroup> consumerGroups);
 
     default ListConsumerGroupsResponse map(ConsumerGroupsPage consumerGroupsPage, int page, int perPage) {
-        return new ListConsumerGroupsResponse()
-            .data(mapConsumerGroups(consumerGroupsPage.data()))
-            .pagination(
-                new Pagination()
-                    .page(page)
-                    .perPage(perPage)
-                    .pageCount((int) Math.ceil((double) consumerGroupsPage.totalCount() / perPage))
-                    .pageItemsCount(consumerGroupsPage.data().size())
-                    .totalCount(consumerGroupsPage.totalCount())
-            );
+        return new ListConsumerGroupsResponse().data(mapConsumerGroups(consumerGroupsPage.data())).pagination(
+            new Pagination()
+                .page(page)
+                .perPage(perPage)
+                .pageCount((int) Math.ceil((double) consumerGroupsPage.totalCount() / perPage))
+                .pageItemsCount(consumerGroupsPage.data().size())
+                .totalCount(consumerGroupsPage.totalCount())
+        );
     }
 
     DescribeConsumerGroupResponse map(ConsumerGroupDetail consumerGroupDetail);

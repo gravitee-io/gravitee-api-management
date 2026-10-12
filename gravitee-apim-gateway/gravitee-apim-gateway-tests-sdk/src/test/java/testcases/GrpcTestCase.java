@@ -51,7 +51,9 @@ public class GrpcTestCase extends AbstractGrpcGatewayTest {
         grpcServer.callHandler(GreeterGrpc.getSayHelloMethod(), request -> {
             request.handler(hello -> {
                 GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                HelloReply reply = HelloReply.newBuilder()
+                    .setMessage("Hello " + hello.getName())
+                    .build();
                 response.end(reply);
             });
         });

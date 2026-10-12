@@ -47,8 +47,12 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
     private final PlanValidatorDomainService planValidator;
     private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
 
-    public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
-        Validator.Input {
+    public record Input(
+        AuditInfo auditInfo,
+        ApiCRDSpec apiCRDSpec,
+        Map<String, PlanCRD> plans,
+        List<Page> pages
+    ) implements Validator.Input {
         ValidatePlanDomainService.Input sanitized(Map<String, PlanCRD> sanitizedPlans) {
             return new ValidatePlanDomainService.Input(auditInfo, apiCRDSpec, sanitizedPlans, pages);
         }

@@ -202,7 +202,9 @@ class ImportGroupCRDUseCaseTest {
         cut.execute(
             new ImportGroupCRDUseCase.Input(
                 AUDIT_INFO,
-                aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER")).build()
+                aGroupSpec()
+                    .defaultMemberRoles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER"))
+                    .build()
             )
         );
 

@@ -49,7 +49,7 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
                 int idx = xForwardFor.indexOf(':');
                 String[] splits = xForwardFor.split(":");
 
-                xForwardFor = (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
+                xForwardFor = idx == -1 || splits.length > 2 ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
 
                 // X-Forwarded-For header must be reconstructed to include the gateway host address
                 ((MutableExecutionContext) context).request(new XForwardForRequest(request, xForwardFor));
@@ -70,6 +70,8 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
             return new String[0];
         }
 
-        return Arrays.stream(COMMA_SEPARATED_VALUES_PATTERN.split(commaDelimitedStrings)).map(String::strip).toArray(String[]::new);
+        return Arrays.stream(COMMA_SEPARATED_VALUES_PATTERN.split(commaDelimitedStrings))
+            .map(String::strip)
+            .toArray(String[]::new);
     }
 }

@@ -54,7 +54,8 @@ public class WorkflowQueryServiceInMemory implements WorkflowQueryService, InMem
 
     @Override
     public List<Workflow> findAllByApiIdAndType(String apiId, Workflow.Type type) {
-        return this.storage.stream()
+        return this.storage
+            .stream()
             .filter(
                 workflow ->
                     Objects.equals(apiId, workflow.getReferenceId()) &&

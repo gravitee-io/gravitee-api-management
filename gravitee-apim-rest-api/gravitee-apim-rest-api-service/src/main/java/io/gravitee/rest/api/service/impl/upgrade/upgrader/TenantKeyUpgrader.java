@@ -36,17 +36,15 @@ public class TenantKeyUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            tenantRepository
-                .findAll()
-                .forEach(tenant -> {
-                    log.info("Migrate tenant {}", tenant.getName());
-                    tenant.setKey(tenant.getId());
-                    try {
-                        tenantRepository.update(tenant);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+            tenantRepository.findAll().forEach(tenant -> {
+                log.info("Migrate tenant {}", tenant.getName());
+                tenant.setKey(tenant.getId());
+                try {
+                    tenantRepository.update(tenant);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return true;
         } catch (Exception e) {
             log.error("TenantKeyUpgrader failed. Fail to upgrade tenant key");

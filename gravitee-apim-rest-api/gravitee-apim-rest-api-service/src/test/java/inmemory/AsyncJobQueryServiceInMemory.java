@@ -75,9 +75,10 @@ public class AsyncJobQueryServiceInMemory implements AsyncJobQueryService, InMem
             .sorted(Comparator.comparing(AsyncJob::getCreatedAt).reversed())
             .toList();
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+        var page =
+            matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }

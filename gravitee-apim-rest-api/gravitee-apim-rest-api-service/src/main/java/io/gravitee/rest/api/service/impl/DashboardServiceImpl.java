@@ -295,7 +295,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                         dashboardRepository.update(dashboardsToReorder[i]);
                     }
                 } else {
-                    int newOrder = (i + 1) < dashboardToReorder.getOrder() ? (i + 1) : (i + 2);
+                    int newOrder = i + 1 < dashboardToReorder.getOrder() ? i + 1 : i + 2;
                     if (dashboardsToReorder[i].getOrder() != newOrder) {
                         dashboardsToReorder[i].setOrder(newOrder);
                         dashboardRepository.update(dashboardsToReorder[i]);

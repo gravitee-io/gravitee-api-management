@@ -28,7 +28,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PortalNotificationConfigMongoRepository
-    extends MongoRepository<PortalNotificationConfigMongo, PortalNotificationConfigPkMongo> {
+    extends MongoRepository<PortalNotificationConfigMongo, PortalNotificationConfigPkMongo>
+{
     @Query("{ 'hooks': ?0, 'organizationId': ?1 }")
     Set<PortalNotificationConfigMongo> findByHookAndOrganizationId(String hook, String orgId);
 

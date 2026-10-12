@@ -57,7 +57,9 @@ class ApiProductRegistryImplTest {
 
     @BeforeEach
     void setUp() {
-        lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("internal")));
+        lenient()
+            .when(gatewayConfiguration.shardingTags())
+            .thenReturn(Optional.of(List.of("internal")));
         lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
         registry = new ApiProductRegistryImpl(gatewayConfiguration);
     }
@@ -434,8 +436,12 @@ class ApiProductRegistryImplTest {
 
         @Test
         void should_exclude_product_when_product_tags_do_not_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("external")))
+                .thenReturn(false);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("external"));
@@ -448,7 +454,9 @@ class ApiProductRegistryImplTest {
 
         @Test
         void should_include_product_when_product_tags_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));
@@ -461,8 +469,12 @@ class ApiProductRegistryImplTest {
 
         @Test
         void should_exclude_plan_when_plan_tags_do_not_match_gateway() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                .thenReturn(true);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("external")))
+                .thenReturn(false);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));
@@ -482,7 +494,9 @@ class ApiProductRegistryImplTest {
 
         @Test
         void should_include_plan_with_no_tags_when_product_matches() {
-            lenient().when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            lenient()
+                .when(gatewayConfiguration.hasMatchingTags(Set.of("internal")))
+                .thenReturn(true);
 
             ReactableApiProduct product = createApiProduct("product-1", "env-1");
             product.setTags(Set.of("internal"));

@@ -99,7 +99,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         subscriptionFormQueryService.initWith(List.of(form));
         subscriptionFormElResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
 
-        Response response = target(API_ID + "/subscription-form").request().get();
+        Response response = target(API_ID + "/subscription-form")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var result = response.readEntity(SubscriptionForm.class);
@@ -112,7 +114,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     void should_return_404_when_form_not_found() {
         subscriptionFormQueryService.initWith(List.of());
 
-        Response response = target(API_ID + "/subscription-form").request().get();
+        Response response = target(API_ID + "/subscription-form")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
@@ -138,7 +142,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of(API_ID)).environmentId(ENV_ID).enabled(true).build();
         subscriptionFormQueryService.initWith(List.of(form));
 
-        Response response = target(API_ID + "/subscription-form").request().get();
+        Response response = target(API_ID + "/subscription-form")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
@@ -152,7 +158,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of(API_ID)).environmentId(ENV_ID).enabled(false).build();
         subscriptionFormQueryService.initWith(List.of(form));
 
-        Response response = target(API_ID + "/subscription-form").request().get();
+        Response response = target(API_ID + "/subscription-form")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
     }
@@ -168,7 +176,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         subscriptionFormQueryService.initWith(List.of(form));
         // no resolved values → should fall back to "Free,Pro"
 
-        Response response = target(API_ID + "/subscription-form").request().get();
+        Response response = target(API_ID + "/subscription-form")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
         var result = response.readEntity(SubscriptionForm.class);

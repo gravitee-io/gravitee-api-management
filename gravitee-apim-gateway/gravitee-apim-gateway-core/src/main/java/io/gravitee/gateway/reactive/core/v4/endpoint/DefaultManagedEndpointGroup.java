@@ -53,9 +53,8 @@ public class DefaultManagedEndpointGroup implements ManagedEndpointGroup {
         this.primariesByName = new ConcurrentHashMap<>(1);
         this.secondariesByName = new ConcurrentHashMap<>(1);
 
-        final LoadBalancerType loadBalancerType = definition.getLoadBalancer() != null
-            ? definition.getLoadBalancer().getType()
-            : LoadBalancerType.ROUND_ROBIN;
+        final LoadBalancerType loadBalancerType =
+            definition.getLoadBalancer() != null ? definition.getLoadBalancer().getType() : LoadBalancerType.ROUND_ROBIN;
         this.primaryLB = LoadBalancerStrategyFactory.create(loadBalancerType, primaries);
         this.secondaryLB = LoadBalancerStrategyFactory.create(loadBalancerType, secondaries);
     }

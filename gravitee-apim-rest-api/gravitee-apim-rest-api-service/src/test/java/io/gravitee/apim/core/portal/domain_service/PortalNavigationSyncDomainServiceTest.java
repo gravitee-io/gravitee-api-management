@@ -563,9 +563,9 @@ class PortalNavigationSyncDomainServiceTest {
             List<io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem>
         >) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(List.class);
         @SuppressWarnings("unchecked")
-        var updatesCaptor = (org.mockito.ArgumentCaptor<List<PortalNavigationValidator.PendingUpdate>>) (org.mockito.ArgumentCaptor<
-            ?
-        >) org.mockito.ArgumentCaptor.forClass(List.class);
+        var updatesCaptor = (org.mockito.ArgumentCaptor<
+            List<PortalNavigationValidator.PendingUpdate>
+        >) (org.mockito.ArgumentCaptor<?>) org.mockito.ArgumentCaptor.forClass(List.class);
         verify(validator).validate(createsCaptor.capture(), updatesCaptor.capture(), anyString());
         return new CapturedValidate(createsCaptor.getValue(), updatesCaptor.getValue());
     }

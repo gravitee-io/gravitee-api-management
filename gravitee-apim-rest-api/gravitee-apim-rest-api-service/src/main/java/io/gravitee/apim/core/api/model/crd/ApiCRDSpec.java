@@ -325,7 +325,8 @@ public class ApiCRDSpec {
     public static class ApiCRDSpecBuilder {
 
         public ApiCRDSpecBuilder paths(List<Path> paths) {
-            this.listeners.stream()
+            this.listeners
+                .stream()
                 .filter(HttpListener.class::isInstance)
                 .map(HttpListener.class::cast)
                 .findFirst()

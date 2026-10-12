@@ -104,14 +104,12 @@ public class CreateApiProductUseCase {
 
         validateApiProductService.validate(apiProduct);
 
-        apiProductQueryService
-            .findByEnvironmentIdAndName(auditInfo.environmentId(), apiProduct.getName())
-            .ifPresent(existing -> {
-                throw new ValidationDomainException(
-                    "An API Product already exists in environment.",
-                    Map.of("environmentId", auditInfo.environmentId(), "name", apiProduct.getName())
-                );
-            });
+        apiProductQueryService.findByEnvironmentIdAndName(auditInfo.environmentId(), apiProduct.getName()).ifPresent(existing -> {
+            throw new ValidationDomainException(
+                "An API Product already exists in environment.",
+                Map.of("environmentId", auditInfo.environmentId(), "name", apiProduct.getName())
+            );
+        });
 
         PrimaryOwnerEntity primaryOwner = apiProductPrimaryOwnerFactory.createForNewApiProduct(
             auditInfo.organizationId(),

@@ -68,8 +68,7 @@ class SubscriptionMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(singleSubscriptionDeployable -> {
                 assertThat(singleSubscriptionDeployable).isEqualTo(this.singleSubscriptionDeployable);
@@ -84,8 +83,7 @@ class SubscriptionMapperTest {
 
     @Test
     void should_map_subscription_deployable() {
-        cut
-            .to(singleSubscriptionDeployable)
+        cut.to(singleSubscriptionDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

@@ -63,14 +63,12 @@ public class EdgeManagerApiCreatePermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    roleService
-                        .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), executionContext.getOrganizationId())
-                        .ifPresent(role -> addApiCreateAclIfMissing(executionContext, role));
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                roleService
+                    .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_EDGE_MANAGER.getName(), executionContext.getOrganizationId())
+                    .ifPresent(role -> addApiCreateAclIfMissing(executionContext, role));
+            });
             return true;
         });
     }

@@ -92,9 +92,9 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
 
-            this.dictionaryService.findAll(executionContext).forEach(dictionaryEntity ->
-                dictionaryService.stop(executionContext, dictionaryEntity.getId())
-            );
+            this.dictionaryService
+                .findAll(executionContext)
+                .forEach(dictionaryEntity -> dictionaryService.stop(executionContext, dictionaryEntity.getId()));
 
             // Deactivate all identity providers
             this.identityProviderActivationService.removeAllIdpsFromTarget(

@@ -820,19 +820,19 @@ public class SampleXmlUtil {
 
         while (loop-- > 0) {
             switch (sp.getParticleType()) {
-                case (SchemaParticle.ELEMENT):
+                case SchemaParticle.ELEMENT:
                     processElement(sp, xmlc, mixed);
                     break;
-                case (SchemaParticle.SEQUENCE):
+                case SchemaParticle.SEQUENCE:
                     processSequence(sp, xmlc, mixed);
                     break;
-                case (SchemaParticle.CHOICE):
+                case SchemaParticle.CHOICE:
                     processChoice(sp, xmlc, mixed);
                     break;
-                case (SchemaParticle.ALL):
+                case SchemaParticle.ALL:
                     processAll(sp, xmlc, mixed);
                     break;
-                case (SchemaParticle.WILDCARD):
+                case SchemaParticle.WILDCARD:
                     processWildCard(sp, xmlc, mixed);
                     break;
                 default:
@@ -939,9 +939,9 @@ public class SampleXmlUtil {
             if (_soapEnc) {
                 if (SKIPPED_SOAP_ATTRS.contains(attr.getName())) continue;
                 if (ENC_ARRAYTYPE.equals(attr.getName())) {
-                    SOAPArrayType arrayType = ((SchemaWSDLArrayType) stype
-                            .getAttributeModel()
-                            .getAttribute(attr.getName())).getWSDLArrayType();
+                    SOAPArrayType arrayType = (
+                        (SchemaWSDLArrayType) stype.getAttributeModel().getAttribute(attr.getName())
+                    ).getWSDLArrayType();
                     if (arrayType != null) xmlc.insertAttributeWithValue(
                         attr.getName(),
                         formatQName(xmlc, arrayType.getQName()) + arrayType.soap11DimensionString()

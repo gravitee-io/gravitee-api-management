@@ -75,10 +75,10 @@ public class ApiEventsResource extends AbstractResource {
             Optional.of(apiId),
             params.getTypes() != null
                 ? params
-                    .getTypes()
-                    .stream()
-                    .map(s -> EventType.valueOf(s.toUpperCase()))
-                    .toList()
+                      .getTypes()
+                      .stream()
+                      .map(s -> EventType.valueOf(s.toUpperCase()))
+                      .toList()
                 : List.of(),
             Map.of(),
             Optional.ofNullable(params.getFrom()),

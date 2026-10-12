@@ -62,19 +62,17 @@ public class KafkaExplorerPermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    String organizationId = executionContext.getOrganizationId();
-                    log.info("Applying Kafka explorer permission for organization {}", organizationId);
-                    roleService
-                        .findByScope(RoleScope.ENVIRONMENT, organizationId)
-                        .stream()
-                        .filter(role -> !role.isSystem())
-                        .forEach(role -> copyClusterAcls(executionContext, role));
-                    roleService.createOrUpdateSystemRoles(executionContext, organizationId);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                String organizationId = executionContext.getOrganizationId();
+                log.info("Applying Kafka explorer permission for organization {}", organizationId);
+                roleService
+                    .findByScope(RoleScope.ENVIRONMENT, organizationId)
+                    .stream()
+                    .filter(role -> !role.isSystem())
+                    .forEach(role -> copyClusterAcls(executionContext, role));
+                roleService.createOrUpdateSystemRoles(executionContext, organizationId);
+            });
             return true;
         });
     }

@@ -38,8 +38,11 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractPolicyChainFactory<T extends BasePolicy, F extends AbstractFlow, PC extends AbstractPolicyChain<T>>
-    implements PolicyChainFactory<PC, F> {
+public abstract class AbstractPolicyChainFactory<
+    T extends BasePolicy,
+    F extends AbstractFlow,
+    PC extends AbstractPolicyChain<T>
+> implements PolicyChainFactory<PC, F> {
 
     public static final long CACHE_MAX_SIZE = 15;
     public static final long CACHE_TIME_TO_IDLE_IN_MS = 3_600_000;

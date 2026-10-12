@@ -106,7 +106,7 @@ public class GetObservabilityFilterValuesUseCase {
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return input.perPage() != null && input.perPage() > 0 ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
     }
 
     private FilterValuesPage listKeywordValues(FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {

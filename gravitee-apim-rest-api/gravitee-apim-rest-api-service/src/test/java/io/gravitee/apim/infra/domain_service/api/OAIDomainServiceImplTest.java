@@ -134,18 +134,18 @@ class OAIDomainServiceImplTest {
     class DeferredResponseValidation {
 
         private static final String VALID_OPENAPI = """
-            {
-              "openapi": "3.0.0",
-              "info": { "title": "Test", "version": "1.0" },
-              "paths": {
-                "/test": {
-                  "get": {
-                    "responses": { "200": { "description": "OK" } }
-                  }
-                }
+        {
+          "openapi": "3.0.0",
+          "info": { "title": "Test", "version": "1.0" },
+          "paths": {
+            "/test": {
+              "get": {
+                "responses": { "200": { "description": "OK" } }
               }
             }
-            """;
+          }
+        }
+        """;
 
         private OAIDomainServiceImpl service;
         private PolicyPluginCrudServiceInMemory policyPluginCrudService;
@@ -212,34 +212,34 @@ class OAIDomainServiceImplTest {
     class RemoteUrlPayload {
 
         private static final String REMOTE_SPEC = """
-            {
-              "openapi": "3.0.3",
-              "info": { "title": "Remote", "version": "1.0.0" },
-              "servers": [ { "url": "https://api.example.com/remote" } ],
-              "paths": {
-                "/pets": {
-                  "get": {
-                    "operationId": "listPets",
-                    "responses": {
-                      "200": {
-                        "description": "ok",
-                        "content": {
-                          "application/json": {
-                            "schema": { "$ref": "#/components/schemas/Pet" }
-                          }
-                        }
+        {
+          "openapi": "3.0.3",
+          "info": { "title": "Remote", "version": "1.0.0" },
+          "servers": [ { "url": "https://api.example.com/remote" } ],
+          "paths": {
+            "/pets": {
+              "get": {
+                "operationId": "listPets",
+                "responses": {
+                  "200": {
+                    "description": "ok",
+                    "content": {
+                      "application/json": {
+                        "schema": { "$ref": "#/components/schemas/Pet" }
                       }
                     }
                   }
                 }
-              },
-              "components": {
-                "schemas": {
-                  "Pet": { "type": "object", "properties": { "name": { "type": "string" } } }
-                }
               }
             }
-            """;
+          },
+          "components": {
+            "schemas": {
+              "Pet": { "type": "object", "properties": { "name": { "type": "string" } } }
+            }
+          }
+        }
+        """;
 
         private OAIDomainServiceImpl service;
 

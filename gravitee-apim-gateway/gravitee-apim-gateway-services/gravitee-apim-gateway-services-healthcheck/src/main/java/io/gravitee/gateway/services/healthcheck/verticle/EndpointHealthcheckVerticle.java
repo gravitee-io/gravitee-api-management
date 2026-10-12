@@ -105,8 +105,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        api
-            .getDefinition()
+        api.getDefinition()
             .getProxy()
             .getGroups()
             .stream()

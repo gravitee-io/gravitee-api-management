@@ -68,8 +68,7 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactable -> {
                 assertThat(reactable).isInstanceOf(ReactableEvent.class);
@@ -101,8 +100,7 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactable -> {
                 assertThat(reactable).isInstanceOf(ReactableEvent.class);
@@ -130,8 +128,7 @@ class DebugMapperTest {
         event.setPayload("{}");
         event.setCreatedAt(new Date());
         event.setEnvironments(Set.of("env"));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactable -> {
                 assertThat(reactable).isInstanceOf(ReactableEvent.class);

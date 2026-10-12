@@ -431,10 +431,14 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_accept_fifty_widgets_and_reject_fifty_one() {
-            Response accepted = rootTarget().request().post(Entity.json(payloadWithWidgets(50)));
+            Response accepted = rootTarget()
+                .request()
+                .post(Entity.json(payloadWithWidgets(50)));
             assertThat(accepted.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
 
-            Response rejected = rootTarget().request().post(Entity.json(payloadWithWidgets(51)));
+            Response rejected = rootTarget()
+                .request()
+                .post(Entity.json(payloadWithWidgets(51)));
             assertThat(rejected.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
         }
 

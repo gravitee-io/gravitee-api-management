@@ -25,7 +25,8 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 public class PortalNavigationItemsCrudServiceInMemory
-    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService {
+    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemCrudService
+{
 
     private List<PortalNavigationItem> storage;
 

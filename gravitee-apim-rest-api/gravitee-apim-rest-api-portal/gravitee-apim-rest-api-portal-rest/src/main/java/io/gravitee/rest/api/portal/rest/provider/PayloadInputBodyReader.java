@@ -40,7 +40,7 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
 
     @Override
     public boolean isReadable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
-        return (type == PayloadInput.class);
+        return type == PayloadInput.class;
     }
 
     @Override

@@ -436,20 +436,15 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_severe_error_with_no_name() {
             var crdStatus = doImport("/crd/group/with-no-name.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .members(1)
-                            .errors(
-                                GroupCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("property [name] must not be empty"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .members(1)
+                        .errors(
+                            GroupCRDStatus.Errors.builder().warning(List.of()).severe(List.of("property [name] must not be empty")).build()
+                        )
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
             });
@@ -459,19 +454,14 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_severe_error_with_no_id() {
             var crdStatus = doImport("/crd/group/with-no-id.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .members(1)
-                            .errors(
-                                GroupCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("property [id] must be a valid UUID"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .members(1)
+                        .errors(
+                            GroupCRDStatus.Errors.builder().warning(List.of()).severe(List.of("property [id] must be a valid UUID")).build()
+                        )
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
             });
@@ -481,15 +471,13 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_no_error_and_add_one_member() {
             var crdStatus = doImport("/crd/group/with-one-member.json", false);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .errors(GroupCRDStatus.Errors.EMPTY)
-                            .members(1)
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .errors(GroupCRDStatus.Errors.EMPTY)
+                        .members(1)
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).hasSize(1);
             });
@@ -510,24 +498,22 @@ public class GroupsResourceTest extends AbstractResourceTest {
             var crdStatus = doImport("/crd/group/with-default-roles.json", false);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .errors(GroupCRDStatus.Errors.EMPTY)
-                            .members(0)
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .errors(GroupCRDStatus.Errors.EMPTY)
+                        .members(0)
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).hasSize(1);
                 soft.assertThat(crdMembersDomainServiceInMemory.getGroupApiRole("2868ef55-561e-4b99-a981-450015a248d9")).isEqualTo("OWNER");
-                soft
-                    .assertThat(crdMembersDomainServiceInMemory.getGroupApplicationRole("2868ef55-561e-4b99-a981-450015a248d9"))
-                    .isEqualTo("OWNER");
-                soft
-                    .assertThat(crdMembersDomainServiceInMemory.getGroupApiProductRole("2868ef55-561e-4b99-a981-450015a248d9"))
-                    .isEqualTo("USER");
+                soft.assertThat(crdMembersDomainServiceInMemory.getGroupApplicationRole("2868ef55-561e-4b99-a981-450015a248d9")).isEqualTo(
+                    "OWNER"
+                );
+                soft.assertThat(crdMembersDomainServiceInMemory.getGroupApiProductRole("2868ef55-561e-4b99-a981-450015a248d9")).isEqualTo(
+                    "USER"
+                );
             });
         }
 
@@ -535,20 +521,18 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_warning_with_unknown_member_and_dry_run() {
             var crdStatus = doImport("/crd/group/with-unknown-member.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .members(0)
-                            .errors(
-                                GroupCRDStatus.Errors.builder()
-                                    .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
-                                    .severe(List.of())
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .members(0)
+                        .errors(
+                            GroupCRDStatus.Errors.builder()
+                                .warning(List.of("member [unknown] of source [memory] could not be found in organization [fake-org]"))
+                                .severe(List.of())
+                                .build()
+                        )
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
             });
@@ -558,20 +542,18 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_severe_error_with_api_primary_owner_and_dry_run() {
             var crdStatus = doImport("/crd/group/with-api-primary-owner.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .members(1)
-                            .errors(
-                                GroupCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("setting a member with the primary owner role is not allowed"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .members(1)
+                        .errors(
+                            GroupCRDStatus.Errors.builder()
+                                .warning(List.of())
+                                .severe(List.of("setting a member with the primary owner role is not allowed"))
+                                .build()
+                        )
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
             });
@@ -581,27 +563,30 @@ public class GroupsResourceTest extends AbstractResourceTest {
         void should_return_severe_error_with_application_primary_owner_and_dry_run() {
             var crdStatus = doImport("/crd/group/with-application-primary-owner.json", true);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(crdStatus)
-                    .isEqualTo(
-                        GroupCRDStatus.builder()
-                            .id("2868ef55-561e-4b99-a981-450015a248d9")
-                            .members(1)
-                            .errors(
-                                GroupCRDStatus.Errors.builder()
-                                    .warning(List.of())
-                                    .severe(List.of("setting a member with the primary owner role is not allowed"))
-                                    .build()
-                            )
-                            .build()
-                    );
+                soft.assertThat(crdStatus).isEqualTo(
+                    GroupCRDStatus.builder()
+                        .id("2868ef55-561e-4b99-a981-450015a248d9")
+                        .members(1)
+                        .errors(
+                            GroupCRDStatus.Errors.builder()
+                                .warning(List.of())
+                                .severe(List.of("setting a member with the primary owner role is not allowed"))
+                                .build()
+                        )
+                        .build()
+                );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).isEmpty();
             });
         }
 
         private GroupCRDStatus doImport(String crdResource, boolean dryRun) {
-            try (var response = target.queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(crdResource)))) {
+            try (
+                var response = target
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .put(Entity.json(readJSON(crdResource)))
+            ) {
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
                 return response.readEntity(GroupCRDStatus.class);
             }

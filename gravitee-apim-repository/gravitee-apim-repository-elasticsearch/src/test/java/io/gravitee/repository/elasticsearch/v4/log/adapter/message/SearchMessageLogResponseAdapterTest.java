@@ -62,11 +62,11 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
     public void adaptMessage_when_messageJson_is_null() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString = """
-            {
-                "connector-id": "c-id",
-                "@timestamp": "1759469723"
-            }
-            """;
+        {
+            "connector-id": "c-id",
+            "@timestamp": "1759469723"
+        }
+        """;
         JsonNode json = mapper.readTree(jsonString);
         AggregatedMessageLog.Message message = SearchMessageLogResponseAdapter.adaptMessage(json);
         assertAll(
@@ -96,7 +96,11 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
                 List.of(
                     messageLog
                         .endpoint(
-                            message.payload("mock message").headers(Map.of("foo", List.of("bar"))).metadata(Map.of("foo", "bar")).build()
+                            message
+                                .payload("mock message")
+                                .headers(Map.of("foo", List.of("bar")))
+                                .metadata(Map.of("foo", "bar"))
+                                .build()
                         )
                         .build()
                 )
@@ -109,7 +113,13 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
                 "message-without-metadata.json",
                 List.of(
                     messageLog
-                        .endpoint(message.payload("mock message").headers(Map.of("foo", List.of("bar"))).metadata(null).build())
+                        .endpoint(
+                            message
+                                .payload("mock message")
+                                .headers(Map.of("foo", List.of("bar")))
+                                .metadata(null)
+                                .build()
+                        )
                         .build()
                 )
             ),
@@ -117,7 +127,13 @@ public class SearchMessageLogResponseAdapterTest extends AbstractAdapterTest {
                 "message-without-payload.json",
                 List.of(
                     messageLog
-                        .endpoint(message.payload(null).headers(Map.of("foo", List.of("bar"))).metadata(Map.of("foo", "bar")).build())
+                        .endpoint(
+                            message
+                                .payload(null)
+                                .headers(Map.of("foo", List.of("bar")))
+                                .metadata(Map.of("foo", "bar"))
+                                .build()
+                        )
                         .build()
                 )
             )

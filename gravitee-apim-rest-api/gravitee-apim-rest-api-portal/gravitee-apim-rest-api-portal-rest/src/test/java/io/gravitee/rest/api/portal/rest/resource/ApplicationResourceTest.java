@@ -121,13 +121,17 @@ public class ApplicationResourceTest extends AbstractResourceTest {
             .when(applicationService)
             .findById(GraviteeContext.getExecutionContext(), UNKNOWN_APPLICATION_ID);
 
-        final Response response = target(UNKNOWN_APPLICATION_ID).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
+        final Response response = target(UNKNOWN_APPLICATION_ID)
+            .request()
+            .put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldHaveBadRequestWhileUpdatingApplication() {
-        final Response response = target(APPLICATION_ID).request().put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
+        final Response response = target(APPLICATION_ID)
+            .request()
+            .put(Entity.json(new Application().id(UNKNOWN_APPLICATION_ID)));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         assertEquals("'applicationId' is not the same that the application in payload", errorResponse.getErrors().get(0).getMessage());
@@ -438,7 +442,9 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         io.gravitee.rest.api.model.application.ApplicationSettings appSettings =
             new io.gravitee.rest.api.model.application.ApplicationSettings();
         appSettings.setTls(
-            TlsSettings.builder().clientCertificates(List.of(new CreateClientCertificate("my-cert", null, null, "PEM-FROM-LIST"))).build()
+            TlsSettings.builder()
+                .clientCertificates(List.of(new CreateClientCertificate("my-cert", null, null, "PEM-FROM-LIST")))
+                .build()
         );
 
         ApplicationEntity appEntity = new ApplicationEntity();

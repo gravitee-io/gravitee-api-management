@@ -68,7 +68,9 @@ class AccessPointSynchronizerTest {
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
 
-        lenient().when(accessPointFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(List.of()));
+        lenient()
+            .when(accessPointFetcher.fetchLatest(any(), any(), any(), any()))
+            .thenReturn(Flowable.just(List.of()));
         lenient().when(accessPointFetcher.bulkItems()).thenReturn(100);
         lenient().when(deployerFactory.createAccessPointDeployer()).thenReturn(accessPointDeployer);
         lenient().when(accessPointDeployer.deploy(any())).thenReturn(Completable.complete());
@@ -112,7 +114,9 @@ class AccessPointSynchronizerTest {
         void should_deploy_created_access_points() throws InterruptedException {
             AccessPoint accessPoint = new AccessPoint();
             accessPoint.setStatus(AccessPointStatus.CREATED);
-            lenient().when(accessPointFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(List.of(accessPoint)));
+            lenient()
+                .when(accessPointFetcher.fetchLatest(any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(accessPoint)));
 
             cut.synchronize(1L, 1L, Set.of("env1")).test().await().assertComplete();
 
@@ -124,7 +128,9 @@ class AccessPointSynchronizerTest {
         void should_undeploy_deleted_access_points() throws InterruptedException {
             AccessPoint accessPoint = new AccessPoint();
             accessPoint.setStatus(AccessPointStatus.DELETED);
-            lenient().when(accessPointFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(List.of(accessPoint)));
+            lenient()
+                .when(accessPointFetcher.fetchLatest(any(), any(), any(), any()))
+                .thenReturn(Flowable.just(List.of(accessPoint)));
 
             cut.synchronize(1L, 1L, Set.of("env1")).test().await().assertComplete();
 

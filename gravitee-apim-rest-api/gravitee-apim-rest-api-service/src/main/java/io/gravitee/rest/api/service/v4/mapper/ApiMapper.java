@@ -128,18 +128,16 @@ public class ApiMapper {
                 );
             }
             if (endpointGroup.getEndpoints() != null) {
-                endpointGroup
-                    .getEndpoints()
-                    .forEach(endpoint -> {
-                        if (endpoint.getSharedConfigurationOverride() != null) {
-                            endpoint.setSharedConfigurationOverride(
-                                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
-                                    connectorType,
-                                    endpoint.getSharedConfigurationOverride()
-                                )
-                            );
-                        }
-                    });
+                endpointGroup.getEndpoints().forEach(endpoint -> {
+                    if (endpoint.getSharedConfigurationOverride() != null) {
+                        endpoint.setSharedConfigurationOverride(
+                            LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                                connectorType,
+                                endpoint.getSharedConfigurationOverride()
+                            )
+                        );
+                    }
+                });
             }
         });
         return endpointGroups;

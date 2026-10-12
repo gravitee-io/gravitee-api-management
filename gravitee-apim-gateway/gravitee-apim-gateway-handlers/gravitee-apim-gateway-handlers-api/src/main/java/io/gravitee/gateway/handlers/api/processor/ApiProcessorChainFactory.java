@@ -35,7 +35,8 @@ import java.util.function.Supplier;
  * @author GraviteeSource Team
  */
 public abstract class ApiProcessorChainFactory
-    implements ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>> {
+    implements ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>>
+{
 
     protected final Api api;
 

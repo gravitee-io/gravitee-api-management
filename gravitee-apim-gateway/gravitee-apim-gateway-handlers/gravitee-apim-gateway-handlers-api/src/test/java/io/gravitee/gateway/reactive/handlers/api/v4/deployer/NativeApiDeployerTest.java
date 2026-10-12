@@ -145,9 +145,17 @@ class NativeApiDeployerTest {
 
         assertThat(nativeApi.getDefinition().getProperties()).containsExactly(
             // Malformed property is left untouched (still encrypted) instead of breaking the deployment.
-            Property.builder().key("bad").value("***").encrypted(true).build(),
+            Property.builder()
+                .key("bad")
+                .value("***")
+                .encrypted(true)
+                .build(),
             // Other properties are still decrypted normally.
-            Property.builder().key("good").value("VALUE2").encrypted(false).build()
+            Property.builder()
+                .key("good")
+                .value("VALUE2")
+                .encrypted(false)
+                .build()
         );
     }
 }

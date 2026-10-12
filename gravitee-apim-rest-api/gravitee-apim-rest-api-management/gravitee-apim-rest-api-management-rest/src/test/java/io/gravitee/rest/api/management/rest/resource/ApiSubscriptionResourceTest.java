@@ -163,7 +163,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId(subscription.getId());
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
+            .request()
+            .post(Entity.json(processSubscriptionEntity));
 
         MAPIAssertions.assertThat(response)
             .hasStatus(OK_200)
@@ -196,7 +198,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setAccepted(true);
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
+            .request()
+            .post(Entity.json(processSubscriptionEntity));
 
         MAPIAssertions.assertThat(response)
             .hasStatus(OK_200)
@@ -211,7 +215,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId("badId");
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
+            .request()
+            .post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -222,7 +228,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey;^");
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
+            .request()
+            .post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -294,7 +302,9 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity.setApi("Another_api");
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_transfer").request().post(Entity.json(transferSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_transfer")
+            .request()
+            .post(Entity.json(transferSubscriptionEntity));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }

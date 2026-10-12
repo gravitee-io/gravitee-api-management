@@ -81,7 +81,7 @@ public class EndpointHealthcheckResolver implements InitializingBean {
      */
     public List<EndpointRule> resolve(Api api) {
         HealthCheckService rootHealthCheck = api.getDefinition().getServices().get(HealthCheckService.class);
-        boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
+        boolean hcEnabled = rootHealthCheck != null && rootHealthCheck.isEnabled();
 
         // Filter to check only HTTP endpoints
         Stream<HttpEndpoint> httpEndpoints = api
@@ -111,21 +111,23 @@ public class EndpointHealthcheckResolver implements InitializingBean {
         httpEndpoints = httpEndpoints.filter(endpoint -> !endpoint.isBackup());
 
         // Keep only endpoints where health-check is enabled or not settled (inherit from service)
-        httpEndpoints = httpEndpoints.filter(endpoint ->
-            ((endpoint.getHealthCheck() == null && hcEnabled) ||
+        httpEndpoints = httpEndpoints.filter(
+            endpoint ->
+                (endpoint.getHealthCheck() == null && hcEnabled) ||
                 (endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled() && !endpoint.getHealthCheck().isInherit()) ||
                 (endpoint.getHealthCheck() != null &&
                     endpoint.getHealthCheck().isEnabled() &&
                     endpoint.getHealthCheck().isInherit() &&
-                    hcEnabled))
+                    hcEnabled)
         );
 
         return httpEndpoints
             .map(
                 (Function<HttpEndpoint, EndpointRule>) endpoint -> {
-                    HealthCheckService healthcheck = (endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit())
-                        ? rootHealthCheck
-                        : endpoint.getHealthCheck();
+                    HealthCheckService healthcheck =
+                        endpoint.getHealthCheck() == null || endpoint.getHealthCheck().isInherit()
+                            ? rootHealthCheck
+                            : endpoint.getHealthCheck();
                     // The following has to be managed by the connector-api
                     if (endpoint.getType().equalsIgnoreCase("grpc")) {
                         return new GrpcEndpointRule(api, endpoint, healthcheck, systemProxyOptions);
@@ -180,12 +182,13 @@ public class EndpointHealthcheckResolver implements InitializingBean {
         HttpEndpoint httpEndpoint = convertToHttpEndpoint(endpoint);
         if (httpEndpoint != null) {
             HealthCheckService rootHealthCheck = api.getDefinition().getServices().get(HealthCheckService.class);
-            boolean hcEnabled = (rootHealthCheck != null && rootHealthCheck.isEnabled());
+            boolean hcEnabled = rootHealthCheck != null && rootHealthCheck.isEnabled();
 
             if (hcEnabled || httpEndpoint.getHealthCheck() != null) {
-                HealthCheckService healthcheck = (httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit())
-                    ? rootHealthCheck
-                    : httpEndpoint.getHealthCheck();
+                HealthCheckService healthcheck =
+                    httpEndpoint.getHealthCheck() == null || httpEndpoint.getHealthCheck().isInherit()
+                        ? rootHealthCheck
+                        : httpEndpoint.getHealthCheck();
                 if (endpoint.getType().equalsIgnoreCase("http")) {
                     return new HttpEndpointRule(api, httpEndpoint, healthcheck, systemProxyOptions);
                 } else if (endpoint.getType().equalsIgnoreCase("grpc")) {

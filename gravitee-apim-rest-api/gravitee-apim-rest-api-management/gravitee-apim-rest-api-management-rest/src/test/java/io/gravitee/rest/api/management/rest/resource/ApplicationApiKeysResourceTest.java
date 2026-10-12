@@ -58,10 +58,10 @@ public class ApplicationApiKeysResourceTest extends AbstractResourceTest {
         Response response = envTarget().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        List<ApiKeyEntity> responseEntities = (List<ApiKeyEntity>) (response.readEntity(List.class));
+        List<ApiKeyEntity> responseEntities = (List<ApiKeyEntity>) response.readEntity(List.class);
         assertEquals(2, responseEntities.size());
-        assertEquals("apikey-1", ((Map<String, String>) (responseEntities.get(0))).get("id"));
-        assertEquals("apikey-2", ((Map<String, String>) (responseEntities.get(1))).get("id"));
+        assertEquals("apikey-1", ((Map<String, String>) responseEntities.get(0)).get("id"));
+        assertEquals("apikey-2", ((Map<String, String>) responseEntities.get(1)).get("id"));
     }
 
     @Test

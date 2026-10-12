@@ -178,9 +178,13 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
             .stream()
             .filter(m -> m.getId().equals(userId))
             .findFirst();
-        assertThat(member).as("No member found with id: " + userId).isPresent();
+        assertThat(member)
+            .as("No member found with id: " + userId)
+            .isPresent();
         var role = member.get().getRoles().stream().findFirst();
-        assertThat(role).as("Member '" + userId + "' has no roles assigned").isPresent();
+        assertThat(role)
+            .as("Member '" + userId + "' has no roles assigned")
+            .isPresent();
         return role.get().getName();
     }
 
@@ -190,7 +194,9 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
             .stream()
             .filter(m -> m.getId().equals(memberId))
             .findFirst();
-        assertThat(member).as("No member found with id: " + memberId).isPresent();
+        assertThat(member)
+            .as("No member found with id: " + memberId)
+            .isPresent();
         return member.get().getType();
     }
 

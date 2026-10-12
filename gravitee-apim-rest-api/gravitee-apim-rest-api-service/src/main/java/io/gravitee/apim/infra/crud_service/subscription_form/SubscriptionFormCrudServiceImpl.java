@@ -44,17 +44,18 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
 
     @Override
     public SubscriptionForm create(SubscriptionForm subscriptionForm) {
-        SubscriptionForm toCreate = subscriptionForm.getId() == null
-            ? SubscriptionForm.builder()
-                .id(SubscriptionFormId.random())
-                .environmentId(subscriptionForm.getEnvironmentId())
-                .name(subscriptionForm.getName())
-                .gmdContent(subscriptionForm.getGmdContent())
-                .enabled(subscriptionForm.isEnabled())
-                .validationConstraints(subscriptionForm.getValidationConstraints())
-                .apiIds(subscriptionForm.getApiIds())
-                .build()
-            : subscriptionForm;
+        SubscriptionForm toCreate =
+            subscriptionForm.getId() == null
+                ? SubscriptionForm.builder()
+                      .id(SubscriptionFormId.random())
+                      .environmentId(subscriptionForm.getEnvironmentId())
+                      .name(subscriptionForm.getName())
+                      .gmdContent(subscriptionForm.getGmdContent())
+                      .enabled(subscriptionForm.isEnabled())
+                      .validationConstraints(subscriptionForm.getValidationConstraints())
+                      .apiIds(subscriptionForm.getApiIds())
+                      .build()
+                : subscriptionForm;
         try {
             var result = subscriptionFormRepository.create(subscriptionFormAdapter.toRepository(toCreate));
             return subscriptionFormAdapter.toEntity(result);

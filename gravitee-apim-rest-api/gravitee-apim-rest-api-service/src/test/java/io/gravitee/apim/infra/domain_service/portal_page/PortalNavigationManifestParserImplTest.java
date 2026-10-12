@@ -40,16 +40,16 @@ class PortalNavigationManifestParserImplTest {
     @Test
     void should_parse_the_documentation_pages_of_a_version_1_descriptor() {
         var manifest = """
-            {
-              "version": 1,
-              "documentation": {
-                "pages": [
-                  { "src": "/docs/intro.md", "name": "Introduction", "dest": "/guides" },
-                  { "src": "/docs/api.yaml" }
-                ]
-              }
-            }
-            """;
+        {
+          "version": 1,
+          "documentation": {
+            "pages": [
+              { "src": "/docs/intro.md", "name": "Introduction", "dest": "/guides" },
+              { "src": "/docs/api.yaml" }
+            ]
+          }
+        }
+        """;
 
         assertThat(parser.parse(manifest))
             .extracting(

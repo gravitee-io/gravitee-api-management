@@ -60,10 +60,9 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
             final var sortOrder = sortable.order() == Order.ASC ? Sort.Direction.ASC : Sort.Direction.DESC;
             final var sortField = FieldUtils.toCamelCase(sortable.field());
 
-            return this.internalSharedPolicyGroupHistoryMongoRepo.search(
-                criteria,
-                PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField)
-            ).map(this::mapSharedPolicyGroupHistory);
+            return this.internalSharedPolicyGroupHistoryMongoRepo
+                .search(criteria, PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sortOrder, sortField))
+                .map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
             log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);
@@ -77,11 +76,9 @@ public class MongoSharedPolicyGroupHistoryRepository implements SharedPolicyGrou
         log.debug("MongoSharedPolicyGroupHistoryRepository.searchLatestBySharedPolicyGroupId({}, {})", environmentId, pageable.toString());
 
         try {
-            return this.internalSharedPolicyGroupHistoryMongoRepo.searchLatestBySharedPolicyGroupId(
-                environmentId,
-                pageable.pageNumber(),
-                pageable.pageSize()
-            ).map(this::mapSharedPolicyGroupHistory);
+            return this.internalSharedPolicyGroupHistoryMongoRepo
+                .searchLatestBySharedPolicyGroupId(environmentId, pageable.pageNumber(), pageable.pageSize())
+                .map(this::mapSharedPolicyGroupHistory);
         } catch (Exception e) {
             log.error("An error occurred when searching for shared policy group history", e);
             throw new TechnicalException("An error occurred when searching for shared policy group history", e);

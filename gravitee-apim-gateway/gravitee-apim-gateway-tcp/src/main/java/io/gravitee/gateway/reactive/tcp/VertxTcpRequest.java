@@ -103,7 +103,7 @@ public class VertxTcpRequest extends AbstractRequest {
         if (address != null) {
             // TO DO Could be improve to a better compatibility with geoIP
             int ipv6Idx = address.host().indexOf("%");
-            return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+            return ipv6Idx != -1 ? address.host().substring(0, ipv6Idx) : address.host();
         }
         return null;
     }

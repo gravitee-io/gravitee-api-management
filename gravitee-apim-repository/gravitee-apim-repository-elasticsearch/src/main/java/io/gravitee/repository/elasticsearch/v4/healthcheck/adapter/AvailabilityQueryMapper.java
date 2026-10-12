@@ -78,7 +78,10 @@ public class AvailabilityQueryMapper implements QueryResponseAdapter<ApiFieldPer
 
         long sum = byFieldValue.values().stream().mapToLong(ByField::success).sum();
 
-        var collect = byFieldValue.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().round()));
+        var collect = byFieldValue
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().round()));
 
         return Maybe.just(new AvailabilityResponse(AvailabilityQueryMapper.round(sum, total), collect));
     }

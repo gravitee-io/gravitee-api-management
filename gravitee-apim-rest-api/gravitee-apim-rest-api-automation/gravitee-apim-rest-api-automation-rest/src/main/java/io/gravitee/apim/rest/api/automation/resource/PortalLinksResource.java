@@ -90,14 +90,17 @@ public class PortalLinksResource extends AbstractResource {
         // A dry run never has a link() (ValidatePortalLinkUseCase never persists), and a failed real apply
         // has none either, so both fall back to echoing the submitted spec; a successful apply reports
         // what was actually persisted, not what was submitted.
-        var state = output.link() != null
-            ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), output.errors(), portalHrid)
-            : PortalLinkMapper.INSTANCE.toPortalLinkState(spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
+        var state =
+            output.link() != null
+                ? PortalLinkMapper.INSTANCE.toPortalLinkState(output.link(), spec.getHrid(), output.errors(), portalHrid)
+                : PortalLinkMapper.INSTANCE.toPortalLinkState(spec, linkId.toString(), output.errors(), auditInfo, portalHrid);
 
         // A dry run is a preview: severe findings are its payload, so it always answers 200.
         // A real apply that produced severe errors persisted nothing — it must not report success.
         var applyFailed = !dryRun && output.errors().stream().anyMatch(Validator.Error::isSevere);
 
-        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK).entity(state).build();
+        return Response.status(applyFailed ? Response.Status.BAD_REQUEST : Response.Status.OK)
+            .entity(state)
+            .build();
     }
 }

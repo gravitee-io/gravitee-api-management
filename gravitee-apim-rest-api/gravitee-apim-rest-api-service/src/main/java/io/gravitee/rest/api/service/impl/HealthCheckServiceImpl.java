@@ -240,7 +240,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 id
             );
-            return (log != null && api.equalsIgnoreCase(log.getApi())) ? toLog(log) : null;
+            return log != null && api.equalsIgnoreCase(log.getApi()) ? toLog(log) : null;
         } catch (AnalyticsException ae) {
             log.error("An unexpected error occurs while searching for health data.", ae);
             return null;
@@ -257,14 +257,12 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         if (response.getSize() > 0) {
             Map<String, Map<String, String>> metadata = new HashMap<>();
 
-            searchLogResponseResponse
-                .getLogs()
-                .forEach(logItem -> {
-                    String gateway = logItem.getGateway();
-                    if (gateway != null) {
-                        metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
-                    }
-                });
+            searchLogResponseResponse.getLogs().forEach(logItem -> {
+                String gateway = logItem.getGateway();
+                if (gateway != null) {
+                    metadata.computeIfAbsent(gateway, gateway1 -> getGatewayMetadata(executionContext, gateway1));
+                }
+            });
 
             searchLogResponseResponse.setMetadata(metadata);
         }
@@ -408,7 +406,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
 
     private Map<String, String> getEndpointMetadata(GenericApiEntity api, String endpointName) {
         return switch (api.getDefinitionVersion()) {
-            case DefinitionVersion.V4 -> ((io.gravitee.rest.api.model.v4.api.ApiEntity) api).getEndpointGroups()
+            case DefinitionVersion.V4 -> ((io.gravitee.rest.api.model.v4.api.ApiEntity) api)
+                .getEndpointGroups()
                 .stream()
                 .filter(group -> group.getEndpoints() != null)
                 .flatMap(group -> group.getEndpoints().stream())
@@ -416,7 +415,8 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .findFirst()
                 .map(endpoint -> Map.of("target", endpoint.getType()))
                 .orElse(Map.of("deleted", "true"));
-            case V2 -> ((ApiEntity) api).getProxy()
+            case V2 -> ((ApiEntity) api)
+                .getProxy()
                 .getGroups()
                 .stream()
                 .filter(group -> group.getEndpoints() != null)

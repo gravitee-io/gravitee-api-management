@@ -68,17 +68,18 @@ public class GetIntegrationsUseCase {
         );
 
         var pageContent = Flowable.fromIterable(page.getContent())
-            .flatMapSingle(integration ->
-                switch (integration) {
-                    case Integration.ApiIntegration apiIntegration -> enrichApiIntegration(
-                        input.context().getOrganizationId(),
-                        apiIntegration
-                    );
-                    case Integration.A2aIntegration a2aIntegration -> enrichA2aIntegration(
-                        input.context().getOrganizationId(),
-                        a2aIntegration
-                    );
-                }
+            .flatMapSingle(
+                integration ->
+                    switch (integration) {
+                        case Integration.ApiIntegration apiIntegration -> enrichApiIntegration(
+                            input.context().getOrganizationId(),
+                            apiIntegration
+                        );
+                        case Integration.A2aIntegration a2aIntegration -> enrichA2aIntegration(
+                            input.context().getOrganizationId(),
+                            a2aIntegration
+                        );
+                    }
             )
             .toList()
             .blockingGet();

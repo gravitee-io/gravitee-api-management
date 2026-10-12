@@ -24,5 +24,6 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 public enum FlowMode {
     @JsonEnumDefaultValue
     DEFAULT,
+
     BEST_MATCH,
 }

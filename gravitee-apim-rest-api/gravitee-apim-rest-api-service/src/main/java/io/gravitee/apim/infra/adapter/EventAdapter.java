@@ -55,6 +55,9 @@ public interface EventAdapter {
     }
 
     default Map<String, String> toStringEventPropertiesMap(Map<Event.EventProperties, String> source) {
-        return source.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey().getLabel(), Map.Entry::getValue));
+        return source
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.getKey().getLabel(), Map.Entry::getValue));
     }
 }

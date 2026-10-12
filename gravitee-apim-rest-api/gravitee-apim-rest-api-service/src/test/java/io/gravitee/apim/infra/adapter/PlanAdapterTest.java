@@ -72,9 +72,9 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("api-key").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getPlanDefinitionV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
@@ -107,9 +107,9 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("api-key").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("api-key").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanDefinitionNativeV4().getSelectionRule()).isEqualTo("selection-rule");
                 soft.assertThat(plan.getPlanDefinitionNativeV4().getStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getPlanDefinitionNativeV4().getTags()).isEqualTo(Set.of("tag-1"));
@@ -145,17 +145,15 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL);
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
-                soft
-                    .assertThat(plan.getFederatedPlanDefinition())
-                    .isEqualTo(
-                        FederatedPlan.builder()
-                            .id("my-id")
-                            .providerId("provider-id")
-                            .security(PlanSecurity.builder().type("api-key").build())
-                            .mode(PlanMode.STANDARD)
-                            .status(PlanStatus.PUBLISHED)
-                            .build()
-                    );
+                soft.assertThat(plan.getFederatedPlanDefinition()).isEqualTo(
+                    FederatedPlan.builder()
+                        .id("my-id")
+                        .providerId("provider-id")
+                        .security(PlanSecurity.builder().type("api-key").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .build()
+                );
             });
         }
 
@@ -180,9 +178,9 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
                 soft.assertThat(plan.getPlanMode()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
-                soft
-                    .assertThat(plan.getPlanSecurity())
-                    .isEqualTo(PlanSecurity.builder().type("API_KEY").configuration("security-definition").build());
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(
+                    PlanSecurity.builder().type("API_KEY").configuration("security-definition").build()
+                );
                 soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
                 soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
@@ -419,11 +417,9 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
                 soft.assertThat(plan.isCommentRequired()).isFalse();
-                soft
-                    .assertThat(plan.getDefinition())
-                    .isEqualTo(
-                        "{\"id\":\"my-plan\",\"providerId\":\"provider-id\",\"security\":{\"type\":\"api-key\"},\"mode\":\"standard\",\"status\":\"published\"}"
-                    );
+                soft.assertThat(plan.getDefinition()).isEqualTo(
+                    "{\"id\":\"my-plan\",\"providerId\":\"provider-id\",\"security\":{\"type\":\"api-key\"},\"mode\":\"standard\",\"status\":\"published\"}"
+                );
             });
         }
 

@@ -164,16 +164,14 @@ public class SyncManager {
 
         // Then, compute events
         Page<License> licenses = licenseRepository.findByCriteria(licenseCriteria, null);
-        licenses
-            .getContent()
-            .forEach(license -> {
-                try {
-                    var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
-                    licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
-                } catch (Exception e) {
-                    log.warn("Organization license cannot be registered for [{}].", license.getReferenceId(), e);
-                }
-            });
+        licenses.getContent().forEach(license -> {
+            try {
+                var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
+                licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
+            } catch (Exception e) {
+                log.warn("Organization license cannot be registered for [{}].", license.getReferenceId(), e);
+            }
+        });
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {

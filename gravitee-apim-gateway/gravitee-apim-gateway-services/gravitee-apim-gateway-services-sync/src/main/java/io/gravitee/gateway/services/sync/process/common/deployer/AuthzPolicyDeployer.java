@@ -34,9 +34,10 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
     public Completable deploy(AuthzPolicyReactorDeployable deployable) {
         // Evict the dropped scopes (computed by the synchronizer) before re-staging the new targets.
         Set<String> removed = deployable.removedTargetPdpIds();
-        Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removePolicy(deployable.environmentId(), deployable.docId(), removed);
+        Completable eviction =
+            removed == null || removed.isEmpty()
+                ? Completable.complete()
+                : enginePort.removePolicy(deployable.environmentId(), deployable.docId(), removed);
         return eviction
             .andThen(
                 enginePort.addOrUpdatePolicy(

@@ -120,9 +120,10 @@ public interface PortalAnalyticsMeasuresMapper {
     }
 
     default FacetMetricMeasuresRequest toCoreMetric(AnalyticsFacetMetricRequest metric) {
-        var sorts = metric.getSorts() == null
-            ? List.<FacetMetricMeasuresRequest.Sort>of()
-            : metric.getSorts().stream().map(this::toCoreSort).toList();
+        var sorts =
+            metric.getSorts() == null
+                ? List.<FacetMetricMeasuresRequest.Sort>of()
+                : metric.getSorts().stream().map(this::toCoreSort).toList();
         return new FacetMetricMeasuresRequest(
             MetricSpec.Name.valueOf(metric.getName().name()),
             toCoreMeasures(metric.getMeasures()),
@@ -185,18 +186,18 @@ public interface PortalAnalyticsMeasuresMapper {
         return measures == null
             ? List.of()
             : measures
-                .stream()
-                .map(m -> MetricSpec.Measure.valueOf(m.name()))
-                .toList();
+                  .stream()
+                  .map(m -> MetricSpec.Measure.valueOf(m.name()))
+                  .toList();
     }
 
     default List<FacetSpec.Name> toCoreFacets(List<AnalyticsFacetName> by) {
         return by == null
             ? List.of()
             : by
-                .stream()
-                .map(f -> FacetSpec.Name.valueOf(f.name()))
-                .toList();
+                  .stream()
+                  .map(f -> FacetSpec.Name.valueOf(f.name()))
+                  .toList();
     }
 
     default AnalyticsMeasuresResponseMetric toPortalMetric(MetricMeasuresResponse metric) {

@@ -76,7 +76,11 @@ public class PlanMapperTest {
         .properties(List.of(new Property("ratelimit", "25")))
         .build();
     private final io.gravitee.rest.api.model.api.ApiEntity aV2Api = io.gravitee.rest.api.model.api.ApiEntity.builder()
-        .properties(Properties.builder().propertiesList(List.of(new io.gravitee.definition.model.Property("ratelimit", "25"))).build())
+        .properties(
+            Properties.builder()
+                .propertiesList(List.of(new io.gravitee.definition.model.Property("ratelimit", "25")))
+                .build()
+        )
         .build();
     private final Instant now = Instant.now();
     private final Date nowDate = Date.from(now);

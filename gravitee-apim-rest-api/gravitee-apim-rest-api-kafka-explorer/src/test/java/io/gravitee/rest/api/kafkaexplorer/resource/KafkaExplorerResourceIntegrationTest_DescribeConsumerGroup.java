@@ -51,7 +51,10 @@ class KafkaExplorerResourceIntegrationTest_DescribeConsumerGroup extends Abstrac
         var adminProps = new Properties();
         adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(adminProps)) {
-            admin.createTopics(List.of(new NewTopic(TEST_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin
+                .createTopics(List.of(new NewTopic(TEST_TOPIC, 2, (short) 1)))
+                .all()
+                .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();

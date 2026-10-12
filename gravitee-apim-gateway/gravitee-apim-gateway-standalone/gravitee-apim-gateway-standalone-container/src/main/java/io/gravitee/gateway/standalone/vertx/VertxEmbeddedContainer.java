@@ -59,8 +59,8 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
 
     @Override
     protected void doStart() {
-        httpInstances = (httpInstances < 1) ? CpuCoreSensor.availableProcessors() : httpInstances;
-        tcpInstances = (tcpInstances < 1) ? CpuCoreSensor.availableProcessors() : tcpInstances;
+        httpInstances = httpInstances < 1 ? CpuCoreSensor.availableProcessors() : httpInstances;
+        tcpInstances = tcpInstances < 1 ? CpuCoreSensor.availableProcessors() : tcpInstances;
         startHttpInstances();
         startTcpInstances();
     }
@@ -71,19 +71,17 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final var options = new DeploymentOptions().setInstances(httpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + HttpProtocolVerticle.class.getName();
 
-        vertx
-            .deployVerticle(verticleName, options)
-            .onComplete(event -> {
-                if (event.failed()) {
-                    log.error("Unable to start HTTP server", event.cause());
+        vertx.deployVerticle(verticleName, options).onComplete(event -> {
+            if (event.failed()) {
+                log.error("Unable to start HTTP server", event.cause());
 
-                    // HTTP Server is a required component. Shutdown if not available
-                    Runtime.getRuntime().exit(1);
-                }
+                // HTTP Server is a required component. Shutdown if not available
+                Runtime.getRuntime().exit(1);
+            }
 
-                httpDeploymentId = event.result();
-                moveToStarted();
-            });
+            httpDeploymentId = event.result();
+            moveToStarted();
+        });
     }
 
     private void moveToStarted() {
@@ -98,16 +96,14 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
         final DeploymentOptions options = new DeploymentOptions().setInstances(tcpInstances);
         final String verticleName = SpringVerticleFactory.VERTICLE_PREFIX + ':' + TcpProtocolVerticle.class.getName();
 
-        vertx
-            .deployVerticle(verticleName, options)
-            .onComplete(event -> {
-                if (event.failed()) {
-                    log.error("Unable to start TCP server", event.cause());
-                }
+        vertx.deployVerticle(verticleName, options).onComplete(event -> {
+            if (event.failed()) {
+                log.error("Unable to start TCP server", event.cause());
+            }
 
-                tcpDeploymentId = event.result();
-                moveToStarted();
-            });
+            tcpDeploymentId = event.result();
+            moveToStarted();
+        });
     }
 
     @Override

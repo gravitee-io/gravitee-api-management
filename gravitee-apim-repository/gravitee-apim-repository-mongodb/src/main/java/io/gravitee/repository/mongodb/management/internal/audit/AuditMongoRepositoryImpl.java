@@ -56,15 +56,13 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
     public Page<AuditMongo> search(AuditCriteria filter, Pageable pageable) {
         final Query query = new Query();
         if (filter.getReferences() != null && !filter.getReferences().isEmpty()) {
-            filter
-                .getReferences()
-                .forEach((referenceType, referenceIds) -> {
-                    if (referenceIds != null && !referenceIds.isEmpty()) {
-                        query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)));
-                    } else {
-                        query.addCriteria(where("referenceType").is(referenceType));
-                    }
-                });
+            filter.getReferences().forEach((referenceType, referenceIds) -> {
+                if (referenceIds != null && !referenceIds.isEmpty()) {
+                    query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)));
+                } else {
+                    query.addCriteria(where("referenceType").is(referenceType));
+                }
+            });
         }
 
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
@@ -110,7 +108,9 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
     }
 
     public void deleteByEnvironmentIdAndAge(String environmentId, Instant limit) {
-        var criteria = where("environmentId").is(environmentId).andOperator(where("createdAt").lt(Date.from(limit)));
+        var criteria = where("environmentId")
+            .is(environmentId)
+            .andOperator(where("createdAt").lt(Date.from(limit)));
         Query chunkQuery = new Query(criteria).limit(batchSize);
         chunkQuery.fields().include("_id");
 

@@ -323,7 +323,14 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.API,
                     API_ID
                 )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder()
+                        .roles(List.of(RoleEntity.builder().id("role-3").build()))
+                        .id("id-3")
+                        .build()
+                )
+            );
 
             when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
                 RoleEntity.builder().id("po-role-id").build()
@@ -363,7 +370,14 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.API,
                     API_ID
                 )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder()
+                        .roles(List.of(RoleEntity.builder().id("po-role-id").build()))
+                        .id("id-3")
+                        .build()
+                )
+            );
 
             when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.API)).thenReturn(
                 RoleEntity.builder().id("po-role-id").build()
@@ -597,7 +611,14 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.APPLICATION,
                     APPLICATION_ID
                 )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("role-3").build())).id("id-3").build()));
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder()
+                        .roles(List.of(RoleEntity.builder().id("role-3").build()))
+                        .id("id-3")
+                        .build()
+                )
+            );
 
             when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
                 RoleEntity.builder().id("po-role-id").build()
@@ -637,7 +658,14 @@ class CRDMembersDomainServiceImplTest {
                     MembershipReferenceType.APPLICATION,
                     APPLICATION_ID
                 )
-            ).thenReturn(Set.of(MemberEntity.builder().roles(List.of(RoleEntity.builder().id("po-role-id").build())).id("id-3").build()));
+            ).thenReturn(
+                Set.of(
+                    MemberEntity.builder()
+                        .roles(List.of(RoleEntity.builder().id("po-role-id").build()))
+                        .id("id-3")
+                        .build()
+                )
+            );
 
             when(roleService.findPrimaryOwnerRoleByOrganization(AUDIT_INFO.organizationId(), RoleScope.APPLICATION)).thenReturn(
                 RoleEntity.builder().id("po-role-id").build()

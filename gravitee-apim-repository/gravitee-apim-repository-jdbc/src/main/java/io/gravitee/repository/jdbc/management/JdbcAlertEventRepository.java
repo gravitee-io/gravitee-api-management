@@ -97,22 +97,19 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
         log.debug("SQL: {}", sql);
         log.debug("Args: {}", args);
 
-        List<AlertEvent> events = jdbcTemplate.query(
-            (Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(sql);
-                int idx = 1;
-                for (final Object arg : args) {
-                    if (arg instanceof Date) {
-                        final Date date = (Date) arg;
-                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                    } else {
-                        stmt.setObject(idx++, arg);
-                    }
+        List<AlertEvent> events = jdbcTemplate.query((Connection cnctn) -> {
+            PreparedStatement stmt = cnctn.prepareStatement(sql);
+            int idx = 1;
+            for (final Object arg : args) {
+                if (arg instanceof Date) {
+                    final Date date = (Date) arg;
+                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                } else {
+                    stmt.setObject(idx++, arg);
                 }
-                return stmt;
-            },
-            getOrm().getRowMapper()
-        );
+            }
+            return stmt;
+        }, getOrm().getRowMapper());
 
         log.debug("Alert events found: {}", events);
 

@@ -220,9 +220,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 soft.assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(Analytics.builder().enabled(true).build());
                 soft.assertThat(result.getApiDefinitionHttpV4().getFlows()).containsExactly(FlowFixtures.aSimpleFlowV4());
                 soft.assertThat(result.getApiDefinitionHttpV4().getFlowExecution()).isNull();
-                soft
-                    .assertThat(result.getApiDefinitionHttpV4().getServices().getDynamicProperty().getConfiguration())
-                    .isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionHttpV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo(
+                    "sanitized"
+                );
                 soft.assertThat(result.getApiDefinitionHttpV4().getResources()).isEqualTo(sanitizedResources);
             });
         }
@@ -293,7 +293,11 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .toCategoryId(any(), any());
 
             doAnswer(invocation ->
-                List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
+                List.of(
+                    KafkaListener.builder()
+                        .entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build()))
+                        .build()
+                )
             )
                 .when(listenerValidationService)
                 .validateAndSanitizeNativeV4(any(), any(), any(), any());
@@ -336,16 +340,14 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasOnlyCategories(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getListeners())
+                soft.assertThat(result.getApiDefinitionNativeV4().getListeners())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(KafkaListener.class)
                     .hasFieldOrPropertyWithValue("type", ListenerType.KAFKA)
                     .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
+                soft.assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
@@ -355,9 +357,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft.assertThat(result.getApiDefinitionNativeV4().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
-                    .isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo(
+                    "sanitized"
+                );
                 soft.assertThat(result.getApiDefinitionNativeV4().getAnalytics().isEnabled()).isTrue();
                 soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResources);
             });
@@ -482,7 +484,11 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .validateAndSanitize(any(), any(), any(), anyBoolean());
 
             doAnswer(invocation ->
-                List.of(KafkaListener.builder().entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build())).build())
+                List.of(
+                    KafkaListener.builder()
+                        .entrypoints(List.of(NativeEntrypoint.builder().type("sanitized").build()))
+                        .build()
+                )
             )
                 .when(listenerValidationService)
                 .validateAndSanitizeNativeV4(any(), any(), any(), any());
@@ -529,16 +535,14 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                 .hasOnlyTags(Set.of("sanitized"));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getListeners())
+                soft.assertThat(result.getApiDefinitionNativeV4().getListeners())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(KafkaListener.class)
                     .hasFieldOrPropertyWithValue("type", ListenerType.KAFKA)
                     .extracting(l -> l.getEntrypoints().getFirst())
                     .hasFieldOrPropertyWithValue("type", "sanitized");
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
+                soft.assertThat(result.getApiDefinitionNativeV4().getEndpointGroups())
                     .hasSize(1)
                     .first()
                     .isInstanceOf(NativeEndpointGroup.class)
@@ -548,9 +552,9 @@ class ValidateApiDomainServiceLegacyWrapperTest {
                     .hasFieldOrPropertyWithValue("name", "sanitized")
                     .hasFieldOrPropertyWithValue("type", "sanitized");
                 soft.assertThat(result.getApiDefinitionNativeV4().getFlows()).containsExactly(FlowFixtures.aNativeFlowV4());
-                soft
-                    .assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration())
-                    .isEqualTo("sanitized");
+                soft.assertThat(result.getApiDefinitionNativeV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo(
+                    "sanitized"
+                );
                 soft.assertThat(result.getApiDefinitionNativeV4().getResources()).isEqualTo(sanitizedResourcesFromValidationService);
             });
         }

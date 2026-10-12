@@ -39,21 +39,19 @@ public class ApiKeyDeployer implements Deployer<ApiKeyDeployable> {
     public Completable deploy(final ApiKeyDeployable deployable) {
         return Completable.fromRunnable(() -> {
             if (deployable.apiKeys() != null) {
-                deployable
-                    .apiKeys()
-                    .forEach(apiKey -> {
-                        try {
-                            apiKeyService.register(apiKey);
-                            log.debug(
-                                "ApiKey [{}] of subscription [{}] deployed for api [{}] ",
-                                apiKey.getId(),
-                                apiKey.getSubscription(),
-                                apiKey.getApi()
-                            );
-                        } catch (Exception e) {
-                            log.warn("An error occurred when trying to deploy ApiKey [{}].", apiKey.getId(), e);
-                        }
-                    });
+                deployable.apiKeys().forEach(apiKey -> {
+                    try {
+                        apiKeyService.register(apiKey);
+                        log.debug(
+                            "ApiKey [{}] of subscription [{}] deployed for api [{}] ",
+                            apiKey.getId(),
+                            apiKey.getSubscription(),
+                            apiKey.getApi()
+                        );
+                    } catch (Exception e) {
+                        log.warn("An error occurred when trying to deploy ApiKey [{}].", apiKey.getId(), e);
+                    }
+                });
             }
         });
     }

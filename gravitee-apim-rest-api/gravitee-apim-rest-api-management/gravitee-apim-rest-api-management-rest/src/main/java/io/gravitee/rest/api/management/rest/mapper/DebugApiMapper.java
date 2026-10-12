@@ -34,7 +34,10 @@ public interface DebugApiMapper {
     DebugApiV2 fromEntity(DebugApiEntity source);
 
     default Map<String, Plan> mapPlans(Set<PlanEntity> plans) {
-        return plans.stream().map(this::fromEntity).collect(Collectors.toMap(Plan::getId, plan -> plan));
+        return plans
+            .stream()
+            .map(this::fromEntity)
+            .collect(Collectors.toMap(Plan::getId, plan -> plan));
     }
 
     Plan fromEntity(PlanEntity source);

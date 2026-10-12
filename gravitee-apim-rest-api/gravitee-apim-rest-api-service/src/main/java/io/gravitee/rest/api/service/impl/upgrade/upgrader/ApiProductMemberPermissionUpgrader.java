@@ -51,12 +51,10 @@ public class ApiProductMemberPermissionUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    ensureApiProductRolesHaveMemberPermission(executionContext);
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                ensureApiProductRolesHaveMemberPermission(executionContext);
+            });
             return true;
         });
     }

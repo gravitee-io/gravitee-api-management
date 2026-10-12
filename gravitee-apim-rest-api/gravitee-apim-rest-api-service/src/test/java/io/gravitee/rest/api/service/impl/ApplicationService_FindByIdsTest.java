@@ -133,7 +133,9 @@ public class ApplicationService_FindByIdsTest {
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
         // Should return both the applications by Ids irrespective of status
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
@@ -150,7 +152,9 @@ public class ApplicationService_FindByIdsTest {
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
 
-        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(
@@ -166,7 +170,9 @@ public class ApplicationService_FindByIdsTest {
     public void shouldFindByIdsWithNoEnvironmentCriteria() throws TechnicalException {
         ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
         ApplicationCriteria criteria = ApplicationCriteria.builder().restrictedToIds(Sets.newHashSet(APPLICATION_IDS)).build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIds(executionContext, APPLICATION_IDS);
@@ -194,7 +200,9 @@ public class ApplicationService_FindByIdsTest {
                 .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
                 .environmentIds(Set.of(executionContext.getEnvironmentId()))
                 .build();
-            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+                .when(applicationRepository)
+                .search(criteria, null);
 
             final Set<ApplicationListItem> applications = applicationService.findByIds(
                 GraviteeContext.getExecutionContext(),

@@ -195,8 +195,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 if (hasNullPathOperator) {
                     throw InvalidFlowException.missingPathOperator(flow.getName());
                 }
-                flow
-                    .getSelectors()
+                flow.getSelectors()
                     .stream()
                     .filter(FlowValidationDomainService.HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
                     .findFirst()
@@ -215,25 +214,23 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     ) {
         var listeners = new ArrayList<KafkaListener>();
 
-        input.spec
-            .getListeners()
-            .forEach(listener -> {
-                try {
-                    KafkaListener kafkaListener = (KafkaListener) listener;
-                    if (
-                        apiHostValidator.checkApiHosts(
-                            input.auditInfo.environmentId(),
-                            input.spec.getId(),
-                            List.of(kafkaListener.getHost()),
-                            ListenerType.KAFKA
-                        )
-                    ) {
-                        listeners.add((KafkaListener) listener);
-                    }
-                } catch (Exception e) {
-                    errors.add(Error.severe(e.getMessage()));
+        input.spec.getListeners().forEach(listener -> {
+            try {
+                KafkaListener kafkaListener = (KafkaListener) listener;
+                if (
+                    apiHostValidator.checkApiHosts(
+                        input.auditInfo.environmentId(),
+                        input.spec.getId(),
+                        List.of(kafkaListener.getHost()),
+                        ListenerType.KAFKA
+                    )
+                ) {
+                    listeners.add((KafkaListener) listener);
                 }
-            });
+            } catch (Exception e) {
+                errors.add(Error.severe(e.getMessage()));
+            }
+        });
 
         sanitizedBuilder.listeners(listeners);
     }

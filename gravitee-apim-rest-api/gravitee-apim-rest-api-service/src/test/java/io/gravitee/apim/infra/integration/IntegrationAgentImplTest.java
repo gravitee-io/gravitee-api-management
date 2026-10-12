@@ -126,7 +126,9 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new StartIngestReply("command-id", JOB_ID, 10L)));
+            lenient()
+                .when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new StartIngestReply("command-id", JOB_ID, 10L)));
         }
 
         @Test
@@ -144,7 +146,10 @@ class IntegrationAgentImplTest {
 
         @Test
         void should_send_command_to_fetch_some_assets() {
-            agent.startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3")).test().awaitDone(10, TimeUnit.SECONDS);
+            agent
+                .startIngest(INTEGRATION_ID, JOB_ID, List.of("1", "2", "3"))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
 
             var captor = ArgumentCaptor.forClass(Command.class);
             Mockito.verify(controller).sendCommand(captor.capture(), eq(INTEGRATION_ID));
@@ -426,7 +431,9 @@ class IntegrationAgentImplTest {
 
         @BeforeEach
         void setUp() {
-            lenient().when(controller.sendCommand(any(), any())).thenReturn(Single.just(new UnsubscribeReply("command-id")));
+            lenient()
+                .when(controller.sendCommand(any(), any()))
+                .thenReturn(Single.just(new UnsubscribeReply("command-id")));
         }
 
         @Test

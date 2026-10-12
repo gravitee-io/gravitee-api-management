@@ -223,7 +223,8 @@ public class UpdateDynamicPropertiesUseCase {
                 nativeV4.getServices().setDynamicProperty(dynamicPropertyService);
             }
             // Only HTTP and Native V4 APIs hold services; getDynamicPropertyService() already filtered the others out
-            case null, default -> {}
+            case null, default -> {
+            }
         }
     }
 

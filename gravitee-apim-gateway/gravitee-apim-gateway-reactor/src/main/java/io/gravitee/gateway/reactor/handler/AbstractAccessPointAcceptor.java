@@ -29,8 +29,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * @author GraviteeSource Team
  */
-public abstract class AbstractAccessPointAcceptor<T extends Acceptor<T>>
-    implements Acceptor<T>, EventListener<AccessPointEvent, ReactableAccessPoint> {
+public abstract class AbstractAccessPointAcceptor<T extends Acceptor<T>> implements
+    Acceptor<T>,
+    EventListener<AccessPointEvent, ReactableAccessPoint> {
 
     protected final ReactorHandler apiReactor;
     private final String environmentId;

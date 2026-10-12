@@ -58,16 +58,16 @@ class AmConnectionRequestBindingTest {
     @Test
     void deserializes_am_organization_id_from_the_request_body() throws Exception {
         var json = """
-            {
-              "baseUrl": "https://am.example",
-              "serviceAccountAccessToken": "token",
-              "amOrganizationId": "am-org",
-              "environmentId": "env",
-              "defaultDomainId": "dom",
-              "defaultDomainHrid": "dom-hrid",
-              "gatewayUrl": "https://gw"
-            }
-            """;
+        {
+          "baseUrl": "https://am.example",
+          "serviceAccountAccessToken": "token",
+          "amOrganizationId": "am-org",
+          "environmentId": "env",
+          "defaultDomainId": "dom",
+          "defaultDomainHrid": "dom-hrid",
+          "gatewayUrl": "https://gw"
+        }
+        """;
 
         var req = MAPPER.readValue(json, AmConnectionRequest.class);
 

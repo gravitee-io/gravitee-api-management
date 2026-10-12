@@ -176,8 +176,7 @@ public class ApiResource extends AbstractResource {
         Map<String, String> pageIDsToHrid = new HashMap<>();
         if (api.getPages() != null) {
             api.getPages().forEach((k, v) -> pageIDsToHrid.put(v.getId(), nameToHRID(v.getName())));
-            api
-                .getPages()
+            api.getPages()
                 .values()
                 .stream()
                 .filter(p -> p.getParentId() != null)
@@ -190,8 +189,7 @@ public class ApiResource extends AbstractResource {
                 });
         }
         if (api.getPlans() != null) {
-            api
-                .getPlans()
+            api.getPlans()
                 .values()
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)

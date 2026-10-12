@@ -47,7 +47,10 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
         var adminProps = new Properties();
         adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(adminProps)) {
-            admin.createTopics(List.of(new NewTopic(BROWSE_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin
+                .createTopics(List.of(new NewTopic(BROWSE_TOPIC, 2, (short) 1)))
+                .all()
+                .get(10, TimeUnit.SECONDS);
         }
 
         var producerProps = new Properties();
@@ -75,16 +78,14 @@ class KafkaExplorerResourceIntegrationTest_BrowseMessages extends AbstractKafkaE
         var body = (BrowseMessagesResponse) response.getEntity();
         assertThat(body.getData()).isNotEmpty();
         assertThat(body.getTotalFetched()).isGreaterThanOrEqualTo(body.getData().size());
-        body
-            .getData()
-            .forEach(msg -> {
-                assertThat(msg.getPartition()).isGreaterThanOrEqualTo(0);
-                assertThat(msg.getOffset()).isGreaterThanOrEqualTo(0);
-                assertThat(msg.getTimestamp()).isGreaterThan(0);
-                assertThat(msg.getKey()).startsWith("key-");
-                assertThat(msg.getValue()).contains("index");
-                assertThat(msg.getHeaders()).isNotEmpty();
-            });
+        body.getData().forEach(msg -> {
+            assertThat(msg.getPartition()).isGreaterThanOrEqualTo(0);
+            assertThat(msg.getOffset()).isGreaterThanOrEqualTo(0);
+            assertThat(msg.getTimestamp()).isGreaterThan(0);
+            assertThat(msg.getKey()).startsWith("key-");
+            assertThat(msg.getValue()).contains("index");
+            assertThat(msg.getHeaders()).isNotEmpty();
+        });
     }
 
     @Test

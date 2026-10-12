@@ -50,7 +50,8 @@ import lombok.CustomLog;
 @CustomLog
 public class EndpointGroupLifecycleManager
     extends AbstractLifecycleComponent<EndpointLifecycleManager>
-    implements EndpointLifecycleManager, ChangeListener<Endpoint> {
+    implements EndpointLifecycleManager, ChangeListener<Endpoint>
+{
 
     private final Api api;
 

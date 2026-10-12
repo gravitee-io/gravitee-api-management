@@ -197,7 +197,9 @@ class ClusterMembersResourceTest extends AbstractResourceTest {
         void should_update_cluster_member() {
             UpdateMember updateMember = new UpdateMember();
             updateMember.setRoleName("OWNER");
-            Member updatedMember = Member.builder().roles(List.of(Member.Role.builder().name("OWNER").build())).build();
+            Member updatedMember = Member.builder()
+                .roles(List.of(Member.Role.builder().name("OWNER").build()))
+                .build();
 
             when(updateClusterMemberUseCase.execute(any())).thenReturn(new UpdateClusterMemberUseCase.Output(updatedMember));
 

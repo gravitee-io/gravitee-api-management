@@ -81,7 +81,11 @@ public class CommandServiceImpl extends AbstractService implements CommandServic
         //convert tags
         String[] tags = null;
         if (query.getTags() != null) {
-            tags = query.getTags().stream().map(Enum::name).toArray(String[]::new);
+            tags = query
+                .getTags()
+                .stream()
+                .map(Enum::name)
+                .toArray(String[]::new);
         }
 
         final CommandCriteria.Builder criteriaBuilder = new CommandCriteria.Builder().to(query.getTo()).tags(tags);

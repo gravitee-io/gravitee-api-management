@@ -101,12 +101,10 @@ public class GroupMembersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
+    })
     public List<GroupMemberEntity> getGroupMembers() {
         return new ArrayList<>(getGroupMembers(null).getData());
     }
@@ -124,12 +122,10 @@ public class GroupMembersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.READ),
+    })
     public PagedResult<GroupMemberEntity> getGroupMembers(@Valid @BeanParam Pageable pageable) {
         //check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -177,14 +173,12 @@ public class GroupMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "Member has been updated")
     @ApiResponse(responseCode = "400", description = "Membership is not valid")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE),
-            @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.CREATE),
+        @Permission(value = ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
     public Response addOrUpdateGroupMember(@Valid @NotNull final List<GroupMembership> memberships) {
         // Check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -214,7 +208,7 @@ public class GroupMembersResource extends AbstractResource {
                         return !membershipIdsToSave.contains(s);
                     })
                     .count();
-                if ((groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize) > groupEntity.getMaxInvitation()) {
+                if (groupService.getNumberOfMembers(executionContext, group) + membershipsToAddSize > groupEntity.getMaxInvitation()) {
                     throw new GroupMembersLimitationExceededException(groupEntity.getMaxInvitation());
                 }
             }

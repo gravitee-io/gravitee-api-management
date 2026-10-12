@@ -56,14 +56,12 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        ServiceConfiguration.class,
-        UsecaseSpringConfiguration.class,
-        KafkaExplorerSpringConfiguration.class,
-        AnalyticsEngineRoutingConfiguration.class,
-    }
-)
+@Import({
+    ServiceConfiguration.class,
+    UsecaseSpringConfiguration.class,
+    KafkaExplorerSpringConfiguration.class,
+    AnalyticsEngineRoutingConfiguration.class,
+})
 @EnableAsync
 public class RestManagementConfiguration {
 

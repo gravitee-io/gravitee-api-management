@@ -74,7 +74,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
         final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
 
-        if ((useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured())) {
+        if (useSystemProxy == Boolean.TRUE || (useSystemProxy == null && this.isProxyConfigured())) {
             ProxyOptions proxyOptions = new ProxyOptions();
             proxyOptions.setType(ProxyType.valueOf(httpClientProxyType()));
             if (HTTPS_SCHEME.equals(uriScheme)) {
@@ -107,7 +107,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
         final HttpClient httpClient = this.createHttpClient(requestUri.getScheme(), useSystemProxy);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80;
 
         RequestOptions options = new RequestOptions()
             .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
@@ -145,42 +145,40 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                 }
             )
             .onSuccess(request -> {
-                request
-                    .response()
-                    .onComplete(asyncResponse -> {
-                        if (asyncResponse.failed()) {
-                            promise.fail(asyncResponse.cause());
+                request.response().onComplete(asyncResponse -> {
+                    if (asyncResponse.failed()) {
+                        promise.fail(asyncResponse.cause());
 
-                            // Close client
-                            httpClient.close();
+                        // Close client
+                        httpClient.close();
+                    } else {
+                        HttpClientResponse response = asyncResponse.result();
+                        log.debug("Web response status code : {}", response.statusCode());
+
+                        if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
+                            response.bodyHandler(buffer -> {
+                                promise.complete(buffer);
+
+                                // Close client
+                                httpClient.close();
+                            });
                         } else {
-                            HttpClientResponse response = asyncResponse.result();
-                            log.debug("Web response status code : {}", response.statusCode());
-
-                            if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
-                                response.bodyHandler(buffer -> {
-                                    promise.complete(buffer);
-
-                                    // Close client
-                                    httpClient.close();
-                                });
-                            } else {
-                                response.bodyHandler(buffer ->
-                                    promise.fail(
-                                        new TechnicalManagementException(
-                                            " Error on url '" +
-                                                uri +
-                                                "'. Status code: " +
-                                                response.statusCode() +
-                                                ". Message: " +
-                                                buffer.toString(),
-                                            null
-                                        )
+                            response.bodyHandler(buffer ->
+                                promise.fail(
+                                    new TechnicalManagementException(
+                                        " Error on url '" +
+                                            uri +
+                                            "'. Status code: " +
+                                            response.statusCode() +
+                                            ". Message: " +
+                                            buffer.toString(),
+                                        null
                                     )
-                                );
-                            }
+                                )
+                            );
                         }
-                    });
+                    }
+                });
 
                 if (body != null) {
                     request.end(body);

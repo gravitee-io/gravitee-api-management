@@ -87,8 +87,8 @@ public class OAIToImportDefinitionConverter {
                 )
                 .picture(
                     xGraviteeIODefinition.getPicture() != null &&
-                            !StringUtils.isEmpty(xGraviteeIODefinition.getPicture()) &&
-                            xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)
+                        !StringUtils.isEmpty(xGraviteeIODefinition.getPicture()) &&
+                        xGraviteeIODefinition.getPicture().matches(PICTURE_REGEX)
                         ? xGraviteeIODefinition.getPicture()
                         : null
                 )

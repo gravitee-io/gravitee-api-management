@@ -539,24 +539,22 @@ public class SearchMetricsQueryAdapter {
     private static void addResponseTimeRangesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getResponseTimeRanges())) {
             var responseTimeRanges = new ArrayList<JsonObject>();
-            filter
-                .getResponseTimeRanges()
-                .forEach(responseTimeRange -> {
-                    var rangeJsonObject = new JsonObject();
-                    if (responseTimeRange.getFrom() != null) {
-                        rangeJsonObject.put("gte", responseTimeRange.getFrom());
-                    }
-                    if (responseTimeRange.getTo() != null) {
-                        rangeJsonObject.put("lte", new Date(responseTimeRange.getTo()));
-                    }
+            filter.getResponseTimeRanges().forEach(responseTimeRange -> {
+                var rangeJsonObject = new JsonObject();
+                if (responseTimeRange.getFrom() != null) {
+                    rangeJsonObject.put("gte", responseTimeRange.getFrom());
+                }
+                if (responseTimeRange.getTo() != null) {
+                    rangeJsonObject.put("lte", new Date(responseTimeRange.getTo()));
+                }
 
-                    responseTimeRanges.add(
-                        JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request(), rangeJsonObject))
-                    );
-                    responseTimeRanges.add(
-                        JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics(), rangeJsonObject))
-                    );
-                });
+                responseTimeRanges.add(
+                    JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v2Request(), rangeJsonObject))
+                );
+                responseTimeRanges.add(
+                    JsonObject.of("range", JsonObject.of(RequestV2MetricsV4Fields.GATEWAY_RESPONSE_TIME.v4Metrics(), rangeJsonObject))
+                );
+            });
 
             mustFilterList.add(buildShould(responseTimeRanges));
         }

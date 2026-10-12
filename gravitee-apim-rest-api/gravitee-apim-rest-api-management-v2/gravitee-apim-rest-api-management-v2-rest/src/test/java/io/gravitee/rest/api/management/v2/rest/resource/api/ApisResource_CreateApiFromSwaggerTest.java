@@ -127,7 +127,13 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
                 .apiExport(
                     ApiExport.builder()
                         .definitionVersion(DefinitionVersion.V4)
-                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
+                        .listeners(
+                            List.of(
+                                HttpListener.builder()
+                                    .paths(List.of(Path.builder().path("/path").build()))
+                                    .build()
+                            )
+                        )
                         .build()
                 )
                 .build()
@@ -167,7 +173,13 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
                 .apiExport(
                     ApiExport.builder()
                         .definitionVersion(DefinitionVersion.V4)
-                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
+                        .listeners(
+                            List.of(
+                                HttpListener.builder()
+                                    .paths(List.of(Path.builder().path("/path").build()))
+                                    .build()
+                            )
+                        )
                         .build()
                 )
                 .build()

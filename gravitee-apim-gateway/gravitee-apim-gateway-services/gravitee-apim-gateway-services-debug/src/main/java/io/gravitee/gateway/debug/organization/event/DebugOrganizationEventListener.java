@@ -30,7 +30,8 @@ import java.util.Objects;
  */
 public class DebugOrganizationEventListener
     extends AbstractService<DebugOrganizationEventListener>
-    implements EventListener<OrganizationEvent, ReactableOrganization> {
+    implements EventListener<OrganizationEvent, ReactableOrganization>
+{
 
     private final OrganizationReactorRegistry v3OrganizationReactorRegistry;
     private final io.gravitee.gateway.reactive.platform.organization.reactor.OrganizationReactorRegistry organizationReactorRegistry;

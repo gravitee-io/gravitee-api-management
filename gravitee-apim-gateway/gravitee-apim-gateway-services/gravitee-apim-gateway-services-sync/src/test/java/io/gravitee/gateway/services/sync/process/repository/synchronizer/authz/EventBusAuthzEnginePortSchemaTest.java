@@ -53,13 +53,11 @@ class EventBusAuthzEnginePortSchemaTest {
     }
 
     private void recordAndReplyOn(String address) {
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                hits.add(address);
-                commands.add(msg.body());
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            hits.add(address);
+            commands.add(msg.body());
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
     }
 
     @Test

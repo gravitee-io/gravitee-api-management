@@ -42,26 +42,24 @@ public class DateHistogramQueryBuilder extends AbstractQueryBuilder<DateHistogra
     }
 
     public DateHistogramQueryBuilder aggregation(AggregationType type, String field, Integer size) {
-        query
-            .aggregations()
-            .add(
-                new Aggregation() {
-                    @Override
-                    public AggregationType type() {
-                        return type;
-                    }
-
-                    @Override
-                    public String field() {
-                        return field;
-                    }
-
-                    @Override
-                    public Integer size() {
-                        return size;
-                    }
+        query.aggregations().add(
+            new Aggregation() {
+                @Override
+                public AggregationType type() {
+                    return type;
                 }
-            );
+
+                @Override
+                public String field() {
+                    return field;
+                }
+
+                @Override
+                public Integer size() {
+                    return size;
+                }
+            }
+        );
 
         return this;
     }

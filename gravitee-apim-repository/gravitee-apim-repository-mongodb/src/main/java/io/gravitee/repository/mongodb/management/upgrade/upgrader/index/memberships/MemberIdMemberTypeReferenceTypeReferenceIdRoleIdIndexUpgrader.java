@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
  */
 @Component("MembershipsMemberIdMemberTypeReferenceTypeReferenceIdRoleIdIndexUpgrader")
 public class MemberIdMemberTypeReferenceTypeReferenceIdRoleIdIndexUpgrader
-    extends IndexUpgrader {
+    extends IndexUpgrader
+{
 
     @Override
     protected Index buildIndex() {

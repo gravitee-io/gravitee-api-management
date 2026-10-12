@@ -126,8 +126,7 @@ public class DeployModelV4CommandHandlerTest {
 
             when(deployModelToApiCreateUseCase.execute(any())).thenReturn(new DeployModelToApiCreateUseCase.Output(new ApiWithFlows()));
 
-            cut
-                .handle(command)
+            cut.handle(command)
                 .test()
                 .assertValue(
                     reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)
@@ -166,8 +165,7 @@ public class DeployModelV4CommandHandlerTest {
                 )
             ).thenThrow(new InvalidPathsException("Path [/test/] already exists"));
 
-            cut
-                .handle(command)
+            cut.handle(command)
                 .test()
                 .assertNoErrors()
                 .assertValue(reply -> {
@@ -202,8 +200,7 @@ public class DeployModelV4CommandHandlerTest {
 
             when(deployModelToApiUpdateUseCase.execute(any())).thenReturn(new DeployModelToApiUpdateUseCase.Output(new Api()));
 
-            cut
-                .handle(command)
+            cut.handle(command)
                 .test()
                 .assertValue(
                     reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED)

@@ -136,8 +136,7 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
@@ -177,8 +176,7 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
@@ -218,8 +216,7 @@ public class DeployModelCommandHandlerTest {
             return ApiEntityResult.success(result);
         });
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
@@ -242,8 +239,7 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.empty());
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertNoErrors()
             .assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
@@ -262,8 +258,7 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkCreatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertNoErrors()
             .assertValue(reply -> {
@@ -290,8 +285,7 @@ public class DeployModelCommandHandlerTest {
             permissionChecker.checkUpdatePermission(EXECUTION_CONTEXT, user.getId(), ENVIRONMENT_ID, apiId, DeploymentMode.API_DOCUMENTED)
         ).thenReturn(Optional.of("You are not allowed to create APIs on this environment."));
 
-        cut
-            .handle(command)
+        cut.handle(command)
             .test()
             .assertNoErrors()
             .assertValue(reply -> {

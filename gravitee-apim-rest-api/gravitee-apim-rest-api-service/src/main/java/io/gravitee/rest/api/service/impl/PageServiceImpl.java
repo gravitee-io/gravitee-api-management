@@ -241,14 +241,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 importPageEntity
                     .getExcludedGroups()
                     .stream()
-                    .map(
-                        (groupId -> {
-                                AccessControl accessControl = new AccessControl();
-                                accessControl.setReferenceType("GROUP");
-                                accessControl.setReferenceId(groupId);
-                                return accessControl;
-                            })
-                    )
+                    .map(groupId -> {
+                        AccessControl accessControl = new AccessControl();
+                        accessControl.setReferenceType("GROUP");
+                        accessControl.setReferenceId(groupId);
+                        return accessControl;
+                    })
                     .collect(Collectors.toSet())
             );
         } else {
@@ -351,7 +349,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         boolean autoFetch = root.path("autoFetch").asBoolean(false);
         String fetchCron = root.path("fetchCron").asText(null);
         log.debug("Parsed config - autoFetch: {}, fetchCron: {}", autoFetch, fetchCron);
-        boolean isInvalid = (fetchCron == null || fetchCron.trim().isEmpty() || "null".equalsIgnoreCase(fetchCron));
+        boolean isInvalid = fetchCron == null || fetchCron.trim().isEmpty() || "null".equalsIgnoreCase(fetchCron);
         if (autoFetch && isInvalid) {
             throw new InvalidFetchCronExpressionException("fetchCron is required when autoFetch is true.");
         }
@@ -779,9 +777,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private Page getTranslation(String pageId, String acceptedLocale) {
         try {
-            Optional<Page> optTranslation = this.pageRepository.search(
-                    new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build()
-                )
+            Optional<Page> optTranslation = this.pageRepository
+                .search(new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build())
                 .stream()
                 .filter(t -> acceptedLocale.equalsIgnoreCase(t.getConfiguration().get(PageConfigurationKeys.TRANSLATION_LANG)))
                 .findFirst();
@@ -883,14 +880,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     newPageEntity
                         .getExcludedGroups()
                         .stream()
-                        .map(
-                            (groupId -> {
-                                    AccessControlEntity accessControl = new AccessControlEntity();
-                                    accessControl.setReferenceType("GROUP");
-                                    accessControl.setReferenceId(groupId);
-                                    return accessControl;
-                                })
-                        )
+                        .map(groupId -> {
+                            AccessControlEntity accessControl = new AccessControlEntity();
+                            accessControl.setReferenceType("GROUP");
+                            accessControl.setReferenceId(groupId);
+                            return accessControl;
+                        })
                         .collect(Collectors.toSet())
                 );
             }
@@ -1216,13 +1211,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 String actualResourceRef = pageToUpdate.getContent();
 
                 if (newResourceRef != null && !newResourceRef.equals(actualResourceRef)) {
-                    String resourceType = (updatePageEntity.getConfiguration() != null
+                    String resourceType =
+                        updatePageEntity.getConfiguration() != null
                             ? updatePageEntity.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE)
-                            : pageToUpdate.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE));
+                            : pageToUpdate.getConfiguration().get(PageConfigurationKeys.LINK_RESOURCE_TYPE);
 
                     if (
                         PageConfigurationKeys.LINK_RESOURCE_TYPE_EXTERNAL.equals(resourceType) &&
-                        (updatePageEntity.getContent() != null && updatePageEntity.getContent().isEmpty())
+                        updatePageEntity.getContent() != null &&
+                        updatePageEntity.getContent().isEmpty()
                     ) {
                         throw new PageActionException(LINK, "be created. An external Link must have a URL");
                     }
@@ -1248,12 +1245,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
 
             if (TRANSLATION.name().equalsIgnoreCase(pageType)) {
-                String parentId = (updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty())
-                    ? updatePageEntity.getParentId()
-                    : pageToUpdate.getParentId();
-                Map<String, String> configuration = updatePageEntity.getConfiguration() != null
-                    ? updatePageEntity.getConfiguration()
-                    : pageToUpdate.getConfiguration();
+                String parentId =
+                    updatePageEntity.getParentId() != null && !updatePageEntity.getParentId().isEmpty()
+                        ? updatePageEntity.getParentId()
+                        : pageToUpdate.getParentId();
+                Map<String, String> configuration =
+                    updatePageEntity.getConfiguration() != null ? updatePageEntity.getConfiguration() : pageToUpdate.getConfiguration();
                 checkTranslationConsistency(parentId, configuration, false);
 
                 boolean hasChanged = pageHasChanged(updatePageEntity, pageToUpdate);
@@ -1277,21 +1274,18 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 updatePageEntity.setVisibility(Visibility.PRIVATE);
                 updatePageEntity.setExcludedAccessControls(true);
 
-                Set<AccessControlEntity> accessControlEntities = updatePageEntity.getAccessControls() != null
-                    ? updatePageEntity.getAccessControls()
-                    : new HashSet<>();
+                Set<AccessControlEntity> accessControlEntities =
+                    updatePageEntity.getAccessControls() != null ? updatePageEntity.getAccessControls() : new HashSet<>();
                 accessControlEntities.addAll(
                     updatePageEntity
                         .getExcludedGroups()
                         .stream()
-                        .map(
-                            (groupId -> {
-                                    AccessControlEntity accessControl = new AccessControlEntity();
-                                    accessControl.setReferenceType("GROUP");
-                                    accessControl.setReferenceId(groupId);
-                                    return accessControl;
-                                })
-                        )
+                        .map(groupId -> {
+                            AccessControlEntity accessControl = new AccessControlEntity();
+                            accessControl.setReferenceType("GROUP");
+                            accessControl.setReferenceId(groupId);
+                            return accessControl;
+                        })
                         .collect(Collectors.toSet())
                 );
 
@@ -1405,9 +1399,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 !TRANSLATION.name().equalsIgnoreCase(pageType)
             ) {
                 // if just publishing the page, updatePageEntity.getVisibility() will return null. In that case, we must keep the existing visibility status.
-                String newVisibility = updatePageEntity.getVisibility() == null
-                    ? pageToUpdate.getVisibility()
-                    : updatePageEntity.getVisibility().name();
+                String newVisibility =
+                    updatePageEntity.getVisibility() == null ? pageToUpdate.getVisibility() : updatePageEntity.getVisibility().name();
 
                 // update all the related links and translations publication status.
                 this.changeRelatedPagesPublicationStatusAndVisibility(pageId, updatePageEntity.isPublished(), newVisibility);
@@ -1524,7 +1517,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void changeRelatedPagesPublicationStatusAndVisibility(String pageId, Boolean published, String newVisibility) {
         try {
             // Update related page's links
-            this.pageRepository.search(new PageCriteria.Builder().type(LINK.name()).build())
+            this.pageRepository
+                .search(new PageCriteria.Builder().type(LINK.name()).build())
                 .stream()
                 .filter(p -> pageId.equals(p.getContent()))
                 .forEach(p -> {
@@ -1550,7 +1544,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void changeTranslationPagesPublicationStatusAndVisibility(String translatedPageId, Boolean published, String newVisibility) {
         try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(TRANSLATION.name()).build())
+            this.pageRepository
+                .search(new PageCriteria.Builder().parent(translatedPageId).type(TRANSLATION.name()).build())
                 .stream()
                 .forEach(p -> {
                     try {
@@ -1568,7 +1563,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void deleteRelatedPages(String pageId) {
         try {
-            this.pageRepository.search(new PageCriteria.Builder().type("LINK").build())
+            this.pageRepository
+                .search(new PageCriteria.Builder().type("LINK").build())
                 .stream()
                 .filter(p -> pageId.equals(p.getContent()))
                 .forEach(p -> {
@@ -1587,7 +1583,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     private void deleteRelatedTranslations(String pageId) {
         try {
-            this.pageRepository.search(new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build())
+            this.pageRepository
+                .search(new PageCriteria.Builder().parent(pageId).type(TRANSLATION.name()).build())
                 .stream()
                 .forEach(p -> {
                     try {
@@ -1649,9 +1646,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             ClassLoader fetcherCL = fetcherPlugin.fetcher().getClassLoader();
             Fetcher fetcher;
             if (fetcherPlugin.configuration().isAssignableFrom(FilepathAwareFetcherConfiguration.class)) {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<
-                    ? extends FetcherConfiguration
-                >) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
+                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
                 Class<? extends FilesFetcher> fetcherClass = (Class<? extends FilesFetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
@@ -1659,9 +1655,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 );
                 fetcher = fetcherClass.getConstructor(fetcherConfigurationClass).newInstance(fetcherConfigurationInstance);
             } else {
-                Class<? extends FetcherConfiguration> fetcherConfigurationClass = (Class<
-                    ? extends FetcherConfiguration
-                >) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
+                Class<? extends FetcherConfiguration> fetcherConfigurationClass =
+                    (Class<? extends FetcherConfiguration>) fetcherCL.loadClass(fetcherPlugin.configuration().getName());
                 Class<? extends Fetcher> fetcherClass = (Class<? extends Fetcher>) fetcherCL.loadClass(fetcherPlugin.clazz());
                 FetcherConfiguration fetcherConfigurationInstance = fetcherConfigurationFactory.create(
                     fetcherConfigurationClass,
@@ -1845,9 +1840,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 if (newPage.getType() == null) {
                     log.warn("Unable to find a source file to import. Please fix the descriptor content.");
                 } else {
-                    String parentPath = descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
-                        ? getParentPathFromFilePath(descriptorPage.getSrc())
-                        : descriptorPage.getDest();
+                    String parentPath =
+                        descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
+                            ? getParentPathFromFilePath(descriptorPage.getSrc())
+                            : descriptorPage.getDest();
 
                     createdPages.addAll(
                         upsertPageAndParentFolders(
@@ -2213,7 +2209,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     .stream()
                     .filter(plan -> plan.getGeneralConditions() != null)
                     .filter(
-                        plan -> // check the page and the parent for translations.
+                        plan ->
+                            // check the page and the parent for translations.
                             (TRANSLATION.name().equals(page.getType()) && plan.getGeneralConditions().equals(page.getParentId())) ||
                             plan.getGeneralConditions().equals(page.getId())
                     )
@@ -2575,7 +2572,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             }
         }
         if (updated) {
-            page.getSource().setConfiguration((new ObjectMapper()).valueToTree(updatedFetcherConfiguration).toString());
+            page.getSource().setConfiguration(new ObjectMapper().valueToTree(updatedFetcherConfiguration).toString());
         }
     }
 
@@ -2834,7 +2831,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             final NewPageEntity newPage = convertToEntity(pageDefinition);
             JsonNode jsonNode = objectMapper.readTree(pageDefinition);
-            return createPage(executionContext, apiId, newPage, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null));
+            return createPage(executionContext, apiId, newPage, jsonNode.get("id") != null ? jsonNode.get("id").asText() : null);
         } catch (JsonProcessingException e) {
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Page definition.", e);
         }
@@ -2860,7 +2857,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 new PageQuery.Builder().api(apiId).type(SWAGGER).build()
             );
 
-            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+            if (isForCreation || apiDocs == null || apiDocs.isEmpty()) {
                 final NewPageEntity page = new NewPageEntity();
                 page.setName("Swagger");
                 page.setType(SWAGGER);

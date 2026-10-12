@@ -207,9 +207,11 @@ public class CorsPreflightRequestProcessor extends AbstractCorsRequestProcessor 
     private boolean isRequestValid(final String incoming, final Set<String> configuredValues) {
         List<String> inputs = splitAndTrim(incoming);
         return (
-            (inputs == null || (inputs.size() == 1 && inputs.get(0).isEmpty())) ||
-            (configuredValues == null || configuredValues.isEmpty()) ||
-            (configuredValues.containsAll(inputs))
+            inputs == null ||
+            (inputs.size() == 1 && inputs.get(0).isEmpty()) ||
+            configuredValues == null ||
+            configuredValues.isEmpty() ||
+            configuredValues.containsAll(inputs)
         );
     }
 

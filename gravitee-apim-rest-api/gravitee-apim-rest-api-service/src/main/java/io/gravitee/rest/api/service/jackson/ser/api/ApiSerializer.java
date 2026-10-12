@@ -246,12 +246,13 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 Set<PlanEntity> plans = applicationContext
                     .getBean(PlanService.class)
                     .findByApi(GraviteeContext.getExecutionContext(), apiEntity.getId());
-                Set<PlanEntity> plansToAdd = plans == null
-                    ? Collections.emptySet()
-                    : plans
-                        .stream()
-                        .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
-                        .collect(Collectors.toSet());
+                Set<PlanEntity> plansToAdd =
+                    plans == null
+                        ? Collections.emptySet()
+                        : plans
+                              .stream()
+                              .filter(p -> !PlanStatus.CLOSED.equals(p.getStatus()))
+                              .collect(Collectors.toSet());
                 plansToAdd.forEach(p -> {
                     if (p.getExcludedGroups() != null) {
                         p.setExcludedGroups(

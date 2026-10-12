@@ -34,9 +34,10 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
     public Completable deploy(AuthzEntityReactorDeployable deployable) {
         // Evict the dropped scopes (computed by the synchronizer) before re-staging the new targets.
         Set<String> removed = deployable.removedTargetPdpIds();
-        Completable eviction = removed == null || removed.isEmpty()
-            ? Completable.complete()
-            : enginePort.removeEntity(deployable.environmentId(), deployable.engineUid(), removed);
+        Completable eviction =
+            removed == null || removed.isEmpty()
+                ? Completable.complete()
+                : enginePort.removeEntity(deployable.environmentId(), deployable.engineUid(), removed);
         return eviction
             .andThen(
                 enginePort.addOrUpdateEntity(

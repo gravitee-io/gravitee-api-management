@@ -43,7 +43,7 @@ public abstract class AbstractPageConfigurationSwaggerTransformer<T extends Swag
 
     protected boolean asBoolean(String property) {
         String value = getProperty(property);
-        return (value != null) && Boolean.parseBoolean(value);
+        return value != null && Boolean.parseBoolean(value);
     }
 
     protected String asString(String property) {

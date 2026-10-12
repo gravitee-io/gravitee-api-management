@@ -87,23 +87,19 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
 
             final Integer maximumPublishedMessages = configuration.getMessageCount();
 
-            ctx
-                .response()
-                .messages(
-                    generateMessageFlow(ctx, messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
-                );
+            ctx.response().messages(
+                generateMessageFlow(ctx, messagesLimitCount, maximumPublishedMessages, messagesLimitDurationMs, messagesResumeLastId)
+            );
         });
     }
 
     @Override
     public Completable publish(final HttpExecutionContext ctx) {
         return Completable.defer(() ->
-            ctx
-                .request()
-                .onMessage(message -> {
-                    ctx.withLogger(log).info("Received message: {}", message.content() != null ? message.content().toString() : null);
-                    return Maybe.just(message);
-                })
+            ctx.request().onMessage(message -> {
+                ctx.withLogger(log).info("Received message: {}", message.content() != null ? message.content().toString() : null);
+                return Maybe.just(message);
+            })
         );
     }
 
@@ -123,7 +119,7 @@ public class MockEndpointConnector extends HttpEndpointAsyncConnector {
                     // If we have no published message limit or state is before the limit
                     (maximumPublishedMessages == null || state < maximumPublishedMessages) &&
                     // And the entrypoint has no limit or state minus lastId is less than limit, then emit a message
-                    (messagesLimitCount == null || (state - stateInitValue) < messagesLimitCount)
+                    (messagesLimitCount == null || state - stateInitValue < messagesLimitCount)
                 ) {
                     DefaultMessage.DefaultMessageBuilder messageBuilder = DefaultMessage.builder()
                         .content(configuration.getMessageContent())

@@ -99,7 +99,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
 
         final HttpClient httpClient = vertx.createHttpClient(clientOptions, poolOptions);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80;
 
         RequestOptions options = new RequestOptions()
             .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
@@ -124,40 +124,38 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                 httpClient.close();
             })
             .onSuccess(request -> {
-                request
-                    .response()
-                    .onComplete(asyncResponse -> {
-                        if (asyncResponse.failed()) {
-                            future.completeExceptionally(asyncResponse.cause());
+                request.response().onComplete(asyncResponse -> {
+                    if (asyncResponse.failed()) {
+                        future.completeExceptionally(asyncResponse.cause());
 
-                            // Close client
-                            httpClient.close();
+                        // Close client
+                        httpClient.close();
+                    } else {
+                        HttpClientResponse response = asyncResponse.result();
+                        log.debug("Web response status code : {}", response.statusCode());
+
+                        if (isStatus2xx(response)) {
+                            response.bodyHandler(buffer -> {
+                                future.complete(buffer);
+
+                                // Close client
+                                httpClient.close();
+                            });
                         } else {
-                            HttpClientResponse response = asyncResponse.result();
-                            log.debug("Web response status code : {}", response.statusCode());
-
-                            if (isStatus2xx(response)) {
-                                response.bodyHandler(buffer -> {
-                                    future.complete(buffer);
-
-                                    // Close client
-                                    httpClient.close();
-                                });
-                            } else {
-                                future.completeExceptionally(
-                                    new TechnicalManagementException(
-                                        " Error on url '" +
-                                            uri +
-                                            "'. Status code: " +
-                                            response.statusCode() +
-                                            ". Message: " +
-                                            response.statusMessage(),
-                                        null
-                                    )
-                                );
-                            }
+                            future.completeExceptionally(
+                                new TechnicalManagementException(
+                                    " Error on url '" +
+                                        uri +
+                                        "'. Status code: " +
+                                        response.statusCode() +
+                                        ". Message: " +
+                                        response.statusMessage(),
+                                    null
+                                )
+                            );
                         }
-                    });
+                    }
+                });
 
                 request.end(body);
             });

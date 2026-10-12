@@ -92,7 +92,7 @@ class LogBuilderTest {
     @NullAndEmptySource
     @ValueSource(strings = { " ", "   ", "\t", "\n" })
     void createLog_returns_null_when_timestamp_is_blank(String blankValue) throws Exception {
-        String value = (blankValue == null) ? "null" : "\"" + blankValue.replace("\t", "\\t").replace("\n", "\\n") + "\"";
+        String value = blankValue == null ? "null" : "\"" + blankValue.replace("\t", "\\t").replace("\n", "\\n") + "\"";
         String json = "{" + "\"@timestamp\":" + value + "," + "\"transaction\":\"tx-1\"," + "\"gateway\":\"gw-1\"" + "}";
 
         Log result = LogBuilder.createLog(hitFromJson("id-blank-ts", json));

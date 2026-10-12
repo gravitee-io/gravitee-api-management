@@ -121,29 +121,27 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        ConnectionLogModel.builder()
-                            .requestId("req1")
-                            .apiId(API_ID)
-                            .application(APPLICATION_1)
-                            .plan(PLAN_1)
-                            .timestamp("2020-02-01T20:00:00.00Z")
-                            .requestEnded(true)
-                            .method(HttpMethod.GET)
-                            .clientIdentifier("client-identifier")
-                            .transactionId("transaction-id")
-                            .status(200)
-                            .uri("/my-api")
-                            .gatewayResponseTime(42)
-                            .endpoint("https://my-api-example.com")
-                            .warnings(List.of())
-                            .additionalMetrics(Map.of())
-                            .build()
-                    )
-                );
+            soft.assertThat(result.data()).isEqualTo(
+                List.of(
+                    ConnectionLogModel.builder()
+                        .requestId("req1")
+                        .apiId(API_ID)
+                        .application(APPLICATION_1)
+                        .plan(PLAN_1)
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .requestEnded(true)
+                        .method(HttpMethod.GET)
+                        .clientIdentifier("client-identifier")
+                        .transactionId("transaction-id")
+                        .status(200)
+                        .uri("/my-api")
+                        .gatewayResponseTime(42)
+                        .endpoint("https://my-api-example.com")
+                        .warnings(List.of())
+                        .additionalMetrics(Map.of())
+                        .build()
+                )
+            );
         });
     }
 
@@ -164,8 +162,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
                 .containsExactly(
                     tuple("req3", "2020-02-04T20:00:00.00Z"),
@@ -328,8 +325,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
                 .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });
@@ -352,8 +348,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
                 .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
         });
@@ -376,8 +371,7 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
                 .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });

@@ -68,7 +68,7 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().queryParam("event_counts", true).request().get();
 
-        List<Map> resultEntities = (List<Map>) (response.readEntity(List.class));
+        List<Map> resultEntities = (List<Map>) response.readEntity(List.class);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(3, resultEntities.size());
@@ -89,7 +89,7 @@ public class PlatformAlertsResourceTest extends AbstractResourceTest {
 
         final Response response = envTarget().queryParam("event_counts", false).request().get();
 
-        List<Map> resultEntities = (List<Map>) (response.readEntity(List.class));
+        List<Map> resultEntities = (List<Map>) response.readEntity(List.class);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         assertEquals(3, resultEntities.size());

@@ -69,7 +69,9 @@ class VertxReactorConfigurationTest {
         final VertxServer vertxServer2 = mock(VertxServer.class);
         when(vertxServer2.id()).thenReturn("2");
 
-        when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer1).thenReturn(vertxServer2);
+        when(serverFactory.create(any(VertxServerOptions.class)))
+            .thenReturn(vertxServer1)
+            .thenReturn(vertxServer2);
 
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");

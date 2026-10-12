@@ -393,7 +393,9 @@ public class MediaServiceTest {
 
         List<MediaEntity> mediaEntities = mediaService.findAllWithoutContent(List.of(newPageMediaEntity()), API_ID);
 
-        assertThat(mediaEntities).usingRecursiveComparison().isEqualTo(List.of(newMediaEntity(false)));
+        assertThat(mediaEntities)
+            .usingRecursiveComparison()
+            .isEqualTo(List.of(newMediaEntity(false)));
     }
 
     @Test

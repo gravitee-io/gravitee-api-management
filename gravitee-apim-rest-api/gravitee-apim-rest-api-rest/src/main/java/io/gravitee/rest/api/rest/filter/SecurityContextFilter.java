@@ -45,7 +45,7 @@ public class SecurityContextFilter implements ContainerRequestFilter {
                 @Override
                 public Principal getUserPrincipal() {
                     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                    return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
+                    return authentication instanceof AnonymousAuthenticationToken ? null : authentication;
                 }
 
                 @Override

@@ -31,7 +31,8 @@ import java.util.Optional;
  */
 public class NoOpSharedPolicyGroupRepository
     extends AbstractNoOpManagementRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupRepository {
+    implements SharedPolicyGroupRepository
+{
 
     @Override
     public Page<SharedPolicyGroup> search(SharedPolicyGroupCriteria criteria, Pageable pageable, Sortable sortable) {

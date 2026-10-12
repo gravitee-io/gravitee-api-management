@@ -306,7 +306,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     private static boolean shouldFetch(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates) {
-        return (hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer));
+        return hasApiOrApiProductItems(creates) || updates.stream().anyMatch(u -> u.existing() instanceof PortalNavigationItemContainer);
     }
 
     private List<PortalNavigationItem> fetchAllNavigationItems(String environmentId) {

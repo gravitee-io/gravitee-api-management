@@ -97,58 +97,60 @@ public class GrpcBidirectionalStreamingV4EmulationIntegrationTest extends Abstra
 
         // Create http server handled by gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // capture progress data
-                List<String> replies = new ArrayList<>();
-                AtomicBoolean done = new AtomicBoolean();
+        httpServer.listen().andThen(handler -> {
+            // capture progress data
+            List<String> replies = new ArrayList<>();
+            AtomicBoolean done = new AtomicBoolean();
 
-                // call the remote service
-                getGrpcClient()
-                    .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
-                    .onSuccess(request -> {
-                        AtomicInteger i = new AtomicInteger();
-                        // request each 100ms, with a new message
-                        long id = vertx.setPeriodic(100, ignore -> {
-                            request.write(HelloRequest.newBuilder().setName("Request " + i.getAndIncrement()).build());
-                        });
-                        timerId.set(id);
-                    })
-                    .compose(GrpcClientRequest::response)
-                    .onSuccess(response -> {
-                        response.handler(reply -> {
-                            // collect data
-                            replies.add(reply.getMessage());
-                            replyCount.incrementAndGet();
-                        });
-                    })
-                    .onComplete(response -> {
-                        // end gracefully
-                        if (response.result() != null) {
-                            response.result().end();
-                        }
-                        vertx.cancelTimer(timerId.get());
-                        done.set(true);
+            // call the remote service
+            getGrpcClient()
+                .request(gatewayAddress(httpConfig), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                .onSuccess(request -> {
+                    AtomicInteger i = new AtomicInteger();
+                    // request each 100ms, with a new message
+                    long id = vertx.setPeriodic(100, ignore -> {
+                        request.write(
+                            HelloRequest.newBuilder()
+                                .setName("Request " + i.getAndIncrement())
+                                .build()
+                        );
                     });
+                    timerId.set(id);
+                })
+                .compose(GrpcClientRequest::response)
+                .onSuccess(response -> {
+                    response.handler(reply -> {
+                        // collect data
+                        replies.add(reply.getMessage());
+                        replyCount.incrementAndGet();
+                    });
+                })
+                .onComplete(response -> {
+                    // end gracefully
+                    if (response.result() != null) {
+                        response.result().end();
+                    }
+                    vertx.cancelTimer(timerId.get());
+                    done.set(true);
+                });
 
-                await()
-                    .atMost(30, TimeUnit.SECONDS)
-                    .untilAsserted(() -> {
-                        assertThat(replies)
-                            // we might have more, so checking at least what is planned
-                            .containsAnyElementsOf(
-                                List.of(
-                                    "Reply 0 to Request 0",
-                                    "Reply 1 to Request 0",
-                                    "Reply 0 to Request 1",
-                                    "Reply 1 to Request 1",
-                                    "Reply 0 to Request 2",
-                                    "Reply 1 to Request 2"
-                                )
-                            );
-                        assertThat(done).isTrue();
-                    });
-            });
+            await()
+                .atMost(30, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    assertThat(replies)
+                        // we might have more, so checking at least what is planned
+                        .containsAnyElementsOf(
+                            List.of(
+                                "Reply 0 to Request 0",
+                                "Reply 1 to Request 0",
+                                "Reply 0 to Request 1",
+                                "Reply 1 to Request 1",
+                                "Reply 0 to Request 2",
+                                "Reply 1 to Request 2"
+                            )
+                        );
+                    assertThat(done).isTrue();
+                });
+        });
     }
 }

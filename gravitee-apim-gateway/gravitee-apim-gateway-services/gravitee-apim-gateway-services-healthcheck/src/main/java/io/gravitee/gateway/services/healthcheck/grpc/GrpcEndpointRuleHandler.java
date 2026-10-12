@@ -45,13 +45,11 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoin
     protected Future<HttpClientRequest> createHttpClientRequest(final HttpClient httpClient, URL request, HealthCheckStep step) {
         RequestOptions options = prepareHttpClientRequest(request, step);
 
-        return httpClient
-            .request(options)
-            .map(httpClientRequest -> {
-                // Always set chunked mode for gRPC transport
-                httpClientRequest.setChunked(true);
-                return httpClientRequest;
-            });
+        return httpClient.request(options).map(httpClientRequest -> {
+            // Always set chunked mode for gRPC transport
+            httpClientRequest.setChunked(true);
+            return httpClientRequest;
+        });
     }
 
     @Override

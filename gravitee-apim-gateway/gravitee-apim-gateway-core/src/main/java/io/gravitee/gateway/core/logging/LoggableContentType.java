@@ -41,9 +41,8 @@ public class LoggableContentType {
     private String excludedResponseTypes;
 
     private Predicate<String> matcher(Stream<Supplier<String>> regex, @Nullable BaseExecutionContext ctx) {
-        Pattern overridePattern = ctx != null
-            ? ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_OVERRIDE_LOGGABLE_CONTENT_TYPE_PATTERN)
-            : null;
+        Pattern overridePattern =
+            ctx != null ? ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_OVERRIDE_LOGGABLE_CONTENT_TYPE_PATTERN) : null;
         return overridePattern != null ? overridePattern.asPredicate() : buildDefault(regex, ctx);
     }
 
@@ -89,11 +88,10 @@ public class LoggableContentType {
      * Determines if body can be logged for APIv2
      */
     public boolean isContentTypeLoggable(@Nullable final String contentType, @Nullable final LoggingContext loggingContext) {
-        Stream<Supplier<String>> getExcludedResponseTypes = loggingContext != null
-            ? Stream.of(loggingContext::getExcludedResponseTypes)
-            : Stream.empty();
+        Stream<Supplier<String>> getExcludedResponseTypes =
+            loggingContext != null ? Stream.of(loggingContext::getExcludedResponseTypes) : Stream.empty();
         Stream<Supplier<String>> defaultPattern = Stream.of(() -> DEFAULT_EXCLUDED_CONTENT_TYPES);
-        return (contentType == null || !matcher(Stream.concat(getExcludedResponseTypes, defaultPattern), null).test(contentType));
+        return contentType == null || !matcher(Stream.concat(getExcludedResponseTypes, defaultPattern), null).test(contentType);
     }
 
     public void reset() {

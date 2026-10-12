@@ -23,6 +23,7 @@ public enum NotificationReferenceType {
     // Must use ENVIRONMENT instead of PORTAL
     @Deprecated
     PORTAL,
+
     API,
     API_PRODUCT,
     APPLICATION,

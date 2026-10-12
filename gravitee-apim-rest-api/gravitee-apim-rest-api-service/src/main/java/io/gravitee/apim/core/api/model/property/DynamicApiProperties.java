@@ -43,8 +43,10 @@ public class DynamicApiProperties {
         this.currentUserDefinedProperties = currentProperties.stream().filter(not(Property::isDynamic)).toList();
     }
 
-    public record DynamicPropertiesResult(List<Property> orderedProperties, boolean needToUpdate) implements
-        ApiDefinition.UpdateDynamicPropertiesResult {}
+    public record DynamicPropertiesResult(
+        List<Property> orderedProperties,
+        boolean needToUpdate
+    ) implements ApiDefinition.UpdateDynamicPropertiesResult {}
 
     public DynamicPropertiesResult updateDynamicProperties(List<Property> dynamicProperties) {
         List<Property> updatedDynamicProperties = new ArrayList<>();

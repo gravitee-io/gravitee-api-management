@@ -190,8 +190,8 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
     }
 
     private Endpoint createEndpoint(final Service service, final EndpointGroup group) {
-        final String scheme = (service.scheme() != null) ? service.scheme() : (service.port() == 443 ? "https" : "http");
-        final String basePath = (service.basePath() != null) ? service.basePath() : Service.DEFAULT_BASE_PATH;
+        final String scheme = service.scheme() != null ? service.scheme() : service.port() == 443 ? "https" : "http";
+        final String basePath = service.basePath() != null ? service.basePath() : Service.DEFAULT_BASE_PATH;
 
         // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
@@ -215,7 +215,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
             } else {
                 // If SSL configuration has been done at the group level, let's use it
                 // If not, made a proper configuration for the discovered endpoint
-                groupHttpClientOptions = (groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions();
+                groupHttpClientOptions = groupHttpClientOptions != null ? groupHttpClientOptions : new HttpClientSslOptions();
                 groupHttpClientOptions.setTrustAll(true);
                 endpointNode.putPOJO("ssl", groupHttpClientOptions);
             }

@@ -124,7 +124,8 @@ public class DeleteApiDocumentationDomainService {
     }
 
     private void updatePageOrders(Page deletedPage, AuditInfo auditInfo) {
-        this.pageQueryService.searchByApiIdAndParentId(deletedPage.getReferenceId(), deletedPage.getParentId())
+        this.pageQueryService
+            .searchByApiIdAndParentId(deletedPage.getReferenceId(), deletedPage.getParentId())
             .stream()
             .filter(page -> areDifferentPages(deletedPage, page))
             .filter(page -> isAfterDeletedPagePosition(deletedPage, page))

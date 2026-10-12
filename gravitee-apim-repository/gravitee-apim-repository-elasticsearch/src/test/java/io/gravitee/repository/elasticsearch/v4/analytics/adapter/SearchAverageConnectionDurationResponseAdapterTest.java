@@ -68,11 +68,12 @@ class SearchAverageConnectionDurationResponseAdapterTest {
             buckets
                 .entrySet()
                 .stream()
-                .map(bucket ->
-                    (JsonNode) objectMapper
-                        .createObjectNode()
-                        .put("key", bucket.getKey())
-                        .set(AVG_ENDED_REQUEST_DURATION_MS, objectMapper.createObjectNode().put("value", bucket.getValue()))
+                .map(
+                    bucket ->
+                        (JsonNode) objectMapper
+                            .createObjectNode()
+                            .put("key", bucket.getKey())
+                            .set(AVG_ENDED_REQUEST_DURATION_MS, objectMapper.createObjectNode().put("value", bucket.getValue()))
                 )
                 .toList()
         );

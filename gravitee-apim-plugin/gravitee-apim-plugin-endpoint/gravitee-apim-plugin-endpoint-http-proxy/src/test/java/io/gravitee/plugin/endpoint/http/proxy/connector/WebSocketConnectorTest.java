@@ -127,7 +127,9 @@ class WebSocketConnectorTest {
         lenient().when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
         lenient().when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(mock(Configuration.class));
-        lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+        lenient()
+            .when(ctx.interruptWith(any(ExecutionFailure.class)))
+            .thenReturn(Completable.complete());
 
         requestHeaders = HttpHeaders.create();
         lenient().when(request.headers()).thenReturn(requestHeaders);

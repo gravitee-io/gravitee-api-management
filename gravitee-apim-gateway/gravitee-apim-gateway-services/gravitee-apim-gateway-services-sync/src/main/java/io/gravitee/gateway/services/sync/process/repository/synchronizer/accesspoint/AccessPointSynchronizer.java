@@ -87,7 +87,7 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
                 String logMsg = String.format(
                     "%s access points synchronized in %sms",
                     count,
-                    (System.currentTimeMillis() - launchTime.get())
+                    System.currentTimeMillis() - launchTime.get()
                 );
                 if (from == -1) {
                     log.info(logMsg);

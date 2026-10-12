@@ -56,8 +56,7 @@ public class FlowHttpSelector extends FlowSelector {
     public abstract static class FlowHttpSelectorBuilder<
         C extends FlowHttpSelector,
         B extends FlowHttpSelector.FlowHttpSelectorBuilder<C, B>
-    >
-        extends FlowSelector.FlowSelectorBuilder<C, B> {
+    > extends FlowSelector.FlowSelectorBuilder<C, B> {
 
         FlowHttpSelectorBuilder() {
             type(FlowSelectorType.HTTP);

@@ -232,27 +232,25 @@ public class CurrentUserResource extends AbstractResource {
             );
             if (!memberships.isEmpty()) {
                 final Map<String, Set<String>> userGroups = new HashMap<>();
-                environmentService
-                    .findByUser(GraviteeContext.getCurrentOrganization(), userId)
-                    .forEach(environment -> {
-                        try {
-                            final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
-                            userGroups.put(environment.getId(), new HashSet<>());
-                            memberships
-                                .stream()
-                                .map(MembershipEntity::getReferenceId)
-                                .forEach(groupId -> {
-                                    final Optional<Group> optionalGroup = groups
-                                        .stream()
-                                        .filter(group -> groupId.equals(group.getId()))
-                                        .findFirst();
-                                    optionalGroup.ifPresent(entity -> userGroups.get(environment.getId()).add(entity.getName()));
-                                });
-                            userDetails.setGroupsByEnvironment(userGroups);
-                        } catch (TechnicalException e) {
-                            log.error("Error while trying to get groups of the user " + userId, e);
-                        }
-                    });
+                environmentService.findByUser(GraviteeContext.getCurrentOrganization(), userId).forEach(environment -> {
+                    try {
+                        final Set<Group> groups = groupRepository.findAllByEnvironment(environment.getId());
+                        userGroups.put(environment.getId(), new HashSet<>());
+                        memberships
+                            .stream()
+                            .map(MembershipEntity::getReferenceId)
+                            .forEach(groupId -> {
+                                final Optional<Group> optionalGroup = groups
+                                    .stream()
+                                    .filter(group -> groupId.equals(group.getId()))
+                                    .findFirst();
+                                optionalGroup.ifPresent(entity -> userGroups.get(environment.getId()).add(entity.getName()));
+                            });
+                        userDetails.setGroupsByEnvironment(userGroups);
+                    } catch (TechnicalException e) {
+                        log.error("Error while trying to get groups of the user " + userId, e);
+                    }
+                });
             }
 
             userDetails.setFirstLogin(1 == userEntity.getLoginCount());
@@ -378,12 +376,15 @@ public class CurrentUserResource extends AbstractResource {
             if (!roles.isEmpty()) {
                 roles.forEach(role ->
                     authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                        Maps.<String, String>builder()
+                            .put("authority", role.getScope().toString() + ':' + role.getName())
+                            .build()
                     )
                 );
             }
 
-            this.environmentService.findByOrganization(GraviteeContext.getCurrentOrganization())
+            this.environmentService
+                .findByOrganization(GraviteeContext.getCurrentOrganization())
                 .stream()
                 .flatMap(env ->
                     membershipService
@@ -393,7 +394,9 @@ public class CurrentUserResource extends AbstractResource {
                 .filter(Objects::nonNull)
                 .forEach(role ->
                     authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                        Maps.<String, String>builder()
+                            .put("authority", role.getScope().toString() + ':' + role.getName())
+                            .build()
                     )
                 );
 

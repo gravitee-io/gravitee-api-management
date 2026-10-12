@@ -44,8 +44,12 @@ public class ValidatePortalListingDomainService implements Validator<ValidatePor
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
     private final ApiCrudService apiCrudService;
 
-    public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
-        Validator.Input {}
+    public record Input(
+        AuditInfo auditInfo,
+        PortalListingId listingId,
+        PortalId portalId,
+        List<PortalListingApiEntry> apis
+    ) implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {

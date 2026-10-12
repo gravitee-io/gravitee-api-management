@@ -84,7 +84,8 @@ public class DictionaryManager {
     private boolean needRestart(DictionaryEntity dictionary, DictionaryEntity startedDictionary) {
         // A dictionary needs to be restarted if its configuration or trigger has changed.
         return (
-            (dictionary.getUpdatedAt() != null && dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt())) &&
+            dictionary.getUpdatedAt() != null &&
+            dictionary.getUpdatedAt().after(startedDictionary.getUpdatedAt()) &&
             (!Objects.equals(dictionary.getProvider().getConfiguration(), startedDictionary.getProvider().getConfiguration()) ||
                 !Objects.equals(dictionary.getTrigger(), startedDictionary.getTrigger()))
         );

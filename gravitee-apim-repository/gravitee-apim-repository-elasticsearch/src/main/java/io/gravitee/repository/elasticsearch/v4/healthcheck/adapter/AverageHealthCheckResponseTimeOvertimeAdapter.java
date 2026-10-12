@@ -29,7 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class AverageHealthCheckResponseTimeOvertimeAdapter
-    implements QueryResponseAdapter<AverageHealthCheckResponseTimeOvertimeQuery, AverageHealthCheckResponseTimeOvertime> {
+    implements QueryResponseAdapter<AverageHealthCheckResponseTimeOvertimeQuery, AverageHealthCheckResponseTimeOvertime>
+{
 
     private static final String TIME_FIELD = "@timestamp";
     public static final String AGGREGATION_BY_DATE = "by_date";

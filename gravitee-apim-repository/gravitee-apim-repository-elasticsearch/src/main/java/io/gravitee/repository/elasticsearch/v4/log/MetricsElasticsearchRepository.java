@@ -66,7 +66,8 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
 
-        return this.client.search(index, null, SearchMessageMetricsQueryAdapter.adapt(query))
+        return this.client
+            .search(index, null, SearchMessageMetricsQueryAdapter.adapt(query))
             .map(response -> {
                 var result = response.getSearchHits();
                 if (result == null) {
@@ -84,7 +85,8 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
     public LogResponse<Metrics> searchMetrics(QueryContext queryContext, MetricsQuery query, List<DefinitionVersion> definitionVersions) {
         var indexes = getQueryIndexesFromDefinitionVersions(Type.REQUEST, Type.V4_METRICS, configuration, queryContext, definitionVersions);
 
-        return this.client.search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
+        return this.client
+            .search(indexes, null, SearchMetricsQueryAdapter.adapt(query))
             .map(SearchMetricsResponseAdapter::adapt)
             .blockingGet();
     }
@@ -115,7 +117,8 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
             List.of(DefinitionVersion.V4)
         );
         try {
-            return this.client.search(indexes, null, NativeApiMetricsFindQueryAdapter.adapt(apiId, requestId, from, to))
+            return this.client
+                .search(indexes, null, NativeApiMetricsFindQueryAdapter.adapt(apiId, requestId, from, to))
                 .map(NativeApiMetricsFindResponseAdapter::adapt)
                 .blockingGet();
         } catch (RuntimeException e) {
@@ -158,7 +161,8 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(queryContext, query))
+            return this.client
+                .search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(queryContext, query))
                 .map(SearchAuthzDecisionLogsResponseAdapter::adapt)
                 .blockingGet();
         } catch (RuntimeException e) {
@@ -173,7 +177,8 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
+            return this.client
+                .search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
                 .map(SearchAuthzDecisionLogsResponseAdapter::adaptFirst)
                 .blockingGet();
         } catch (RuntimeException e) {

@@ -35,9 +35,8 @@ public class ApiExposedEntrypointDomainServiceLegacyWrapper implements ApiExpose
 
     @Override
     public List<ExposedEntrypoint> get(String organizationId, String environmentId, Api api) {
-        GenericApiEntity genericApiEntity = api.getType() == ApiType.NATIVE
-            ? ApiAdapter.INSTANCE.toNativeApiEntity(api)
-            : ApiAdapter.INSTANCE.toApiEntity(api);
+        GenericApiEntity genericApiEntity =
+            api.getType() == ApiType.NATIVE ? ApiAdapter.INSTANCE.toNativeApiEntity(api) : ApiAdapter.INSTANCE.toApiEntity(api);
 
         return apiEntrypointService
             .getApiEntrypoints(new ExecutionContext(organizationId, environmentId), genericApiEntity)

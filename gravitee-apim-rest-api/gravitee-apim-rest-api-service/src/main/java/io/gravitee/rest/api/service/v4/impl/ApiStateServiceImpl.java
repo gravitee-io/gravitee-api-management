@@ -710,10 +710,10 @@ public class ApiStateServiceImpl implements ApiStateService {
             apiEntity.setPlans(null);
             ((ApiEntity) deployedApi).setPlans(null);
         } else if (api instanceof NativeApiEntity nativeApiEntity) {
-            (nativeApiEntity).setPlans(null);
+            nativeApiEntity.setPlans(null);
             ((NativeApiEntity) deployedApi).setPlans(null);
         } else if (api instanceof io.gravitee.rest.api.model.api.ApiEntity apiV2Entity) {
-            (apiV2Entity).setPlans(null);
+            apiV2Entity.setPlans(null);
             ((io.gravitee.rest.api.model.api.ApiEntity) deployedApi).setPlans(null);
         }
     }

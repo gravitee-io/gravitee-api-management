@@ -205,7 +205,10 @@ class ApiDocumentationNavigationItemResource_PutContentTest extends AbstractReso
     }
 
     private Response saveContentOf(PortalNavigationItemId id, String content) {
-        return rootTarget(id.json()).path("content").request().put(Entity.json(new UpdatePortalPageContent().content(content)));
+        return rootTarget(id.json())
+            .path("content")
+            .request()
+            .put(Entity.json(new UpdatePortalPageContent().content(content)));
     }
 
     private String storedContentOf(PortalNavigationPage page) {

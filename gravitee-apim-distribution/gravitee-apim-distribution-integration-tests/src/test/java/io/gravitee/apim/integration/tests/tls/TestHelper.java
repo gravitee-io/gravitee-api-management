@@ -206,6 +206,7 @@ public class TestHelper {
         Map<String, CertGen> certificates
     ) {
         record KeyPairLocation(Path certPath, Path keyPath) {}
+
         record CertGen(Path certPath, String cert) {}
     }
 }

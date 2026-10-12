@@ -119,7 +119,7 @@ final class LogBuilder {
         log.setGateway(source.get(FIELD_GATEWAY).asText());
 
         final JsonNode timestampNode = source.get(FIELD_TIMESTAMP);
-        final String rawTimestamp = (timestampNode == null) ? null : timestampNode.asText();
+        final String rawTimestamp = timestampNode == null ? null : timestampNode.asText();
 
         if (rawTimestamp == null || rawTimestamp.isBlank()) {
             LogBuilder.log.warn("Skipping log doc id={}: missing or blank @timestamp", hit.getId());

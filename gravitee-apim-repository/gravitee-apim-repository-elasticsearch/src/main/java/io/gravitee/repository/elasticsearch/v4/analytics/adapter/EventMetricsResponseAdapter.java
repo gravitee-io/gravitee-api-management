@@ -86,7 +86,7 @@ public class EventMetricsResponseAdapter {
 
         var metricAgg = agg.getAggregations().get(TOTAL_PREFIX + metricKey);
 
-        resultMetric.add((metricAgg == null || metricAgg.getValue() == null) ? null : metricAgg.getValue().doubleValue());
+        resultMetric.add(metricAgg == null || metricAgg.getValue() == null ? null : metricAgg.getValue().doubleValue());
     }
 
     private static void parseTopHitValues(String key, Aggregation agg, Map<String, List<Double>> result) {
@@ -110,7 +110,7 @@ public class EventMetricsResponseAdapter {
         }
         var metricHit = hit.getSource().get(metricKey);
 
-        resultMetric.add((metricHit == null) ? null : metricHit.doubleValue());
+        resultMetric.add(metricHit == null ? null : metricHit.doubleValue());
     }
 
     private static void parseTrendQueryResponse(Aggregation aggregation, Map<String, List<Double>> result) {
@@ -119,21 +119,19 @@ public class EventMetricsResponseAdapter {
 
         for (JsonNode bucket : buckets) {
             var docCount = bucket.get(DOC_COUNT).asLong();
-            bucket
-                .fieldNames()
-                .forEachRemaining(fieldName -> {
-                    if (!fieldName.startsWith(TOTAL_PREFIX)) return;
+            bucket.fieldNames().forEachRemaining(fieldName -> {
+                if (!fieldName.startsWith(TOTAL_PREFIX)) return;
 
-                    String metricKey = fieldName.substring(TOTAL_PREFIX.length());
-                    var value = parseValueNode(bucket.get(fieldName));
-                    var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
+                String metricKey = fieldName.substring(TOTAL_PREFIX.length());
+                var value = parseValueNode(bucket.get(fieldName));
+                var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
 
-                    if (docCount == 0L || value == null) {
-                        resultMetric.add(null);
-                    } else {
-                        resultMetric.add(value);
-                    }
-                });
+                if (docCount == 0L || value == null) {
+                    resultMetric.add(null);
+                } else {
+                    resultMetric.add(value);
+                }
+            });
         }
     }
 
@@ -147,23 +145,21 @@ public class EventMetricsResponseAdapter {
 
         for (JsonNode bucket : buckets) {
             var docCount = bucket.get(DOC_COUNT).asLong();
-            bucket
-                .fieldNames()
-                .forEachRemaining(fieldName -> {
-                    if (!fieldName.startsWith(TOTAL_PREFIX)) return;
+            bucket.fieldNames().forEachRemaining(fieldName -> {
+                if (!fieldName.startsWith(TOTAL_PREFIX)) return;
 
-                    String metricKey = fieldName.substring(TOTAL_PREFIX.length());
-                    var value = parseValueNode(bucket.get(fieldName));
-                    var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
+                String metricKey = fieldName.substring(TOTAL_PREFIX.length());
+                var value = parseValueNode(bucket.get(fieldName));
+                var resultMetric = result.computeIfAbsent(metricKey, k -> new ArrayList<>());
 
-                    if (docCount == 0L || value == null) {
-                        resultMetric.add(null);
-                    } else {
-                        double factor = 1000d;
-                        double perSecond = (value * 1000d) / trendIntervalMs;
-                        resultMetric.add(Math.round((perSecond) * factor) / factor);
-                    }
-                });
+                if (docCount == 0L || value == null) {
+                    resultMetric.add(null);
+                } else {
+                    double factor = 1000d;
+                    double perSecond = (value * 1000d) / trendIntervalMs;
+                    resultMetric.add(Math.round(perSecond * factor) / factor);
+                }
+            });
         }
     }
 
@@ -174,7 +170,7 @@ public class EventMetricsResponseAdapter {
 
         JsonNode valueNode = node.get("value");
 
-        return (valueNode == null || !valueNode.isNumber()) ? null : valueNode.asDouble();
+        return valueNode == null || !valueNode.isNumber() ? null : valueNode.asDouble();
     }
 
     private static AggregationType getAggregationType(HistogramQuery query) {
@@ -189,6 +185,6 @@ public class EventMetricsResponseAdapter {
             .distinct()
             .toList();
 
-        return (types.size() == 1) ? types.getFirst() : null;
+        return types.size() == 1 ? types.getFirst() : null;
     }
 }

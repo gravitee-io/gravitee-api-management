@@ -154,7 +154,9 @@ class UpdatePortalPageContentUseCaseTest {
     @Test
     void should_reject_update_when_content_exceeds_the_max_size() {
         // Given
-        final var updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        final var updateContent = UpdatePortalPageContent.builder()
+            .content("a".repeat(10 * 1024 * 1024 + 1))
+            .build();
         final var input = UpdatePortalPageContentUseCase.Input.builder()
             .organizationId(ORGANIZATION_ID)
             .environmentId(ENVIRONMENT_ID)

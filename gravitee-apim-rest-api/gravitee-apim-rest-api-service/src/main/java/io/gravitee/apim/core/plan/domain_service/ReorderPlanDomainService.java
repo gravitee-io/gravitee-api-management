@@ -56,7 +56,7 @@ public class ReorderPlanDomainService {
         }
 
         for (int i = 0; i < toReorder.size(); i++) {
-            int newOrder = (i + 1) < toUpdate.getOrder() ? (i + 1) : (i + 2);
+            int newOrder = i + 1 < toUpdate.getOrder() ? i + 1 : i + 2;
             var planToReorder = toReorder.get(i);
             if (planToReorder.getOrder() != newOrder) {
                 planCrudService.update(planToReorder.toBuilder().order(newOrder).build());

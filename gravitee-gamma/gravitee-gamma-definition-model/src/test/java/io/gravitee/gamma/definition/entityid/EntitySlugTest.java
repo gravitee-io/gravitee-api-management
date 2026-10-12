@@ -49,7 +49,9 @@ class EntitySlugTest {
     void toSlug_output_is_always_a_valid_entity_id_segment(String name) {
         String slug = EntitySlug.toSlug(name);
         if (slug != null) {
-            assertThat(EntityId.isValid("model." + slug)).as("toSlug(\"%s\") = \"%s\" must be a valid entityId slug", name, slug).isTrue();
+            assertThat(EntityId.isValid("model." + slug))
+                .as("toSlug(\"%s\") = \"%s\" must be a valid entityId slug", name, slug)
+                .isTrue();
         }
     }
 

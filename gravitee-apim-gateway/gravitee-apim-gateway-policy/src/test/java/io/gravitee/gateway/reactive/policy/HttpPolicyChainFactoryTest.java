@@ -221,7 +221,9 @@ class HttpPolicyChainFactoryTest {
         when(step2.isEnabled()).thenReturn(true);
         when(flow.getPre()).thenReturn(List.of(step1, step2));
 
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(null).thenReturn(policy);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+            .thenReturn(null)
+            .thenReturn(policy);
 
         when(step1.getPolicy()).thenReturn("policy-step1");
         when(step1.getConfiguration()).thenReturn("config-step1");
@@ -268,7 +270,9 @@ class HttpPolicyChainFactoryTest {
         when(step2.getConfiguration()).thenReturn("config-step2");
         when(step2.getCondition()).thenReturn("condition-step2");
         when(flow.getPre()).thenReturn(List.of(step1, step2));
-        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class))).thenReturn(policy1).thenReturn(policy2);
+        when(policyManager.create(eq(ExecutionPhase.REQUEST), any(PolicyMetadata.class)))
+            .thenReturn(policy1)
+            .thenReturn(policy2);
 
         final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
 

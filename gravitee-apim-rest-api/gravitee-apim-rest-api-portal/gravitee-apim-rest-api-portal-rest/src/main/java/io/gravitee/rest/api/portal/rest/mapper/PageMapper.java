@@ -93,13 +93,19 @@ public class PageMapper {
     }
 
     private List<PageMedia> getPageMediaList(String apiId, PageEntity page, String mediaUrl) {
-        List<MediaEntity> allWithoutContent = apiId == null
-            ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())
-            : mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId);
+        List<MediaEntity> allWithoutContent =
+            apiId == null
+                ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())
+                : mediaService.findAllWithoutContent(page.getAttachedMedia(), apiId);
 
         return allWithoutContent
             .stream()
-            .map(media -> new PageMedia().name(media.getFileName()).link(mediaUrl + "/" + media.getHash()).type(media.getType()))
+            .map(media ->
+                new PageMedia()
+                    .name(media.getFileName())
+                    .link(mediaUrl + "/" + media.getHash())
+                    .type(media.getType())
+            )
             .toList();
     }
 

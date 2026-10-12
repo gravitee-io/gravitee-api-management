@@ -149,7 +149,10 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
         try {
             log.debug("Find client certificates by application ID: {}", applicationId);
 
-            var repoPageable = new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+            var repoPageable = new PageableBuilder()
+                .pageNumber(pageable.getPageNumber() - 1)
+                .pageSize(pageable.getPageSize())
+                .build();
 
             var page = clientCertificateRepository.findByApplicationId(applicationId, repoPageable);
 

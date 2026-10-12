@@ -32,14 +32,12 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @EqualsAndHashCode
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = HttpSelector.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = ChannelSelector.class, name = CHANNEL_LABEL),
-        @JsonSubTypes.Type(value = ConditionSelector.class, name = CONDITION_LABEL),
-        @JsonSubTypes.Type(value = McpSelector.class, name = MCP_LABEL),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = HttpSelector.class, name = HTTP_LABEL),
+    @JsonSubTypes.Type(value = ChannelSelector.class, name = CHANNEL_LABEL),
+    @JsonSubTypes.Type(value = ConditionSelector.class, name = CONDITION_LABEL),
+    @JsonSubTypes.Type(value = McpSelector.class, name = MCP_LABEL),
+})
 @SuperBuilder(toBuilder = true)
 public abstract class Selector extends AbstractSelector {
 

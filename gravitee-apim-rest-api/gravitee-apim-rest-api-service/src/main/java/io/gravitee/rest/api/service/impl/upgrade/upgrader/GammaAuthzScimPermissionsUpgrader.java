@@ -62,14 +62,12 @@ public class GammaAuthzScimPermissionsUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    roleService
-                        .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), executionContext.getOrganizationId())
-                        .ifPresent(role -> addScimPermissionsIfMissing(executionContext, role));
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                roleService
+                    .findByScopeAndName(ENVIRONMENT, ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN.getName(), executionContext.getOrganizationId())
+                    .ifPresent(role -> addScimPermissionsIfMissing(executionContext, role));
+            });
             return true;
         });
     }

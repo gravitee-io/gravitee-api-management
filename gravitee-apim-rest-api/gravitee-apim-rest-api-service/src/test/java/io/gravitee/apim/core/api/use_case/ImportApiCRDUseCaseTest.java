@@ -658,16 +658,14 @@ class ImportApiCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expected);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -682,16 +680,14 @@ class ImportApiCRDUseCaseTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiCrudService.storage()).contains(expected);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(ACTOR_USER_ID, "devops@gravitee.io", "devops@gravitee.io", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", "devops@gravitee.io")),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -877,7 +873,14 @@ class ImportApiCRDUseCaseTest {
 
             var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
 
-            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().members(new LinkedHashSet<>(Set.of(member))).build()));
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .members(new LinkedHashSet<>(Set.of(member)))
+                        .build()
+                )
+            );
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
         }
@@ -899,7 +902,12 @@ class ImportApiCRDUseCaseTest {
             var member = MemberCRD.builder().source(USER_ENTITY_SOURCE).sourceId(USER_ENTITY_SOURCE_ID).role("USER").build();
 
             useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aNativeApiCRD().members(new LinkedHashSet<>(Set.of(member))).build())
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aNativeApiCRD()
+                        .members(new LinkedHashSet<>(Set.of(member)))
+                        .build()
+                )
             );
 
             assertThat(crdMembersDomainService.getApiMembers(API_ID)).contains(member.toBuilder().id(USER_ID).build());
@@ -1327,7 +1335,9 @@ class ImportApiCRDUseCaseTest {
                 useCase.execute(
                     new ImportApiCRDUseCase.Input(
                         AUDIT_INFO,
-                        aCRD().properties(List.of(EncryptableProperty.builder().key("prop-key").value("ciphertext").build())).build()
+                        aCRD()
+                            .properties(List.of(EncryptableProperty.builder().key("prop-key").value("ciphertext").build()))
+                            .build()
                     )
                 )
             );
@@ -1713,7 +1723,12 @@ class ImportApiCRDUseCaseTest {
             givenExistingPlans(List.of(KEYLESS, API_KEY));
 
             useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS)))
+                        .build()
+                )
             );
 
             assertThat(planCrudService.storage()).hasSize(1).extracting(Plan::getId).containsExactly("keyless");
@@ -1730,7 +1745,9 @@ class ImportApiCRDUseCaseTest {
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aNativeApiCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS))).build()
+                    aNativeApiCRD()
+                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(NATIVE_KEYLESS)))
+                        .build()
                 )
             );
 
@@ -1773,7 +1790,12 @@ class ImportApiCRDUseCaseTest {
 
             // When
             useCase.execute(
-                new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS))).build())
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS)))
+                        .build()
+                )
             );
 
             // Then
@@ -1795,7 +1817,9 @@ class ImportApiCRDUseCaseTest {
             useCase.execute(
                 new ImportApiCRDUseCase.Input(
                     AUDIT_INFO,
-                    aCRD().plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS.toBuilder().order(2).build()))).build()
+                    aCRD()
+                        .plans(Map.of("keyless-key", PlanAdapter.INSTANCE.toCRD(KEYLESS.toBuilder().order(2).build())))
+                        .build()
                 )
             );
 

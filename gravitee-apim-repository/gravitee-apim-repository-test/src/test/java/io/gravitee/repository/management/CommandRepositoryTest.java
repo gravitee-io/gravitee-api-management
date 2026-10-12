@@ -122,7 +122,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByNotFrom() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notFrom("node1").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().notFrom("node1").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -135,7 +135,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByTo() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).to("node1").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().to("node1").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -145,7 +145,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByTag() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("INSERT").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().tags("INSERT").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -159,7 +159,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByTags() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("DATA_TO_INDEX", "DELETE").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().tags("DATA_TO_INDEX", "DELETE").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -175,7 +175,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByNotAck() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notAckBy("node3").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().notAckBy("node3").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -187,7 +187,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByNotDeleted() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notDeleted().build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().notDeleted().build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -197,7 +197,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByEnvironment() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).environmentId("DEFAULT").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().environmentId("DEFAULT").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -207,7 +207,7 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldSearchByOrganization() {
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).organizationId("DEFAULT").build());
+        List<Command> commands = commandRepository.search(new CommandCriteria.Builder().organizationId("DEFAULT").build());
 
         assertNotNull(commands, "not null");
         assertFalse(commands.isEmpty(), "not empty");
@@ -217,9 +217,9 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_environment_id() throws TechnicalException {
-        int nbBeforeDeletion = commandRepository.search((new CommandCriteria.Builder()).environmentId("ToBeDeleted").build()).size();
+        int nbBeforeDeletion = commandRepository.search(new CommandCriteria.Builder().environmentId("ToBeDeleted").build()).size();
         List<String> deleted = commandRepository.deleteByEnvironmentId("ToBeDeleted");
-        int nbAfterDeletion = commandRepository.search((new CommandCriteria.Builder()).environmentId("ToBeDeleted").build()).size();
+        int nbAfterDeletion = commandRepository.search(new CommandCriteria.Builder().environmentId("ToBeDeleted").build()).size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted.size());
@@ -228,9 +228,9 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_delete_by_organization_id() throws TechnicalException {
-        int nbBeforeDeletion = commandRepository.search((new CommandCriteria.Builder()).organizationId("ToBeDeleted").build()).size();
+        int nbBeforeDeletion = commandRepository.search(new CommandCriteria.Builder().organizationId("ToBeDeleted").build()).size();
         List<String> deleted = commandRepository.deleteByOrganizationId("ToBeDeleted");
-        int nbAfterDeletion = commandRepository.search((new CommandCriteria.Builder()).organizationId("ToBeDeleted").build()).size();
+        int nbAfterDeletion = commandRepository.search(new CommandCriteria.Builder().organizationId("ToBeDeleted").build()).size();
 
         assertEquals(2, nbBeforeDeletion);
         assertEquals(2, deleted.size());

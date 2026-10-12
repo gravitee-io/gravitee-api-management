@@ -37,15 +37,13 @@ public class HealthCheckSerializer<T extends HealthCheckService> extends Schedul
 
         if (service.getSteps() != null && !service.getSteps().isEmpty()) {
             jgen.writeArrayFieldStart("steps");
-            service
-                .getSteps()
-                .forEach(step -> {
-                    try {
-                        jgen.writeObject(step);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            service.getSteps().forEach(step -> {
+                try {
+                    jgen.writeObject(step);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jgen.writeEndArray();
         }
     }

@@ -129,9 +129,7 @@ public class DynamicPropertyScheduler {
         // Get latest changes
         ApiEntity latestApi = apiService.findById(executionContext, api.getId());
 
-        List<Property> properties = (latestApi.getProperties() != null)
-            ? latestApi.getProperties().getProperties()
-            : Collections.emptyList();
+        List<Property> properties = latestApi.getProperties() != null ? latestApi.getProperties().getProperties() : Collections.emptyList();
         List<Property> userDefinedProperties = properties
             .stream()
             .filter(property -> !property.isDynamic())

@@ -70,24 +70,22 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        AggregatedMessageLog.builder()
-                            .apiId(API_ID)
-                            .requestId(REQUEST_ID)
-                            .apiId(API_ID)
-                            .clientIdentifier(expectedMessageLog.getClientIdentifier())
-                            .correlationId(expectedMessageLog.getCorrelationId())
-                            .parentCorrelationId(expectedMessageLog.getParentCorrelationId())
-                            .timestamp(expectedMessageLog.getTimestamp())
-                            .operation(expectedMessageLog.getOperation())
-                            .entrypoint(expectedMessageLog.getEntrypoint())
-                            .endpoint(expectedMessageLog.getEndpoint())
-                            .build()
-                    )
-                );
+            soft.assertThat(result.data()).isEqualTo(
+                List.of(
+                    AggregatedMessageLog.builder()
+                        .apiId(API_ID)
+                        .requestId(REQUEST_ID)
+                        .apiId(API_ID)
+                        .clientIdentifier(expectedMessageLog.getClientIdentifier())
+                        .correlationId(expectedMessageLog.getCorrelationId())
+                        .parentCorrelationId(expectedMessageLog.getParentCorrelationId())
+                        .timestamp(expectedMessageLog.getTimestamp())
+                        .operation(expectedMessageLog.getOperation())
+                        .entrypoint(expectedMessageLog.getEntrypoint())
+                        .endpoint(expectedMessageLog.getEndpoint())
+                        .build()
+                )
+            );
         });
     }
 
@@ -108,8 +106,7 @@ class SearchApiAggregatedMessageLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(AggregatedMessageLog::getCorrelationId, AggregatedMessageLog::getTimestamp)
                 .containsExactly(
                     tuple("correlation-3", "2020-02-04T20:00:00.00Z"),

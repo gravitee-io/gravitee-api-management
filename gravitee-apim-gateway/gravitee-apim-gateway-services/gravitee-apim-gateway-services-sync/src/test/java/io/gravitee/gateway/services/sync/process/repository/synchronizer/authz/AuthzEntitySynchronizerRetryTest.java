@@ -156,7 +156,11 @@ class AuthzEntitySynchronizerRetryTest {
 
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzEntitySynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                .synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
         }
 
         when(deployer.deploy(any())).thenReturn(Completable.complete());

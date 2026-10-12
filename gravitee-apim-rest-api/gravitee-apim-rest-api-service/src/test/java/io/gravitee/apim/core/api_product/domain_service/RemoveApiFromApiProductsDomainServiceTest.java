@@ -107,8 +107,16 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
         void setUp() {
             apiProductCrudService.initWith(
                 List.of(
-                    ApiProduct.builder().id(PRODUCT_1).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID, "other-api"))).build(),
-                    ApiProduct.builder().id(PRODUCT_2).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID))).build()
+                    ApiProduct.builder()
+                        .id(PRODUCT_1)
+                        .environmentId(ENV_ID)
+                        .apiIds(new HashSet<>(Set.of(API_ID, "other-api")))
+                        .build(),
+                    ApiProduct.builder()
+                        .id(PRODUCT_2)
+                        .environmentId(ENV_ID)
+                        .apiIds(new HashSet<>(Set.of(API_ID)))
+                        .build()
                 )
             );
             apiProductQueryService.initWith(apiProductCrudService.storage());
@@ -182,14 +190,12 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
                 ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
                 verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
 
-                payloadCaptor
-                    .getAllValues()
-                    .forEach(payload -> {
-                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
-                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
-                        assertThat(deployPayload.getPlans()).isNotNull().isNotEmpty();
-                        assertThat(deployPayload.getApiIds()).doesNotContain(API_ID);
-                    });
+                payloadCaptor.getAllValues().forEach(payload -> {
+                    assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                    ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                    assertThat(deployPayload.getPlans()).isNotNull().isNotEmpty();
+                    assertThat(deployPayload.getApiIds()).doesNotContain(API_ID);
+                });
             }
 
             @Test
@@ -211,13 +217,11 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
                 ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
                 verify(eventCrudService, times(2)).createEvent(any(), any(), any(), any(), payloadCaptor.capture(), any());
 
-                payloadCaptor
-                    .getAllValues()
-                    .forEach(payload -> {
-                        assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
-                        ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
-                        assertThat(deployPayload.getPlans()).isNotNull().isEmpty();
-                    });
+                payloadCaptor.getAllValues().forEach(payload -> {
+                    assertThat(payload).isInstanceOf(ApiProductDeploymentPayload.class);
+                    ApiProductDeploymentPayload deployPayload = (ApiProductDeploymentPayload) payload;
+                    assertThat(deployPayload.getPlans()).isNotNull().isEmpty();
+                });
             }
 
             @Test
@@ -248,7 +252,11 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
             void setUp() {
                 apiProductCrudService.initWith(
                     List.of(
-                        ApiProduct.builder().id(PRODUCT_1).environmentId(ENV_ID).apiIds(new HashSet<>(Set.of(API_ID, "other-api"))).build(),
+                        ApiProduct.builder()
+                            .id(PRODUCT_1)
+                            .environmentId(ENV_ID)
+                            .apiIds(new HashSet<>(Set.of(API_ID, "other-api")))
+                            .build(),
                         ApiProduct.builder()
                             .id(PRODUCT_2)
                             .environmentId(ENV_ID)

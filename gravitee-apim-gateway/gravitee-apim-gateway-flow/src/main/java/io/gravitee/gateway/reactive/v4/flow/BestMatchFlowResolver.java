@@ -47,9 +47,11 @@ public class BestMatchFlowResolver implements FlowResolver<HttpBaseExecutionCont
         return provideFlows(ctx)
             .toList()
             .flatMapMaybe(flows -> {
-                ctx
-                    .withLogger(log)
-                    .debug("Resolving best match flow for path [{}] among {} candidate flow(s)", ctx.request().pathInfo(), flows.size());
+                ctx.withLogger(log).debug(
+                    "Resolving best match flow for path [{}] among {} candidate flow(s)",
+                    ctx.request().pathInfo(),
+                    flows.size()
+                );
                 return Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flows, ctx.request().pathInfo()));
             })
             .doOnSuccess(flow -> ctx.withLogger(log).debug("Best match flow resolved: [{}]", flow.getName()))

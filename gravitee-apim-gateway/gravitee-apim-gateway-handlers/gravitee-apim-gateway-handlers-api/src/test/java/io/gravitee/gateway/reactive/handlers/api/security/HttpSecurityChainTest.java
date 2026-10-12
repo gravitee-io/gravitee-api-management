@@ -73,7 +73,9 @@ class HttpSecurityChainTest {
     @BeforeEach
     void setUp() {
         lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
-        lenient().when(configuration.getProperty("api.security.verbose401", Boolean.class, false)).thenReturn(false);
+        lenient()
+            .when(configuration.getProperty("api.security.verbose401", Boolean.class, false))
+            .thenReturn(false);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(configuration);
     }
 

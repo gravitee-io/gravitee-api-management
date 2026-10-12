@@ -64,24 +64,20 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             log.info("Starting migration of application client certificates to ClientCertificate entity");
 
             ApplicationCriteria criteria = ApplicationCriteria.builder().build();
-            PageUtils.forEachPage(
-                pageable -> applicationRepository.search(criteria, pageable),
-                PAGE_SIZE,
-                page -> {
-                    for (Application application : page
-                        .getContent()
-                        .stream()
-                        .filter(
-                            app ->
-                                app.getMetadata() != null &&
-                                app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
-                                !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
-                        )
-                        .toList()) {
-                        migrateApplicationCertificate(application);
-                    }
+            PageUtils.forEachPage(pageable -> applicationRepository.search(criteria, pageable), PAGE_SIZE, page -> {
+                for (Application application : page
+                    .getContent()
+                    .stream()
+                    .filter(
+                        app ->
+                            app.getMetadata() != null &&
+                            app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
+                            !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
+                    )
+                    .toList()) {
+                    migrateApplicationCertificate(application);
                 }
-            );
+            });
 
             log.info("Completed migration of application client certificates");
             return true;

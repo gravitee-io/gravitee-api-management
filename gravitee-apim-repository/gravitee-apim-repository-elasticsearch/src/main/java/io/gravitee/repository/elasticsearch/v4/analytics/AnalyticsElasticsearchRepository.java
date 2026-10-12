@@ -154,7 +154,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4, indexV2);
 
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+        return this.client
+            .getFieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(index, null, SearchRequestsCountQueryAdapter.adapt(query, isEntrypointIdKeyword))
@@ -166,7 +167,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<AverageAggregate> searchAverageMessagesPerRequest(QueryContext queryContext, AverageMessagesPerRequestQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
-        return this.client.search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
+        return this.client
+            .search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
             .map(SearchAverageMessagesPerRequestResponseAdapter::adapt)
             .blockingGet();
     }
@@ -174,7 +176,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<AverageAggregate> searchAverageConnectionDuration(QueryContext queryContext, AverageConnectionDurationQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
-        return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
+        return this.client
+            .getFieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
             .flatMap(isEntrypointIdKeyword ->
                 this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query, isEntrypointIdKeyword))
@@ -323,7 +326,8 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
         var index = String.join(",", indexV4Metrics, indexV2Request);
 
-        return this.client.search(index, null, FindApiMetricsDetailQueryAdapter.adapt(query))
+        return this.client
+            .search(index, null, FindApiMetricsDetailQueryAdapter.adapt(query))
             .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
             .blockingGet();
     }

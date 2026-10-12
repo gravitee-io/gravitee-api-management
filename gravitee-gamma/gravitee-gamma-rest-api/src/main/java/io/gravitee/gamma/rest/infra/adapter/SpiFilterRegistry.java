@@ -136,17 +136,15 @@ public class SpiFilterRegistry implements FilterRegistry {
         Map<ExtensibleFilters, LinkedHashMap<String, FilterSpec.EnumValue>> extensibleValues,
         FilterContributor contributor
     ) {
-        contributor
-            .enumValues()
-            .forEach((extensible, values) -> {
-                if (values == null) {
-                    return;
-                }
-                LinkedHashMap<String, FilterSpec.EnumValue> target = extensibleValues.get(extensible);
-                for (FilterSpec.EnumValue value : values) {
-                    target.putIfAbsent(value.value(), value); // union, first label wins
-                }
-            });
+        contributor.enumValues().forEach((extensible, values) -> {
+            if (values == null) {
+                return;
+            }
+            LinkedHashMap<String, FilterSpec.EnumValue> target = extensibleValues.get(extensible);
+            for (FilterSpec.EnumValue value : values) {
+                target.putIfAbsent(value.value(), value); // union, first label wins
+            }
+        });
     }
 
     @Override

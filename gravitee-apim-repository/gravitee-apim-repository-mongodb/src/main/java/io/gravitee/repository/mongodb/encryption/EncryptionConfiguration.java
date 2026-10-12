@@ -93,7 +93,7 @@ public class EncryptionConfiguration {
 
         while (found) {
             String type = environment.getProperty(KEY_MANAGEMENT_SYSTEM_PROPERTY + "[" + idx + "].type");
-            found = (type != null);
+            found = type != null;
             if (found) {
                 switch (type) {
                     case KEY_MANAGEMENT_SYSTEM_LOCAL_TYPE:

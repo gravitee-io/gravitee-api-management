@@ -282,9 +282,9 @@ public class ApiCategoryServiceImpl implements ApiCategoryService {
 
     @Override
     public void deleteApiFromCategories(String apiId) {
-        this.apiCategoryOrderRepository.findAllByApiId(apiId).forEach(apiCategoryOrder ->
-            removeApiFromCategory(apiId, apiCategoryOrder.getCategoryId())
-        );
+        this.apiCategoryOrderRepository
+            .findAllByApiId(apiId)
+            .forEach(apiCategoryOrder -> removeApiFromCategory(apiId, apiCategoryOrder.getCategoryId()));
     }
 
     private List<String> getUserMembershipApiIds(String userId) {

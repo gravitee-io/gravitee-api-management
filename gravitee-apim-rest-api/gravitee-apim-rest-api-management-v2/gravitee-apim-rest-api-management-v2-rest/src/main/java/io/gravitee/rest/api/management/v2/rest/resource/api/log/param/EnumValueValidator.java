@@ -56,7 +56,12 @@ public class EnumValueValidator implements ConstraintValidator<EnumValue, String
                 .buildConstraintViolationWithTemplate(
                     "Invalid value '%s'. Allowed values [%s] (%s)".formatted(
                         value,
-                        String.join(", ", java.util.Arrays.stream(enumConstants).map(Enum::name).toArray(String[]::new)),
+                        String.join(
+                            ", ",
+                            java.util.Arrays.stream(enumConstants)
+                                .map(Enum::name)
+                                .toArray(String[]::new)
+                        ),
                         preserveCase ? "case sensitive" : "case insensitive"
                     )
                 )

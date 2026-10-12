@@ -88,9 +88,10 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var path = isEdgeRequest(request) ? AnalyticsSearchPath.EDGE : AnalyticsSearchPath.HTTP;
-        var result = path == AnalyticsSearchPath.EDGE
-            ? analyticsRepository.searchEdgeFacets(context.getQueryContext(), query)
-            : analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
+        var result =
+            path == AnalyticsSearchPath.EDGE
+                ? analyticsRepository.searchEdgeFacets(context.getQueryContext(), query)
+                : analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
         return IgnoredFilters.mark(
             AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
             IgnoredFilters.of(analyticsRepository, path, query)

@@ -249,7 +249,9 @@ class GroupResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_a_404_status_code_with_unknown_hrid() {
-            doThrow(new GroupNotFoundException("unknown")).when(groupService).delete(any(), eq(groupIdFromHrid("unknown")));
+            doThrow(new GroupNotFoundException("unknown"))
+                .when(groupService)
+                .delete(any(), eq(groupIdFromHrid("unknown")));
 
             try (var response = rootTarget().path("unknown").request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);

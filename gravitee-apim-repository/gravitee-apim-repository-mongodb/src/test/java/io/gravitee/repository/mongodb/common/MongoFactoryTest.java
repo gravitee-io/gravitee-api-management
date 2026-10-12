@@ -50,19 +50,17 @@ public class MongoFactoryTest {
      * "repositories." + key first.
      */
     private void registerAliasPropertySource() {
-        environment
-            .getPropertySources()
-            .addFirst(
-                new PropertySource<Object>("repositoryAlias") {
-                    @Override
-                    public Object getProperty(String name) {
-                        if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
-                            return environment.getProperty("repositories." + name);
-                        }
-                        return null;
+        environment.getPropertySources().addFirst(
+            new PropertySource<Object>("repositoryAlias") {
+                @Override
+                public Object getProperty(String name) {
+                    if (name.startsWith("management.") || name.startsWith("analytics.") || name.startsWith("ratelimit.")) {
+                        return environment.getProperty("repositories." + name);
                     }
+                    return null;
                 }
-            );
+            }
+        );
     }
 
     @Test

@@ -93,7 +93,9 @@ public class CustomUserFieldsResource extends AbstractResource {
     public Response createCustomUserField(@Valid CustomUserFieldEntity newCustomUserFieldEntity) {
         CustomUserFieldEntity newField = fieldService.create(GraviteeContext.getExecutionContext(), newCustomUserFieldEntity);
         if (newField != null) {
-            return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey())).entity(newField).build();
+            return Response.created(URI.create(uriInfo.getPath() + "/" + newField.getKey()))
+                .entity(newField)
+                .build();
         }
 
         return Response.serverError().build();

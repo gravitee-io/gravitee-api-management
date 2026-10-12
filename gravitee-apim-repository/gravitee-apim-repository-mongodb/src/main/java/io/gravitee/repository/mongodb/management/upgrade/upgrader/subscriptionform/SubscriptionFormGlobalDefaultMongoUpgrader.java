@@ -43,8 +43,7 @@ public class SubscriptionFormGlobalDefaultMongoUpgrader extends MongoUpgrader {
         Math.max(
             SubscriptionFormCatalogMongoUpgrader.SUBSCRIPTION_FORM_CATALOG_MONGO_UPGRADER_ORDER,
             SubscriptionFormInlineContentMongoUpgrader.SUBSCRIPTION_FORM_INLINE_CONTENT_MONGO_UPGRADER_ORDER
-        ) +
-        1;
+        ) + 1;
 
     static final String GLOBAL_DEFAULT_FORM_NAME = "Global Default Form";
 

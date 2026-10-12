@@ -268,8 +268,7 @@ class ImportApplicationCRDUseCaseTest {
             var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(importApplicationCRDDomainService.storage())
+                soft.assertThat(importApplicationCRDDomainService.storage())
                     .extracting(BaseApplicationEntity::getGroups)
                     .containsExactly(Set.of("console-group"));
                 soft.assertThat(result.status().getErrors().warning()).isEmpty();
@@ -287,13 +286,12 @@ class ImportApplicationCRDUseCaseTest {
             var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(importApplicationCRDDomainService.storage())
+                soft.assertThat(importApplicationCRDDomainService.storage())
                     .extracting(BaseApplicationEntity::getGroups)
                     .containsExactly(Set.of());
-                soft
-                    .assertThat(result.status().getErrors().warning())
-                    .containsExactly("Group [spec-group] could not be found in environment [" + ENVIRONMENT_ID + "]");
+                soft.assertThat(result.status().getErrors().warning()).containsExactly(
+                    "Group [spec-group] could not be found in environment [" + ENVIRONMENT_ID + "]"
+                );
             });
         }
 

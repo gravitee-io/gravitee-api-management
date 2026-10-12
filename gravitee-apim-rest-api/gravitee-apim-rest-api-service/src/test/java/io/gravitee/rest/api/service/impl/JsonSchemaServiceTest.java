@@ -55,17 +55,17 @@ public class JsonSchemaServiceTest {
     public void shouldAcceptValidJsonConfigurationWithDependencies() throws IOException {
         String schema = Files.readString(Path.of("src/test/resources/io/gravitee/rest/api/management/service/http-connector.json"));
         String configuration = """
-            {
-              "ssl": {
-                "trustStore": {
-                  "type": "PEM",
-                  "path": "..."
-                 }
-              },
-              "http": {
-                "readTimeout": 7777
-              }
-            }""";
+        {
+          "ssl": {
+            "trustStore": {
+              "type": "PEM",
+              "path": "..."
+             }
+          },
+          "http": {
+            "readTimeout": 7777
+          }
+        }""";
         String validate = jsonSchemaService.validate(schema, configuration);
         assertThatJson(validate).isEqualTo(
             """
@@ -76,29 +76,29 @@ public class JsonSchemaServiceTest {
     @Test
     public void shouldReconcileDefaultValuesWithGioExternalDefinitions() {
         String schema = """
-            {
+        {
+          "type": "object",
+          "gioExternalDefinitions": {
+            "def1": {
               "type": "object",
-              "gioExternalDefinitions": {
-                "def1": {
-                  "type": "object",
-                  "properties": {
-                    "field1": {
-                      "type": "string"
-                    },
-                    "field2": {
-                      "type": "string",
-                      "default": "default2"
-                    }
-                  },
-                  "required": ["field1", "field2"]
+              "properties": {
+                "field1": {
+                  "type": "string"
+                },
+                "field2": {
+                  "type": "string",
+                  "default": "default2"
                 }
               },
-              "properties": {
-                "obj": {
-                  "$ref": "#/gioExternalDefinitions/def1"
-                }
-              }
-            }""";
+              "required": ["field1", "field2"]
+            }
+          },
+          "properties": {
+            "obj": {
+              "$ref": "#/gioExternalDefinitions/def1"
+            }
+          }
+        }""";
         String configuration = "{\"obj\": {\"field1\": \"value1\"}}";
 
         String result = jsonSchemaService.validate(schema, configuration);

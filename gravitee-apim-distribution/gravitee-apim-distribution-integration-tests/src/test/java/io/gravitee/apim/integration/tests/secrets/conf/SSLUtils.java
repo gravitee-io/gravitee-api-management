@@ -152,7 +152,7 @@ public class SSLUtils {
             new X500Name(issuer),
             BigInteger.ONE,
             new Date(System.currentTimeMillis() - 1000L * 60 * 60 * 24 * 30),
-            new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30)),
+            new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 30),
             new X500Name(issuer),
             SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
         );

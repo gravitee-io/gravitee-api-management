@@ -91,7 +91,9 @@ public class EmailServiceTest {
 
         lenient().doNothing().when(mailSender).send(any(MimeMessage.class));
 
-        lenient().when(mailManager.getOrCreateMailSender(any(), any(), any())).thenReturn(mailSender);
+        lenient()
+            .when(mailManager.getOrCreateMailSender(any(), any(), any()))
+            .thenReturn(mailSender);
     }
 
     @Test
@@ -144,7 +146,12 @@ public class EmailServiceTest {
             )
         ).thenReturn(buildEmailTemplateWithImage("images/GRAVITEE_LOGO.png"));
 
-        service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().to((String[]) null).build());
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            anEmailNotification()
+                .to((String[]) null)
+                .build()
+        );
 
         ArgumentCaptor<MimeMessage> mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(mimeMessageCaptor.capture());

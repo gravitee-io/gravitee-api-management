@@ -66,7 +66,9 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         ArgumentCaptor<CustomUserFieldEntity> argument = ArgumentCaptor.forClass(CustomUserFieldEntity.class);
         when(customUserFieldService.update(any(), any())).thenReturn(field);
 
-        final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/" + field.getKey())
+            .request()
+            .put(Entity.json(field));
 
         assertEquals(OK_200, response.getStatus());
         verify(customUserFieldService, times(1)).update(any(), any());

@@ -105,15 +105,13 @@ public class SubscriptionCrudServiceImplTest {
                 soft.assertThat(result.getGeneralConditionsContentPageId()).isEqualTo("page-id");
                 soft.assertThat(result.getGeneralConditionsAccepted()).isTrue();
                 soft.assertThat(result.getDaysToExpirationOnLastNotification()).isEqualTo(310);
-                soft
-                    .assertThat(result.getConfiguration())
-                    .isEqualTo(
-                        SubscriptionConfiguration.builder()
-                            .entrypointId("entrypoint-id")
-                            .channel("my-channel")
-                            .entrypointConfiguration("\"{}\"")
-                            .build()
-                    );
+                soft.assertThat(result.getConfiguration()).isEqualTo(
+                    SubscriptionConfiguration.builder()
+                        .entrypointId("entrypoint-id")
+                        .channel("my-channel")
+                        .entrypointConfiguration("\"{}\"")
+                        .build()
+                );
                 soft.assertThat(result.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(result.getType()).isEqualTo(SubscriptionEntity.Type.STANDARD);
                 soft.assertThat(result.getFailureCause()).isEqualTo("failure-cause");

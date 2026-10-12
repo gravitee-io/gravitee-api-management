@@ -302,12 +302,13 @@ class ApiPortalSearchQueryServiceImplTest {
             ApiSearchCriteria criteria = invocation.getArgument(0);
             io.gravitee.rest.api.model.common.Pageable pageable = invocation.getArgument(2);
             List<String> ids = criteria.getIds();
-            List<Api> filtered = (ids == null || ids.isEmpty())
-                ? apis
-                : apis
-                    .stream()
-                    .filter(a -> ids.contains(a.getId()))
-                    .toList();
+            List<Api> filtered =
+                ids == null || ids.isEmpty()
+                    ? apis
+                    : apis
+                          .stream()
+                          .filter(a -> ids.contains(a.getId()))
+                          .toList();
 
             int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
             int pageSize = pageable != null ? pageable.getPageSize() : 10;

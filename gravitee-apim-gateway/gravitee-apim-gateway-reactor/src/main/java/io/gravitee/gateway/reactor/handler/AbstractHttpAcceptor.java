@@ -74,11 +74,13 @@ public abstract class AbstractHttpAcceptor implements HttpAcceptor {
         if (host != null && !host.isEmpty()) {
             priority =
                 HOST_MASK +
-                (int) this.path.chars()
+                (int) this.path
+                    .chars()
                     .filter(ch -> ch == URI_PATH_SEPARATOR_CHAR)
                     .count();
         } else {
-            priority = (int) this.path.chars()
+            priority = (int) this.path
+                .chars()
                 .filter(ch -> ch == URI_PATH_SEPARATOR_CHAR)
                 .count();
         }

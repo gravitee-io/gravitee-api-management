@@ -45,9 +45,8 @@ public class SubscriptionRejectedApplicationHookContext extends ApplicationHookC
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
-            ? HookContextEntry.API_PRODUCT_ID
-            : HookContextEntry.API_ID;
+        var referenceKey =
+            referenceType == SubscriptionReferenceType.API_PRODUCT ? HookContextEntry.API_PRODUCT_ID : HookContextEntry.API_ID;
         return Map.of(
             referenceKey,
             referenceId,

@@ -564,9 +564,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .satisfies(subscription ->
                     SoftAssertions.assertSoftly(soft -> {
                         soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
-                        soft
-                            .assertThat(subscription.getStatus())
-                            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus.REJECTED);
+                        soft.assertThat(subscription.getStatus()).isEqualTo(
+                            io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus.REJECTED
+                        );
                     })
                 );
 

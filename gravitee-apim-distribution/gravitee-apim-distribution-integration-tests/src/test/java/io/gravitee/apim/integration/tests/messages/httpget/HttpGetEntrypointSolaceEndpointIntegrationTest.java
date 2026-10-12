@@ -199,12 +199,10 @@ class HttpGetEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpo
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-solace-endpoint-at-most-once.json",
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient client) {
         client
             .rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())

@@ -586,9 +586,9 @@ class PromotionContextDomainServiceTest {
             .crossId("diverged-cross-id")
             .environmentId(TARGET_ENV_ID)
             .build();
-        ((io.gravitee.definition.model.Api) v2ApiOnThePath.getApiDefinitionValue()).getProxy().setVirtualHosts(
-            List.of(new io.gravitee.definition.model.VirtualHost(CONTEXT_PATH))
-        );
+        ((io.gravitee.definition.model.Api) v2ApiOnThePath.getApiDefinitionValue())
+            .getProxy()
+            .setVirtualHosts(List.of(new io.gravitee.definition.model.VirtualHost(CONTEXT_PATH)));
         apiQueryServiceInMemory.initWith(List.of(v2ApiOnThePath));
 
         Throwable throwable = catchThrowable(() -> service.getPromotionContext(promotion.getId(), true));

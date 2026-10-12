@@ -398,7 +398,7 @@ public class ValidatePageSourceDomainServiceImplTest {
                         warning("page [test-page] contains unknown configuration property [unknownPropertyKey] for [http-fetcher] source")
                     )
                 );
-            assertThat(result.value()).isNotEmpty().hasValue((new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource)));
+            assertThat(result.value()).isNotEmpty().hasValue(new ValidatePageSourceDomainService.Input(PAGE_NAME, expectedSource));
         }
     }
 }

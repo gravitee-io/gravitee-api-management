@@ -39,7 +39,10 @@ public abstract class PlanProcessorProvider extends AbstractPolicyChainProvider 
 
             context.request().metrics().setPlan(plan);
             context.request().metrics().setApplication(application);
-            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
+            context
+                .request()
+                .metrics()
+                .setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
             return provide0(context);
         } else {
@@ -50,7 +53,10 @@ public abstract class PlanProcessorProvider extends AbstractPolicyChainProvider 
 
             context.request().metrics().setApplication(APPLICATION_NAME_ANONYMOUS);
             context.request().metrics().setPlan(PLAN_NAME_ANONYMOUS);
-            context.request().metrics().setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
+            context
+                .request()
+                .metrics()
+                .setSubscription((String) context.getAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID));
 
             return new NoOpPolicyChain(context);
         }

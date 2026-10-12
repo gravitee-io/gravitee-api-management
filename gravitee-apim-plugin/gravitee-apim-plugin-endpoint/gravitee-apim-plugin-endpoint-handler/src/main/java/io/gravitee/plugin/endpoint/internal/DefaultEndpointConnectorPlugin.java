@@ -26,8 +26,10 @@ import java.nio.file.Path;
 /**
  * @author GraviteeSource Team
  */
-class DefaultEndpointConnectorPlugin<T extends BaseEndpointConnectorFactory<?>, U extends EndpointConnectorConfiguration>
-    implements EndpointConnectorPlugin<T, U> {
+class DefaultEndpointConnectorPlugin<
+    T extends BaseEndpointConnectorFactory<?>,
+    U extends EndpointConnectorConfiguration
+> implements EndpointConnectorPlugin<T, U> {
 
     private final Plugin plugin;
     private final Class<T> endpointConnectorClass;

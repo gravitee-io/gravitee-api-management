@@ -398,7 +398,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .auditInfo(getAuditInfo())
             .build();
 
-        return Response.ok().entity(subscriptionMapper.map(acceptSubscriptionUsecase.execute(input).subscription())).build();
+        return Response.ok()
+            .entity(subscriptionMapper.map(acceptSubscriptionUsecase.execute(input).subscription()))
+            .build();
     }
 
     @POST
@@ -417,7 +419,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .reasonMessage(rejectSubscription.getReason())
             .auditInfo(getAuditInfo())
             .build();
-        return Response.ok().entity(subscriptionMapper.map(rejectSubscriptionUseCase.execute(input).subscription())).build();
+        return Response.ok()
+            .entity(subscriptionMapper.map(rejectSubscriptionUseCase.execute(input).subscription()))
+            .build();
     }
 
     @POST
@@ -521,7 +525,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         if (expands.contains(EXPAND_PLAN)) {
             final Set<String> planIds = subscriptions
                 .stream()
-                .map(subscription -> (subscription.getPlan()).getId())
+                .map(subscription -> subscription.getPlan().getId())
                 .collect(Collectors.toSet());
             final Collection<BasePlan> plans = planMapper.mapToBasePlans(planSearchService.findByIdIn(executionContext, planIds));
             plans.forEach(plan ->
@@ -535,7 +539,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
         if (expands.contains(EXPAND_APPLICATION)) {
             final Set<String> applicationIds = subscriptions
                 .stream()
-                .map(subscription -> (subscription.getApplication()).getId())
+                .map(subscription -> subscription.getApplication().getId())
                 .collect(Collectors.toSet());
             final Collection<BaseApplication> applications = applicationMapper.mapToBaseApplicationList(
                 applicationService.findByIds(executionContext, applicationIds)
@@ -746,7 +750,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
     }
 
     private String getCustomApiKey(CreateSubscription createSubscription) {
-        return (createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty())
+        return createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty()
             ? createSubscription.getCustomApiKey()
             : null;
     }

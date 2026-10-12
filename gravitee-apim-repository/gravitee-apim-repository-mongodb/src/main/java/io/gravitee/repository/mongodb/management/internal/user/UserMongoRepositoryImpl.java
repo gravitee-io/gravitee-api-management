@@ -76,6 +76,6 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
 
         List<UserMongo> users = mongoTemplate.find(query, UserMongo.class);
 
-        return new Page<>(users, (pageable != null) ? pageable.pageNumber() : 0, users.size(), total);
+        return new Page<>(users, pageable != null ? pageable.pageNumber() : 0, users.size(), total);
     }
 }

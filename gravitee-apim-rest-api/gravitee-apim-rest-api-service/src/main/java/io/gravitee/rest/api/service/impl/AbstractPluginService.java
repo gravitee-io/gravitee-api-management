@@ -37,7 +37,8 @@ import org.slf4j.Logger;
  */
 public abstract class AbstractPluginService<T extends ConfigurablePlugin, E extends PlatformPluginEntity>
     extends TransactionalService
-    implements PluginService<E> {
+    implements PluginService<E>
+{
 
     protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());
 

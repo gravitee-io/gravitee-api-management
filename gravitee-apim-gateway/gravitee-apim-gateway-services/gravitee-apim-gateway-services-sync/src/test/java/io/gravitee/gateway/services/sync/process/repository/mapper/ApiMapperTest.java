@@ -114,8 +114,7 @@ class ApiMapperTest {
         repoApiV2.setDefinition(objectMapper.writeValueAsString(apiV2Def));
         String payload = objectMapper.writeValueAsString(repoApiV2);
         event.setPayload(payload);
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
@@ -130,8 +129,7 @@ class ApiMapperTest {
     void should_map_api_v2() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV2));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV2.getId());
@@ -145,8 +143,7 @@ class ApiMapperTest {
     void should_map_api_v4() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
@@ -168,8 +165,7 @@ class ApiMapperTest {
 
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(nativeApi.getId());
@@ -191,8 +187,7 @@ class ApiMapperTest {
 
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(edgeApi.getId());
@@ -212,8 +207,7 @@ class ApiMapperTest {
         when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
@@ -232,8 +226,7 @@ class ApiMapperTest {
         when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(repoApiV4));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(apiV4.getId());
@@ -280,8 +273,7 @@ class ApiMapperTest {
     void should_map_event_to_id() {
         Event event = new Event();
         event.setProperties(Map.of(API_ID.getValue(), "id"));
-        cut
-            .toId(event)
+        cut.toId(event)
             .test()
             .assertValue(id -> {
                 assertThat(id).isEqualTo("id");

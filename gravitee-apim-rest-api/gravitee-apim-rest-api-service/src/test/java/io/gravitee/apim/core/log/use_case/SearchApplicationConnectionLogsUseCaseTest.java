@@ -122,26 +122,24 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
-                .isEqualTo(
-                    List.of(
-                        ConnectionLog.builder()
-                            .requestId("req1")
-                            .apiId(API_ID)
-                            .api(API_1)
-                            .applicationId(APPLICATION_ID)
-                            .application(APPLICATION_1)
-                            .plan(PLAN_1)
-                            .timestamp("2020-02-01T20:00:00.00Z")
-                            .requestEnded(true)
-                            .method(HttpMethod.GET)
-                            .clientIdentifier("client-identifier")
-                            .transactionId("transaction-id")
-                            .status(200)
-                            .build()
-                    )
-                );
+            soft.assertThat(result.data()).isEqualTo(
+                List.of(
+                    ConnectionLog.builder()
+                        .requestId("req1")
+                        .apiId(API_ID)
+                        .api(API_1)
+                        .applicationId(APPLICATION_ID)
+                        .application(APPLICATION_1)
+                        .plan(PLAN_1)
+                        .timestamp("2020-02-01T20:00:00.00Z")
+                        .requestEnded(true)
+                        .method(HttpMethod.GET)
+                        .clientIdentifier("client-identifier")
+                        .transactionId("transaction-id")
+                        .status(200)
+                        .build()
+                )
+            );
         });
     }
 
@@ -166,8 +164,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(3);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(
                     tuple("req3", "2020-02-04T20:00:00.00Z"),
@@ -218,7 +215,9 @@ class SearchApplicationConnectionLogsUseCaseTest {
                 SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
             )
         );
-        assertThat(result.data()).extracting(ConnectionLog::getPlan).isEqualTo(List.of(Plan.builder().id("1").build()));
+        assertThat(result.data())
+            .extracting(ConnectionLog::getPlan)
+            .isEqualTo(List.of(Plan.builder().id("1").build()));
     }
 
     @Test
@@ -235,7 +234,9 @@ class SearchApplicationConnectionLogsUseCaseTest {
                 SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
             )
         );
-        assertThat(result.data()).extracting(ConnectionLog::getPlan).isEqualTo(List.of(Plan.builder().id("1").build()));
+        assertThat(result.data())
+            .extracting(ConnectionLog::getPlan)
+            .isEqualTo(List.of(Plan.builder().id("1").build()));
     }
 
     @Test
@@ -252,7 +253,9 @@ class SearchApplicationConnectionLogsUseCaseTest {
                 SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build()
             )
         );
-        assertThat(result.data()).extracting(ConnectionLog::getApi).isEqualTo(List.of(Api.builder().id("1").build()));
+        assertThat(result.data())
+            .extracting(ConnectionLog::getApi)
+            .isEqualTo(List.of(Api.builder().id("1").build()));
     }
 
     @Test
@@ -326,8 +329,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });
@@ -355,8 +357,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(tuple("req3", "2020-02-04T20:00:00.00Z"));
         });
@@ -384,8 +385,7 @@ class SearchApplicationConnectionLogsUseCaseTest {
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isEqualTo(2);
-            soft
-                .assertThat(result.data())
+            soft.assertThat(result.data())
                 .extracting(ConnectionLog::getRequestId, ConnectionLog::getTimestamp)
                 .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
         });

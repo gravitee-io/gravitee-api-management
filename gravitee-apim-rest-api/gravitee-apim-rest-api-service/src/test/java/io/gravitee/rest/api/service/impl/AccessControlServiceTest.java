@@ -261,11 +261,11 @@ public class AccessControlServiceTest {
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
         when(
-            roleService.hasPermission(
-                memberEntity.getPermissions(),
-                ApiPermission.DOCUMENTATION,
-                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
-            )
+            roleService.hasPermission(memberEntity.getPermissions(), ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.DELETE,
+            })
         ).thenReturn(true);
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiEntity, pageEntity);
@@ -308,11 +308,11 @@ public class AccessControlServiceTest {
         ).thenReturn(memberEntity);
 
         when(
-            roleService.hasPermission(
-                memberEntity.getPermissions(),
-                ApiPermission.DOCUMENTATION,
-                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
-            )
+            roleService.hasPermission(memberEntity.getPermissions(), ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+                RolePermissionAction.UPDATE,
+                RolePermissionAction.CREATE,
+                RolePermissionAction.DELETE,
+            })
         ).thenReturn(true);
 
         final PageEntity pageEntity = mock(PageEntity.class);

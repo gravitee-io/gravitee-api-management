@@ -136,7 +136,10 @@ public class ApiLoggingConditionUpgrader implements Upgrader {
         io.gravitee.definition.model.Api apiDefinition,
         String condition
     ) throws Exception {
-        apiDefinition.getProxy().getLogging().setCondition("{" + condition + "}");
+        apiDefinition
+            .getProxy()
+            .getLogging()
+            .setCondition("{" + condition + "}");
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
         ApiDeploymentEntity apiDeploymentEntity = null;

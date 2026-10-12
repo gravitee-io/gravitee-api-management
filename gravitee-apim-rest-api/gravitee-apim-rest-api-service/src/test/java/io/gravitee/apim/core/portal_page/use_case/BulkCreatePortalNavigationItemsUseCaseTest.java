@@ -252,9 +252,10 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .id(PortalNavigationItemId.random())
             .build();
         var folder = documentation(PortalNavigationItemType.FOLDER, "Guides", api.getId());
-        var nestedItem = type == PortalNavigationItemType.API
-            ? PortalNavigationItemFixtures.aCreatePortalNavigationApi("nested-api", folder.getId())
-            : productItem("product-1", "Nested product", 0).toBuilder().parentId(folder.getId()).build();
+        var nestedItem =
+            type == PortalNavigationItemType.API
+                ? PortalNavigationItemFixtures.aCreatePortalNavigationApi("nested-api", folder.getId())
+                : productItem("product-1", "Nested product", 0).toBuilder().parentId(folder.getId()).build();
         var existingItems = List.copyOf(queryService.storage());
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->

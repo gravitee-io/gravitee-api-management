@@ -35,10 +35,10 @@ class EdgeProxyDefinitionTest {
     void should_deserialize_legacy_payload_without_apps() throws Exception {
         // Given
         var json = """
-            {
-              "dnsDomains": [{ "name": "api.anthropic.com" }],
-              "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic", "provider": "anthropic" }]
-            }""";
+        {
+          "dnsDomains": [{ "name": "api.anthropic.com" }],
+          "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic", "provider": "anthropic" }]
+        }""";
 
         // When
         var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);
@@ -53,17 +53,17 @@ class EdgeProxyDefinitionTest {
     void should_deserialize_app_centric_payload_without_legacy_fields() throws Exception {
         // Given
         var json = """
+        {
+          "apps": [
             {
-              "apps": [
-                {
-                  "name": "Claude Code",
-                  "domains": [{ "name": "api.anthropic.com" }],
-                  "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
-                  "format": "anthropic-messages",
-                  "vendor": "anthropic"
-                }
-              ]
-            }""";
+              "name": "Claude Code",
+              "domains": [{ "name": "api.anthropic.com" }],
+              "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
+              "format": "anthropic-messages",
+              "vendor": "anthropic"
+            }
+          ]
+        }""";
 
         // When
         var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);
@@ -84,19 +84,19 @@ class EdgeProxyDefinitionTest {
     void should_deserialize_payload_with_both_legacy_and_app_fields() throws Exception {
         // Given
         var json = """
+        {
+          "dnsDomains": [{ "name": "api.anthropic.com" }],
+          "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic", "provider": "anthropic" }],
+          "apps": [
             {
-              "dnsDomains": [{ "name": "api.anthropic.com" }],
-              "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic", "provider": "anthropic" }],
-              "apps": [
-                {
-                  "name": "Claude Code",
-                  "domains": [{ "name": "api.anthropic.com" }],
-                  "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
-                  "format": "anthropic-messages",
-                  "vendor": "anthropic"
-                }
-              ]
-            }""";
+              "name": "Claude Code",
+              "domains": [{ "name": "api.anthropic.com" }],
+              "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
+              "format": "anthropic-messages",
+              "vendor": "anthropic"
+            }
+          ]
+        }""";
 
         // When
         var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);
@@ -112,18 +112,18 @@ class EdgeProxyDefinitionTest {
     void should_deserialize_the_three_route_path_forms() throws Exception {
         // Given
         var json = """
+        {
+          "apps": [
             {
-              "apps": [
-                {
-                  "name": "Claude Code",
-                  "routes": [
-                    { "path": "/v1/messages", "apiPath": "/anthropic" },
-                    { "path": "/v1/messages*", "apiPath": "/anthropic-all" },
-                    { "path": "*", "apiPath": "/anthropic-catch-all" }
-                  ]
-                }
+              "name": "Claude Code",
+              "routes": [
+                { "path": "/v1/messages", "apiPath": "/anthropic" },
+                { "path": "/v1/messages*", "apiPath": "/anthropic-all" },
+                { "path": "*", "apiPath": "/anthropic-catch-all" }
               ]
-            }""";
+            }
+          ]
+        }""";
 
         // When
         var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);

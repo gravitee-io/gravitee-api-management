@@ -88,15 +88,19 @@ public class ApiProductApisResource extends AbstractResource {
             .map(api -> ApiMapper.INSTANCE.map(api, uriInfo, (Boolean) null))
             .filter(Objects::nonNull)
             .toList();
-        Pagination pagination = totalCount == 0
-            ? new Pagination()
-                .page(paginationParam.getPage())
-                .perPage(paginationParam.getPerPage())
-                .pageItemsCount(0)
-                .pageCount(0)
-                .totalCount(0L)
-            : PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam);
+        Pagination pagination =
+            totalCount == 0
+                ? new Pagination()
+                      .page(paginationParam.getPage())
+                      .perPage(paginationParam.getPerPage())
+                      .pageItemsCount(0)
+                      .pageCount(0)
+                      .totalCount(0L)
+                : PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam);
         Links links = computePaginationLinks(totalCount, paginationParam);
-        return new ApisResponse().data(data).pagination(pagination).links(links != null ? links : new Links().self(""));
+        return new ApisResponse()
+            .data(data)
+            .pagination(pagination)
+            .links(links != null ? links : new Links().self(""));
     }
 }

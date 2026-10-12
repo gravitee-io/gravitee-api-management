@@ -70,8 +70,7 @@ class DistributedEventFetcherTest {
         DistributedEvent distributedEvent1 = DistributedEvent.builder().id("1").build();
         DistributedEvent distributedEvent2 = DistributedEvent.builder().id("2").build();
         when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.just(distributedEvent1, distributedEvent2));
-        cut
-            .fetchLatest(null, null, DistributedEventType.API, Set.of())
+        cut.fetchLatest(null, null, DistributedEventType.API, Set.of())
             .test()
             .assertValueAt(0, distributedEvent1)
             .assertValueAt(1, distributedEvent2)
@@ -81,8 +80,7 @@ class DistributedEventFetcherTest {
     @Test
     void should_search_with_criteria_based_on_timeframe() {
         when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
-        cut
-            .fetchLatest(1000L, 2000L, DistributedEventType.SUBSCRIPTION, Set.of(DistributedSyncAction.DEPLOY))
+        cut.fetchLatest(1000L, 2000L, DistributedEventType.SUBSCRIPTION, Set.of(DistributedSyncAction.DEPLOY))
             .test()
             .assertNoValues()
             .assertComplete();

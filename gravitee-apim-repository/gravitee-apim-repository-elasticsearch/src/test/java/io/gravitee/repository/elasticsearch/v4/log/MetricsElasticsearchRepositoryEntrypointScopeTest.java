@@ -51,7 +51,11 @@ public class MetricsElasticsearchRepositoryEntrypointScopeTest extends AbstractE
         return metricsV4Repository
             .searchMetrics(
                 queryContext,
-                MetricsQuery.builder().page(1).size(20).filter(filter.apiIds(Set.of(SCOPE_API)).build()).build(),
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(filter.apiIds(Set.of(SCOPE_API)).build())
+                    .build(),
                 List.of(DefinitionVersion.V4)
             )
             .total();

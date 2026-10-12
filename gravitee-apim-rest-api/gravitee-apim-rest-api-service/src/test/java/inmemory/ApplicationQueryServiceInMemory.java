@@ -64,7 +64,7 @@ public class ApplicationQueryServiceInMemory implements ApplicationQueryService,
         int pageSize = pageable.getPageSize();
         int startIndex = (pageNumber - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, allMatches.size());
-        var pageContent = (startIndex >= allMatches.size()) ? List.<BaseApplicationEntity>of() : allMatches.subList(startIndex, endIndex);
+        var pageContent = startIndex >= allMatches.size() ? List.<BaseApplicationEntity>of() : allMatches.subList(startIndex, endIndex);
         return new Page<>(pageContent, pageNumber, pageSize, allMatches.size());
     }
 

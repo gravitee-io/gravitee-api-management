@@ -51,7 +51,13 @@ public class ApiCRDFixtures {
             .hrid(API_HRID)
             .crossId(API_CROSS_ID)
             .name(API_NAME)
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path(API_PATH))).build()))
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(new Path(API_PATH)))
+                        .build()
+                )
+            )
             .plans(Map.of(PLAN_NAME, PlanCRD.builder().name(PLAN_NAME).id(PLAN_ID).security(new PlanSecurity("key-less", "{}")).build()))
             .state("STARTED")
             .endpointGroups(

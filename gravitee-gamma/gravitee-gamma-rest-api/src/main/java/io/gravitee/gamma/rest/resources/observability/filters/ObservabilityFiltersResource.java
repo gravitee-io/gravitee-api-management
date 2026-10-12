@@ -137,13 +137,14 @@ public class ObservabilityFiltersResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ResolveFilterLabelsResponseDto resolveFilterLabels(ResolveFilterLabelsRequestDto request) {
         checkReadObservabilityPermission();
-        List<ResolveObservabilityFilterLabelsUseCase.Entry> entries = request == null || request.entries() == null
-            ? List.of()
-            : request
-                .entries()
-                .stream()
-                .map(e -> new ResolveObservabilityFilterLabelsUseCase.Entry(e.filterName(), e.ids()))
-                .toList();
+        List<ResolveObservabilityFilterLabelsUseCase.Entry> entries =
+            request == null || request.entries() == null
+                ? List.of()
+                : request
+                      .entries()
+                      .stream()
+                      .map(e -> new ResolveObservabilityFilterLabelsUseCase.Entry(e.filterName(), e.ids()))
+                      .toList();
         var output = resolveFilterLabelsUseCase.execute(new ResolveObservabilityFilterLabelsUseCase.Input(entries));
         return ResolveFilterLabelsResponseDto.from(output);
     }

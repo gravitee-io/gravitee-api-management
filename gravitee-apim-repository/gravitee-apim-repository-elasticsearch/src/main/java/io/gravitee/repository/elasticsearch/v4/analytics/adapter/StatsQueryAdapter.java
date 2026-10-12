@@ -53,17 +53,15 @@ public class StatsQueryAdapter {
         var filterArray = MAPPER.createArrayNode();
 
         // Query string support (as in stats.ftl)
-        query
-            .query()
-            .ifPresent(q -> {
-                if (!q.trim().isEmpty()) {
-                    ObjectNode queryStringNode = MAPPER.createObjectNode();
-                    ObjectNode queryString = MAPPER.createObjectNode();
-                    queryString.put("query", q);
-                    queryStringNode.set("query_string", queryString);
-                    filterArray.add(queryStringNode);
-                }
-            });
+        query.query().ifPresent(q -> {
+            if (!q.trim().isEmpty()) {
+                ObjectNode queryStringNode = MAPPER.createObjectNode();
+                ObjectNode queryString = MAPPER.createObjectNode();
+                queryString.put("query", q);
+                queryStringNode.set("query_string", queryString);
+                filterArray.add(queryStringNode);
+            }
+        });
 
         var searchTermId = query.searchTermId();
         var shouldArray = MAPPER.createArrayNode();

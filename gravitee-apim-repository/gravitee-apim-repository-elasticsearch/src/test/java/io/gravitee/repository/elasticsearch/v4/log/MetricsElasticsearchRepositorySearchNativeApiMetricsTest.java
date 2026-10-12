@@ -43,16 +43,14 @@ public class MetricsElasticsearchRepositorySearchNativeApiMetricsTest extends Ab
             .withMinute(0)
             .withSecond(0)
             .withNano(0)
-            .toEpochSecond() *
-        1000;
+            .toEpochSecond() * 1000;
     private static final long TO_MILLIS =
         ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
             .withHour(11)
             .withMinute(0)
             .withSecond(0)
             .withNano(0)
-            .toEpochSecond() *
-        1000;
+            .toEpochSecond() * 1000;
 
     private static final String API_ID = "kafka-api-001";
 

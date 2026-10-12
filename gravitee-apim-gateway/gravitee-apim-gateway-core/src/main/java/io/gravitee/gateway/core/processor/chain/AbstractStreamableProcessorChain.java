@@ -31,7 +31,8 @@ import lombok.CustomLog;
 @CustomLog
 public abstract class AbstractStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
     extends AbstractProcessorChain<T, P>
-    implements StreamableProcessorChain<T, S, P> {
+    implements StreamableProcessorChain<T, S, P>
+{
 
     private P streamableProcessorChain;
     private Handler<ProcessorFailure> streamErrorHandler;

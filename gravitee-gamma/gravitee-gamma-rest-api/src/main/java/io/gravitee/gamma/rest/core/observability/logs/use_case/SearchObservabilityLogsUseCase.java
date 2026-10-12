@@ -135,11 +135,11 @@ public class SearchObservabilityLogsUseCase {
     }
 
     private static int resolvePage(Input input) {
-        return (input.page() != null && input.page() > 0) ? input.page() : DEFAULT_PAGE;
+        return input.page() != null && input.page() > 0 ? input.page() : DEFAULT_PAGE;
     }
 
     private static int resolvePerPage(Input input) {
-        return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        return input.perPage() != null && input.perPage() > 0 ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
     }
 
     private static void validateTimeRange(Instant from, Instant to) {

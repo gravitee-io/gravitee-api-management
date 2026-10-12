@@ -90,7 +90,10 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
 
     // Every form of the collection is scoped to an environment and named, as the unique index on both requires.
     private static Document aForm(String formId) {
-        return new Document("_id", formId).append("environmentId", "env-" + formId).append("name", formId).append("normalizedName", formId);
+        return new Document("_id", formId)
+            .append("environmentId", "env-" + formId)
+            .append("name", formId)
+            .append("normalizedName", formId);
     }
 
     private Document findForm(String id) {

@@ -130,13 +130,11 @@ public class VertxFileWriter<T extends Reportable> {
             log.debug("Flush the content to file");
 
             if (asyncFile != null) {
-                asyncFile
-                    .flush()
-                    .onComplete(event1 -> {
-                        if (event1.failed()) {
-                            log.error("An error occurs while flushing the content of the file", event1.cause());
-                        }
-                    });
+                asyncFile.flush().onComplete(event1 -> {
+                    if (event1.failed()) {
+                        log.error("An error occurs while flushing the content of the file", event1.cause());
+                    }
+                });
             }
         });
     }
@@ -270,21 +268,17 @@ public class VertxFileWriter<T extends Reportable> {
 
         if (asyncFile != null) {
             // Ensure everything has been flushed before closing the file
-            asyncFile
-                .flush()
-                .onComplete(flushEvent ->
-                    asyncFile
-                        .close()
-                        .onComplete(event -> {
-                            if (event.succeeded()) {
-                                log.info("File writer is now closed for type [{}]", this.type);
-                                promise.complete();
-                            } else {
-                                log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                                promise.fail(event.cause());
-                            }
-                        })
-                );
+            asyncFile.flush().onComplete(flushEvent ->
+                asyncFile.close().onComplete(event -> {
+                    if (event.succeeded()) {
+                        log.info("File writer is now closed for type [{}]", this.type);
+                        promise.complete();
+                    } else {
+                        log.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                        promise.fail(event.cause());
+                    }
+                })
+            );
         } else {
             promise.complete();
         }

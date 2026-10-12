@@ -362,7 +362,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
             case AiWorkspaceComponent aiWorkspaceComponent -> aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
-            case null, default -> {}
+            case null, default -> {
+            }
         }
     }
 

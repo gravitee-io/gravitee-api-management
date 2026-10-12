@@ -256,7 +256,9 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
         lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
         lenient().when(channelHandlerContext.channel()).thenReturn(channel);
-        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient()
+            .when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)))
+            .thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
@@ -308,7 +310,9 @@ class DefaultHttpRequestDispatcherTest {
             // here, since the decision under test is taken before it is consulted.
             final RequestPathConfiguration configuration = new RequestPathConfiguration(mode);
             when(rxRequest.path()).thenReturn(path);
-            lenient().when(httpAcceptorResolver.resolve(any(), any(), any())).thenReturn(null);
+            lenient()
+                .when(httpAcceptorResolver.resolve(any(), any(), any()))
+                .thenReturn(null);
             lenient().when(notFoundProcessorChainFactory.processorChain()).thenReturn(new ProcessorChain("not-found", List.of()));
             lenient()
                 .when(notFoundProcessorChainFactory.rejectedPathProcessorChain())
@@ -415,8 +419,7 @@ class DefaultHttpRequestDispatcherTest {
                 )
             ).thenReturn(Completable.error(new RuntimeException(MOCK_ERROR_MESSAGE)));
 
-            cut
-                .dispatch(rxRequest, SERVER_ID)
+            cut.dispatch(rxRequest, SERVER_ID)
                 .test()
                 .assertError(RuntimeException.class)
                 .assertError(t -> MOCK_ERROR_MESSAGE.equals(t.getMessage()));
@@ -567,8 +570,7 @@ class DefaultHttpRequestDispatcherTest {
                 .when(apiReactor)
                 .handle(any(ExecutionContext.class), any(Handler.class));
 
-            cut
-                .dispatch(rxRequest, SERVER_ID)
+            cut.dispatch(rxRequest, SERVER_ID)
                 // Simulate when the client is ending the connection before the gateway got a response from the endpoint
                 .doOnSubscribe(Disposable::dispose)
                 .test()

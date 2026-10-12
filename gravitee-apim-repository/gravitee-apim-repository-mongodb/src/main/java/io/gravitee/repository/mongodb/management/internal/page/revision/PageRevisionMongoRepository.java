@@ -28,7 +28,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PageRevisionMongoRepository
-    extends MongoRepository<PageRevisionMongo, PageRevisionPkMongo>, PageRevisionMongoRepositoryCustom {
+    extends MongoRepository<PageRevisionMongo, PageRevisionPkMongo>, PageRevisionMongoRepositoryCustom
+{
     @Query(value = "{ '_id.pageId' : ?0 }", sort = "{ 'revision': 1 }", delete = true)
     List<PageRevisionMongo> deleteByPageId(String pageId);
 

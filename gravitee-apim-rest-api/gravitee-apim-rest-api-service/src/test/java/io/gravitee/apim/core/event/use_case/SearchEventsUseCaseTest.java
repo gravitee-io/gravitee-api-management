@@ -75,8 +75,14 @@ class SearchEventsUseCaseTest {
         eventQueryService.initWith(
             List.of(
                 expected,
-                Event.builder().id("event2").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build(),
-                Event.builder().id("event3").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build()
+                Event.builder()
+                    .id("event2")
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                    .build(),
+                Event.builder()
+                    .id("event3")
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                    .build()
             )
         );
 

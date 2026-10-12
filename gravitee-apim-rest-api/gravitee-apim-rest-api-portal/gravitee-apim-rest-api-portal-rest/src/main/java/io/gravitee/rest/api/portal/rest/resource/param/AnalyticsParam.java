@@ -144,15 +144,15 @@ public class AnalyticsParam {
     }
 
     public List<Range> getRanges() {
-        return (ranges == null) ? null : ranges.getValue();
+        return ranges == null ? null : ranges.getValue();
     }
 
     public List<Aggregation> getAggregations() {
-        return (aggs == null) ? null : aggs.getValue();
+        return aggs == null ? null : aggs.getValue();
     }
 
     public OrderParam.Order getOrder() {
-        return (order == null) ? null : order.getValue();
+        return order == null ? null : order.getValue();
     }
 
     public void validate() {

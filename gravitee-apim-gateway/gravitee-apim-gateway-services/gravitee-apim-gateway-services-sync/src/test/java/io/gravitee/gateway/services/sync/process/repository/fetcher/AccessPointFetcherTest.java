@@ -56,8 +56,7 @@ class AccessPointFetcherTest {
     void should_fetch_access_points() throws TechnicalException {
         AccessPoint accessPoint = new AccessPoint();
         when(accessPointRepository.findByCriteria(any(), any(), any())).thenReturn(Collections.singletonList(accessPoint));
-        cut
-            .fetchLatest(null, null, Set.of(), AccessPointStatus.CREATED)
+        cut.fetchLatest(null, null, Set.of(), AccessPointStatus.CREATED)
             .test()
             .assertValueCount(1)
             .assertValue(accessPoints -> accessPoints.contains(accessPoint));
@@ -88,8 +87,7 @@ class AccessPointFetcherTest {
             )
         ).thenReturn(Collections.singletonList(accessPoint));
 
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env1", "env2"), AccessPointStatus.CREATED)
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env1", "env2"), AccessPointStatus.CREATED)
             .test()
             .assertValueCount(1)
             .assertValue(accessPoints -> accessPoints.contains(accessPoint));

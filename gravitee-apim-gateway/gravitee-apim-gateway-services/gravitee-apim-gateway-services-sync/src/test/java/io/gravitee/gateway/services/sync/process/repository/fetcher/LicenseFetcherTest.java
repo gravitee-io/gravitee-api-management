@@ -63,9 +63,10 @@ class LicenseFetcherTest {
     @Test
     void should_fetch_license() throws TechnicalException {
         License license = new License();
-        when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut
-            .fetchLatest(null, null, null)
+        when(licenseRepository.findByCriteria(any(), any()))
+            .thenReturn(new Page<>(List.of(license), 0, 1, 1))
+            .thenReturn(null);
+        cut.fetchLatest(null, null, null)
             .test()
             .assertValueCount(1)
             .assertValue(events -> events.contains(license));
@@ -75,9 +76,10 @@ class LicenseFetcherTest {
     void should_fetch_license_and_complete_if_page_size_is_higher_than_results() throws TechnicalException {
         cut = new LicenseFetcher(licenseRepository, 10);
         License license = new License();
-        when(licenseRepository.findByCriteria(any(), any())).thenReturn(new Page<>(List.of(license), 0, 1, 1)).thenReturn(null);
-        cut
-            .fetchLatest(null, null, null)
+        when(licenseRepository.findByCriteria(any(), any()))
+            .thenReturn(new Page<>(List.of(license), 0, 1, 1))
+            .thenReturn(null);
+        cut.fetchLatest(null, null, null)
             .test()
             .assertValueCount(1)
             .assertValue(events -> events.contains(license))
@@ -102,8 +104,7 @@ class LicenseFetcherTest {
                 eq(new PageableBuilder().pageNumber(0).pageSize(1).build())
             )
         ).thenReturn(new Page<>(List.of(license), 0, 1, 1));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("orga-id"))
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("orga-id"))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(license));
@@ -119,8 +120,7 @@ class LicenseFetcherTest {
             .thenReturn(new Page<>(List.of(license2), 1, 1, 3))
             .thenReturn(new Page<>(List.of(license3), 2, 1, 3))
             .thenReturn(null);
-        cut
-            .fetchLatest(null, null, null)
+        cut.fetchLatest(null, null, null)
             .test(0)
             .requestMore(1)
             .assertValueAt(0, List.of(license1))

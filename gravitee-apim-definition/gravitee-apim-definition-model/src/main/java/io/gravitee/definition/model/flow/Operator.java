@@ -25,5 +25,6 @@ import java.io.Serializable;
 public enum Operator implements Serializable {
     @JsonEnumDefaultValue
     STARTS_WITH,
+
     EQUALS,
 }

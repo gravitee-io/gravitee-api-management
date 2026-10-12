@@ -147,8 +147,7 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getCustomFields() != null && !user.getCustomFields().isEmpty()) {
-            user
-                .getCustomFields()
+            user.getCustomFields()
                 .values()
                 .stream()
                 .filter(Objects::nonNull)

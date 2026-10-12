@@ -44,9 +44,10 @@ public class SearchApisForPortalUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
-        List<PortalNavigationApi> visible = input.userId() != null
-            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
-            : visibilityDomainService.resolveVisibleItems(input.environmentId());
+        List<PortalNavigationApi> visible =
+            input.userId() != null
+                ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId())
+                : visibilityDomainService.resolveVisibleItems(input.environmentId());
         Set<String> allowedIds = visible.stream().map(PortalNavigationApi::getApiId).collect(toSet());
 
         return new Output(

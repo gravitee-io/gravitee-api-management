@@ -52,7 +52,8 @@ import lombok.Setter;
 
 public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS extends MutableResponse>
     extends AbstractBaseExecutionContext
-    implements ExecutionContext, io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext {
+    implements ExecutionContext, io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext
+{
 
     protected RQ request;
     protected RS response;

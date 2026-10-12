@@ -64,8 +64,9 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
     private boolean fillApiCategoryOrderTable() throws TechnicalException {
         this.categoryRepository.findAll().forEach(category -> {
             var order = new AtomicInteger(0);
-            this.apiRepository.search(new ApiCriteria.Builder().category(category.getId()).build(), ApiFieldFilter.defaultFields()).forEach(
-                api -> {
+            this.apiRepository
+                .search(new ApiCriteria.Builder().category(category.getId()).build(), ApiFieldFilter.defaultFields())
+                .forEach(api -> {
                     try {
                         this.apiCategoryOrderRepository.create(
                             ApiCategoryOrder.builder()
@@ -77,8 +78,7 @@ public class ApiCategoryOrderUpgrader implements Upgrader {
                     } catch (TechnicalException e) {
                         throw new RuntimeException(e);
                     }
-                }
-            );
+                });
         });
         return true;
     }

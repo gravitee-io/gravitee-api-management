@@ -181,13 +181,13 @@ public class ApisResourceTest extends AbstractResourceTest {
     public void put_import_crd_shouldImportApi_calling_apiDuplicator() {
         reset(apiDuplicatorService);
         String apiCRD = """
-            {
-                "id": "c4dc6225-715e-43e2-a15a-64313f25fbe1",
-                "crossId": "ea1e3f3b-cf1d-4786-9c6d-349ae4d932e4",
-                "name": "test",
-                "description": "test",
-                "version": "1.0"
-            }""";
+        {
+            "id": "c4dc6225-715e-43e2-a15a-64313f25fbe1",
+            "crossId": "ea1e3f3b-cf1d-4786-9c6d-349ae4d932e4",
+            "name": "test",
+            "description": "test",
+            "version": "1.0"
+        }""";
 
         ExecutionContext ec = GraviteeContext.getExecutionContext();
         ApiCRDStatusEntity apiCRDStatus = new ApiCRDStatusEntity(

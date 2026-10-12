@@ -80,8 +80,7 @@ class DefaultTcpSocketDispatcherTest {
     @Test
     void should_fail_dispatching_no_acceptor() {
         when(netSocket.indicatedServerName()).thenReturn("turlututu");
-        cut
-            .dispatch(netSocket, "server1")
+        cut.dispatch(netSocket, "server1")
             .doFinally(() -> verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never()))
             .test()
             .assertError(err -> err.getMessage().contains("SNI: turlututu"))
@@ -93,8 +92,7 @@ class DefaultTcpSocketDispatcherTest {
         IllegalStateException unexpected = new IllegalStateException("unexpected");
         when(netSocket.indicatedServerName()).thenReturn("foo");
         when(netSocket.pause()).thenThrow(unexpected);
-        cut
-            .dispatch(netSocket, "server1")
+        cut.dispatch(netSocket, "server1")
             .doFinally(() -> verify(reactorHandler.handle(any(DefaultExecutionContext.class)), never()))
             .test()
             .assertError(unexpected)

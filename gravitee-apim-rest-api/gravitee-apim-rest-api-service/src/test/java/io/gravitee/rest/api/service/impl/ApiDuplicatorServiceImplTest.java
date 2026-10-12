@@ -115,7 +115,7 @@ public class ApiDuplicatorServiceImplTest {
     private GroupService groupService;
 
     @Spy
-    private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+    private ObjectMapper objectMapper = new ServiceConfiguration().objectMapper();
 
     @BeforeEach
     public void setup() {
@@ -521,23 +521,21 @@ public class ApiDuplicatorServiceImplTest {
             argThat(
                 pageEntities ->
                     pageEntities.size() == 2 &&
-                    pageEntities
-                        .stream()
-                        .allMatch(page -> {
-                            if (page.getName().equals("toto")) {
-                                return (
-                                    page.getAccessControls().size() == 1 &&
-                                    page
-                                        .getAccessControls()
-                                        .stream()
-                                        .anyMatch(accessControl -> "group-id-1".equals(accessControl.getReferenceId()))
-                                );
-                            }
-                            if (page.getName().equals("petstore")) {
-                                return page.getAccessControls().isEmpty();
-                            }
-                            return true; // For other pages, no specific checks
-                        })
+                    pageEntities.stream().allMatch(page -> {
+                        if (page.getName().equals("toto")) {
+                            return (
+                                page.getAccessControls().size() == 1 &&
+                                page
+                                    .getAccessControls()
+                                    .stream()
+                                    .anyMatch(accessControl -> "group-id-1".equals(accessControl.getReferenceId()))
+                            );
+                        }
+                        if (page.getName().equals("petstore")) {
+                            return page.getAccessControls().isEmpty();
+                        }
+                        return true; // For other pages, no specific checks
+                    })
             ),
             eq(API_ID)
         );

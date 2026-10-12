@@ -37,7 +37,8 @@ import org.springframework.core.NestedExceptionUtils;
  */
 public abstract class AbstractReactorHandler<T extends Reactable>
     extends AbstractLifecycleComponent<ReactorHandler>
-    implements ReactorHandler {
+    implements ReactorHandler
+{
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
     protected final Logger log = NodeLoggerFactory.getLogger(this.getClass());

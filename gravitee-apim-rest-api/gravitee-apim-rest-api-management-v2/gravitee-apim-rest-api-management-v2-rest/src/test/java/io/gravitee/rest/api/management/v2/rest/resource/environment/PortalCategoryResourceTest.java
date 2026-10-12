@@ -112,7 +112,9 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
         void should_return_404_when_category_does_not_exist() {
             portalCategoryCrudServiceInMemory.reset();
 
-            var response = rootTarget().request().put(json(new UpdatePortalCategory().title("Weather")));
+            var response = rootTarget()
+                .request()
+                .put(json(new UpdatePortalCategory().title("Weather")));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
@@ -120,7 +122,9 @@ class PortalCategoryResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
-                rootTarget().request().put(json(new UpdatePortalCategory().title("Weather")))
+                rootTarget()
+                    .request()
+                    .put(json(new UpdatePortalCategory().title("Weather")))
             );
         }
     }

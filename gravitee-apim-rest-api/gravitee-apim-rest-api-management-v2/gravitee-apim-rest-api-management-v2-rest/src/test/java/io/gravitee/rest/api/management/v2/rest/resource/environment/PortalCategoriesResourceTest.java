@@ -170,7 +170,9 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_DOCUMENTATION, ENVIRONMENT, RolePermissionAction.CREATE, () ->
-                rootTarget().request().post(json(new CreatePortalCategory().title("Weather")))
+                rootTarget()
+                    .request()
+                    .post(json(new CreatePortalCategory().title("Weather")))
             );
         }
     }

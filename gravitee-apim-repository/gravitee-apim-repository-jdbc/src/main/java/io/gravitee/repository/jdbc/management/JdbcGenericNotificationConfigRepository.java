@@ -46,7 +46,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcGenericNotificationConfigRepository
     extends JdbcAbstractCrudRepository<GenericNotificationConfig, String>
-    implements GenericNotificationConfigRepository {
+    implements GenericNotificationConfigRepository
+{
 
     private final String GENERIC_NOTIFICATION_CONFIG_HOOKS;
 

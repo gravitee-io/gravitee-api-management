@@ -42,24 +42,22 @@ public class ValidateSharedPolicyGroupCRDDomainService implements Validator<Vali
         var errors = new ArrayList<Error>();
         var sanitizedBuilder = input.crd.toBuilder();
 
-        sharedPolicyGroupCrudService
-            .findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.crd.getCrossId())
-            .ifPresentOrElse(
-                spg -> {
-                    input.crd.setSharedPolicyGroupId(spg.getId());
-                    validateUpdateSharedPolicyGroupDomainService
-                        .validateAndSanitize(
-                            new ValidateUpdateSharedPolicyGroupDomainService.Input(input.auditInfo, input.crd.toSharedPolicyGroup())
-                        )
-                        .peek(i -> {}, errors::addAll);
-                },
-                () ->
-                    validateCreateSharedPolicyGroupDomainService
-                        .validateAndSanitize(
-                            new ValidateCreateSharedPolicyGroupDomainService.Input(input.auditInfo, input.crd.toSharedPolicyGroup())
-                        )
-                        .peek(i -> {}, errors::addAll)
-            );
+        sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(input.auditInfo.environmentId(), input.crd.getCrossId()).ifPresentOrElse(
+            spg -> {
+                input.crd.setSharedPolicyGroupId(spg.getId());
+                validateUpdateSharedPolicyGroupDomainService
+                    .validateAndSanitize(
+                        new ValidateUpdateSharedPolicyGroupDomainService.Input(input.auditInfo, input.crd.toSharedPolicyGroup())
+                    )
+                    .peek(i -> {}, errors::addAll);
+            },
+            () ->
+                validateCreateSharedPolicyGroupDomainService
+                    .validateAndSanitize(
+                        new ValidateCreateSharedPolicyGroupDomainService.Input(input.auditInfo, input.crd.toSharedPolicyGroup())
+                    )
+                    .peek(i -> {}, errors::addAll)
+        );
 
         return Validator.Result.ofBoth(new Input(input.auditInfo(), sanitizedBuilder.build()), errors);
     }

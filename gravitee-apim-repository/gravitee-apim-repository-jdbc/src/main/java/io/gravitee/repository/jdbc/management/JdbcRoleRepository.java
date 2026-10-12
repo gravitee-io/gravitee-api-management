@@ -158,7 +158,7 @@ public class JdbcRoleRepository extends JdbcAbstractCrudRepository<Role, String>
                 jdbcTemplate.update("delete from " + ROLE_PERMISSIONS + " where role_id = ?", role.getId());
             }
             int[] permissions = dedupePermissions(role.getPermissions());
-            if ((permissions != null) && permissions.length > 0) {
+            if (permissions != null && permissions.length > 0) {
                 jdbcTemplate.batchUpdate(
                     "insert into " + ROLE_PERMISSIONS + " ( role_id, permission ) values ( ?, ? )",
                     new BatchPreparedStatementSetter() {

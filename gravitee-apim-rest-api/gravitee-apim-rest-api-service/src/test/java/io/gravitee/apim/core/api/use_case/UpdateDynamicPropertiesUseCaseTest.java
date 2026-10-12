@@ -272,7 +272,11 @@ class UpdateDynamicPropertiesUseCaseTest {
                     List.of(
                         Property.builder().key("key").value("value").dynamic(true).build(),
                         // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
+                        Property.builder()
+                            .key("user-prop")
+                            .value("other-value")
+                            .dynamic(true)
+                            .build()
                     ),
                     false
                 )
@@ -324,7 +328,11 @@ class UpdateDynamicPropertiesUseCaseTest {
                     List.of(
                         Property.builder().key("key").value("value").dynamic(true).build(),
                         // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
+                        Property.builder()
+                            .key("user-prop")
+                            .value("other-value")
+                            .dynamic(true)
+                            .build()
                     ),
                     false
                 )
@@ -348,7 +356,11 @@ class UpdateDynamicPropertiesUseCaseTest {
                     List.of(
                         Property.builder().key("key").value("value").dynamic(true).build(),
                         // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
+                        Property.builder()
+                            .key("user-prop")
+                            .value("other-value")
+                            .dynamic(true)
+                            .build()
                     ),
                     false
                 )
@@ -413,7 +425,11 @@ class UpdateDynamicPropertiesUseCaseTest {
                     List.of(
                         Property.builder().key("key").value("value").dynamic(true).build(),
                         // trying to set the same property as the user
-                        Property.builder().key("user-prop").value("other-value").dynamic(true).build()
+                        Property.builder()
+                            .key("user-prop")
+                            .value("other-value")
+                            .dynamic(true)
+                            .build()
                     ),
                     false
                 )

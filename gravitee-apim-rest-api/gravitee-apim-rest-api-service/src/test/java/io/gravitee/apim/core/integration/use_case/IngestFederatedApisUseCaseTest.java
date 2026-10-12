@@ -494,15 +494,15 @@ class IngestFederatedApisUseCaseTest {
         void should_create_and_index_a_federated_api() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .id("asset-1")
-                    .name("api-1")
-                    .description("my description")
-                    .version("1.1.1")
-                    .connectionDetails(Map.of("url", "https://example.com"))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .id("asset-1")
+                .name("api-1")
+                .description("my description")
+                .version("1.1.1")
+                .connectionDetails(Map.of("url", "https://example.com"))
+                .build();
 
             // When
             useCase
@@ -535,16 +535,14 @@ class IngestFederatedApisUseCaseTest {
                     .groups(Set.of("group-1"))
                     .build();
                 soft.assertThat(apiCrudService.storage()).containsExactlyInAnyOrder(expectedApi);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expectedApi,
-                            new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.of(),
-                            Set.of()
-                        )
-                    );
+                soft.assertThat(indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expectedApi,
+                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.of(),
+                        Set.of()
+                    )
+                );
             });
         }
 
@@ -569,7 +567,7 @@ class IngestFederatedApisUseCaseTest {
         void should_create_an_audit() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
 
             // When
             useCase
@@ -614,7 +612,7 @@ class IngestFederatedApisUseCaseTest {
             // Given
             enableApiPrimaryOwnerMode(mode);
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
 
             // When
             useCase
@@ -642,7 +640,7 @@ class IngestFederatedApisUseCaseTest {
         void should_not_create_default_metadata() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
 
             // When
             useCase
@@ -658,7 +656,7 @@ class IngestFederatedApisUseCaseTest {
         void should_not_create_default_email_notification_configuration() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID);
 
             // When
             useCase
@@ -695,10 +693,10 @@ class IngestFederatedApisUseCaseTest {
         void should_create_api_metadata() {
             //Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                .build();
 
             // When
             useCase
@@ -731,13 +729,13 @@ class IngestFederatedApisUseCaseTest {
         void should_update_federated_api_if_exists() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .name("api-1-updated")
-                    .description("my description updated")
-                    .version("1.1.2")
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .name("api-1-updated")
+                .description("my description updated")
+                .version("1.1.2")
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -789,16 +787,14 @@ class IngestFederatedApisUseCaseTest {
                     )
                     .build();
                 soft.assertThat(apiCrudService.storage()).containsExactlyInAnyOrder(expectedApi);
-                soft
-                    .assertThat(indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expectedApi,
-                            new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.of(),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expectedApi,
+                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.of(),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -806,20 +802,20 @@ class IngestFederatedApisUseCaseTest {
         void should_create_updated_api_audit_log() {
             //Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan(
-                                "plan1",
-                                "Updated Plan 1",
-                                "Updated description 1",
-                                IntegrationApi.PlanType.API_KEY,
-                                List.of()
-                            )
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .plans(
+                    List.of(
+                        new IntegrationApi.Plan(
+                            "plan1",
+                            "Updated Plan 1",
+                            "Updated description 1",
+                            IntegrationApi.PlanType.API_KEY,
+                            List.of()
                         )
                     )
-                    .build());
+                )
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -860,10 +856,10 @@ class IngestFederatedApisUseCaseTest {
         void should_update_already_ingested_api_metadata() {
             //Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                .build();
             metadataCrudService.create(
                 io.gravitee.apim.core.metadata.model.Metadata.builder()
                     .name("name1")
@@ -896,10 +892,10 @@ class IngestFederatedApisUseCaseTest {
         void should_not_touch_any_other_metadata() {
             //Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .metadata(List.of(new IntegrationApi.Metadata("name1", "value1", STRING)))
+                .build();
             metadataCrudService.create(
                 io.gravitee.apim.core.metadata.model.Metadata.builder()
                     .name("name2")
@@ -942,21 +938,21 @@ class IngestFederatedApisUseCaseTest {
         void should_create_all_plans_associated() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan(
-                                "plan1",
-                                "My Plan 1",
-                                "Description 1",
-                                IntegrationApi.PlanType.API_KEY,
-                                List.of("Rate: 10.0 requests per second", "Burst: 10 requests", "Quota: 1000 requests per day")
-                            ),
-                            new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY, List.of())
-                        )
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .plans(
+                    List.of(
+                        new IntegrationApi.Plan(
+                            "plan1",
+                            "My Plan 1",
+                            "Description 1",
+                            IntegrationApi.PlanType.API_KEY,
+                            List.of("Rate: 10.0 requests per second", "Burst: 10 requests", "Quota: 1000 requests per day")
+                        ),
+                        new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY, List.of())
                     )
-                    .build());
+                )
+                .build();
 
             // When
             useCase
@@ -966,51 +962,47 @@ class IngestFederatedApisUseCaseTest {
 
             // Then
             SoftAssertions.assertSoftly(soft ->
-                soft
-                    .assertThat(planCrudService.storage())
-                    .containsExactlyInAnyOrder(
-                        Plan.builder()
-                            .id("environment-idintegration-idasset-uidplan1")
-                            .name("My Plan 1")
-                            .description("Description 1")
-                            .validation(Plan.PlanValidationType.MANUAL)
-                            .referenceId("environment-idintegration-idasset-uid")
-                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
-                            .federatedPlanDefinition(
-                                FederatedPlan.builder()
-                                    .id("environment-idintegration-idasset-uidplan1")
-                                    .providerId("plan1")
-                                    .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
-                                    .status(PlanStatus.PUBLISHED)
-                                    .mode(PlanMode.STANDARD)
-                                    .build()
-                            )
-                            .characteristics(
-                                List.of("Rate: 10.0 requests per second", "Burst: 10 requests", "Quota: 1000 requests per day")
-                            )
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build(),
-                        Plan.builder()
-                            .id("environment-idintegration-idasset-uidplan2")
-                            .name("My Plan 2")
-                            .description("Description 2")
-                            .validation(Plan.PlanValidationType.MANUAL)
-                            .referenceId("environment-idintegration-idasset-uid")
-                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
-                            .federatedPlanDefinition(
-                                FederatedPlan.builder()
-                                    .id("environment-idintegration-idasset-uidplan2")
-                                    .providerId("plan2")
-                                    .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
-                                    .status(PlanStatus.PUBLISHED)
-                                    .mode(PlanMode.STANDARD)
-                                    .build()
-                            )
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .build()
-                    )
+                soft.assertThat(planCrudService.storage()).containsExactlyInAnyOrder(
+                    Plan.builder()
+                        .id("environment-idintegration-idasset-uidplan1")
+                        .name("My Plan 1")
+                        .description("Description 1")
+                        .validation(Plan.PlanValidationType.MANUAL)
+                        .referenceId("environment-idintegration-idasset-uid")
+                        .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
+                        .federatedPlanDefinition(
+                            FederatedPlan.builder()
+                                .id("environment-idintegration-idasset-uidplan1")
+                                .providerId("plan1")
+                                .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                                .status(PlanStatus.PUBLISHED)
+                                .mode(PlanMode.STANDARD)
+                                .build()
+                        )
+                        .characteristics(List.of("Rate: 10.0 requests per second", "Burst: 10 requests", "Quota: 1000 requests per day"))
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build(),
+                    Plan.builder()
+                        .id("environment-idintegration-idasset-uidplan2")
+                        .name("My Plan 2")
+                        .description("Description 2")
+                        .validation(Plan.PlanValidationType.MANUAL)
+                        .referenceId("environment-idintegration-idasset-uid")
+                        .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
+                        .federatedPlanDefinition(
+                            FederatedPlan.builder()
+                                .id("environment-idintegration-idasset-uidplan2")
+                                .providerId("plan2")
+                                .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                                .status(PlanStatus.PUBLISHED)
+                                .mode(PlanMode.STANDARD)
+                                .build()
+                        )
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
             );
         }
     }
@@ -1022,20 +1014,20 @@ class IngestFederatedApisUseCaseTest {
         void should_update_plans_if_exist() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan(
-                                "plan1",
-                                "Updated Plan 1",
-                                "Updated description 1",
-                                IntegrationApi.PlanType.API_KEY,
-                                List.of()
-                            )
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .plans(
+                    List.of(
+                        new IntegrationApi.Plan(
+                            "plan1",
+                            "Updated Plan 1",
+                            "Updated description 1",
+                            IntegrationApi.PlanType.API_KEY,
+                            List.of()
                         )
                     )
-                    .build());
+                )
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1076,29 +1068,27 @@ class IngestFederatedApisUseCaseTest {
 
             // Then
             SoftAssertions.assertSoftly(soft ->
-                soft
-                    .assertThat(planCrudService.storage())
-                    .containsExactlyInAnyOrder(
-                        Plan.builder()
-                            .id("environment-idintegration-idasset-uidplan1")
-                            .name("Updated Plan 1")
-                            .description("Updated description 1")
-                            .validation(Plan.PlanValidationType.MANUAL)
-                            .referenceId("environment-idintegration-idasset-uid")
-                            .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
-                            .federatedPlanDefinition(
-                                FederatedPlan.builder()
-                                    .id("generated-id")
-                                    .providerId("plan1")
-                                    .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
-                                    .status(PlanStatus.PUBLISHED)
-                                    .mode(PlanMode.STANDARD)
-                                    .build()
-                            )
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(UPDATE_TIME.atZone(ZoneId.systemDefault()))
-                            .build()
-                    )
+                soft.assertThat(planCrudService.storage()).containsExactlyInAnyOrder(
+                    Plan.builder()
+                        .id("environment-idintegration-idasset-uidplan1")
+                        .name("Updated Plan 1")
+                        .description("Updated description 1")
+                        .validation(Plan.PlanValidationType.MANUAL)
+                        .referenceId("environment-idintegration-idasset-uid")
+                        .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
+                        .federatedPlanDefinition(
+                            FederatedPlan.builder()
+                                .id("generated-id")
+                                .providerId("plan1")
+                                .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                                .status(PlanStatus.PUBLISHED)
+                                .mode(PlanMode.STANDARD)
+                                .build()
+                        )
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(UPDATE_TIME.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
             );
         }
 
@@ -1106,7 +1096,7 @@ class IngestFederatedApisUseCaseTest {
         void should_delete_plans_if_ingest_doesnt_contain() {
             // Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1157,20 +1147,20 @@ class IngestFederatedApisUseCaseTest {
         void should_create_update_plan_audit_log() {
             //Given
             givenAnIngestJob(INGEST_JOB);
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .plans(
-                        List.of(
-                            new IntegrationApi.Plan(
-                                "plan1",
-                                "Updated Plan 1",
-                                "Updated description 1",
-                                IntegrationApi.PlanType.API_KEY,
-                                List.of()
-                            )
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .plans(
+                    List.of(
+                        new IntegrationApi.Plan(
+                            "plan1",
+                            "Updated Plan 1",
+                            "Updated description 1",
+                            IntegrationApi.PlanType.API_KEY,
+                            List.of()
                         )
                     )
-                    .build());
+                )
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1238,10 +1228,10 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_create_swagger_documentation() {
             // Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.yml")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.yml")))
+                .build();
 
             // When
             useCase
@@ -1272,10 +1262,10 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_create_api_audit_log() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
+                .build();
 
             // When
             useCase
@@ -1304,10 +1294,10 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_create_and_index_a_federated_page() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "MyPageName.csv")))
+                .build();
 
             // When
             useCase
@@ -1338,10 +1328,10 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_create_and_index_a_federated_page_for_asyncapi() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc", "MyPage.md")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some async Doc", "MyPage.md")))
+                .build();
 
             // When
             useCase
@@ -1497,11 +1487,11 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_update_swagger_doc_page_if_exists() {
             // Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1558,11 +1548,11 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_update_async_api_doc_page_if_exists() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1617,12 +1607,17 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_keep_publisher_page_settings_when_updating_an_ingested_page() {
             // Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                .build();
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
                     .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
-                    .build());
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var pageEditedByPublisher = Page.builder()
                 .id("generated-id")
                 .name("MyPage.json")
@@ -1660,12 +1655,17 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_keep_homepage_chosen_by_publisher_when_updating_an_ingested_page() {
             // Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                .build();
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
                     .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
-                    .build());
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             givenExistingPage(
                 Page.builder()
                     .id("ingested-page")
@@ -1718,7 +1718,12 @@ class IngestFederatedApisUseCaseTest {
                 .uniqueId("uid-1")
                 .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "updatedGuide", "guide")))
                 .build();
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var ingestedGuide = Page.builder()
                 .id("guide-id")
                 .name("guide")
@@ -1756,7 +1761,12 @@ class IngestFederatedApisUseCaseTest {
                 .uniqueId("uid-1")
                 .pages(List.of())
                 .build();
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var pageCreatedInGravitee = Page.builder()
                 .id("publisher-page")
                 .name("Getting started")
@@ -1799,7 +1809,12 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_not_take_over_a_page_created_in_gravitee_with_the_name_of_a_provider_page() {
             // Given
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var pageCreatedInGravitee = aPageCreatedInGravitee("guide");
             givenExistingPage(pageCreatedInGravitee);
 
@@ -1813,7 +1828,12 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_keep_a_page_created_in_gravitee_once_the_provider_stops_sending_a_page_of_the_same_name() {
             // Given
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var pageCreatedInGravitee = aPageCreatedInGravitee("guide");
             givenExistingPage(pageCreatedInGravitee);
             ingest(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "provider guide", "guide"));
@@ -1828,7 +1848,12 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_update_ingested_pages_when_pages_created_in_gravitee_share_a_name_in_different_folders() {
             // Given
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var ingestedSpec = Page.builder()
                 .id("spec-id")
                 .name("spec.json")
@@ -1863,7 +1888,12 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_keep_the_previous_version_of_an_ingested_markdown_page_whose_new_content_is_unsafe() {
             // Given
-            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingApi(
+                ApiFixtures.aFederatedApi()
+                    .toBuilder()
+                    .id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1")
+                    .build()
+            );
             var ingestedGuide = Page.builder()
                 .id("guide-id")
                 .name("guide")
@@ -1917,11 +1947,11 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_remove_page_not_exists_anymore() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of())
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of())
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -1963,11 +1993,11 @@ class IngestFederatedApisUseCaseTest {
         void should_new_page_replace_previous_homepage() {
             //Given
             String newPageName = "MyPage.json";
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", newPageName)))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", newPageName)))
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()
@@ -2012,10 +2042,10 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_create_doc_update_audit_log() {
             //Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.ASYNCAPI, "some updated async Doc", "MyPage.json")))
+                .build();
             givenExistingPage(
                 Page.builder()
                     .id("generated-id")
@@ -2069,12 +2099,12 @@ class IngestFederatedApisUseCaseTest {
         @Test
         void should_update_doc_if_api_name_changed() {
             // Given
-            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
-                    .toBuilder()
-                    .uniqueId("uid-1")
-                    .name("new-name")
-                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
-                    .build());
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .name("new-name")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                .build();
             givenExistingApi(
                 ApiFixtures.aFederatedApi()
                     .toBuilder()

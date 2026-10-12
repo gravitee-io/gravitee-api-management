@@ -109,7 +109,7 @@ class HazelcastRateLimitRepositoryClusterTest {
                 pool.submit(() -> {
                     try {
                         start.await();
-                        RateLimitRepository<RateLimit> repo = (threadIndex % 2 == 0) ? repo1 : repo2;
+                        RateLimitRepository<RateLimit> repo = threadIndex % 2 == 0 ? repo1 : repo2;
                         for (int i = 0; i < iterations; i++) {
                             repo.incrementAndGet("multi-contended", 1, () -> initial("multi-contended", 60_000)).blockingGet();
                         }
@@ -146,7 +146,9 @@ class HazelcastRateLimitRepositoryClusterTest {
         JoinConfig join = network.getJoin();
         join.getMulticastConfig().setEnabled(false);
         join.getAutoDetectionConfig().setEnabled(false);
-        join.getTcpIpConfig().setEnabled(true).setMembers(List.of("127.0.0.1:" + PORT_M1, "127.0.0.1:" + PORT_M2));
+        join.getTcpIpConfig()
+            .setEnabled(true)
+            .setMembers(List.of("127.0.0.1:" + PORT_M1, "127.0.0.1:" + PORT_M2));
 
         return Hazelcast.newHazelcastInstance(config);
     }

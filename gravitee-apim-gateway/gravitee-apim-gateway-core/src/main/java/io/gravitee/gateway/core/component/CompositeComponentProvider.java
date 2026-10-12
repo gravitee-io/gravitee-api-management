@@ -35,7 +35,8 @@ public class CompositeComponentProvider implements ComponentProvider {
 
     @Override
     public <T> T getComponent(Class<T> clazz) {
-        return this.componentProviders.stream()
+        return this.componentProviders
+            .stream()
             .map(cp -> cp.getComponent(clazz))
             .filter(Objects::nonNull)
             .findFirst()

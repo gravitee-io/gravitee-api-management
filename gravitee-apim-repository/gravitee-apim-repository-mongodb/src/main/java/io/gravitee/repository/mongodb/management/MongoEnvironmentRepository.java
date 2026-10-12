@@ -146,12 +146,10 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
         log.debug("Find environment by cockpit ID [{}]", cockpitId);
 
-        return internalEnvironmentRepo
-            .findByCockpitId(cockpitId)
-            .map(environment -> {
-                log.debug("Find environment by cockpit ID [{}] - Done", environment);
-                return mapper.map(environment);
-            });
+        return internalEnvironmentRepo.findByCockpitId(cockpitId).map(environment -> {
+            log.debug("Find environment by cockpit ID [{}] - Done", environment);
+            return mapper.map(environment);
+        });
     }
 
     @Override

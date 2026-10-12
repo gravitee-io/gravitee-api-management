@@ -185,7 +185,12 @@ class VertxHttpServerRequestTest {
 
         @Test
         void should_subscribe_once_when_ignoring_and_replacing_existing_chunks() {
-            cut.chunks(cut.chunks().ignoreElements().andThen(Flowable.just(Buffer.buffer(NEW_CHUNK))));
+            cut.chunks(
+                cut
+                    .chunks()
+                    .ignoreElements()
+                    .andThen(Flowable.just(Buffer.buffer(NEW_CHUNK)))
+            );
 
             final TestSubscriber<Buffer> obs = cut.chunks().test();
 
@@ -310,7 +315,11 @@ class VertxHttpServerRequestTest {
         void should_subscribe_once_and_return_empty_observable_when_bodyOrEmpty_then_getting_chunks() {
             mockWithEmpty();
 
-            final TestSubscriber<Buffer> obs = cut.bodyOrEmpty().ignoreElement().andThen(Flowable.defer(() -> cut.chunks())).test();
+            final TestSubscriber<Buffer> obs = cut
+                .bodyOrEmpty()
+                .ignoreElement()
+                .andThen(Flowable.defer(() -> cut.chunks()))
+                .test();
 
             obs.assertNoValues();
             assertEquals(1, subscriptionCount.get());

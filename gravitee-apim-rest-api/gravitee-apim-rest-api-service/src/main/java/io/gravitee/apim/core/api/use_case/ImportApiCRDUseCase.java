@@ -173,16 +173,14 @@ public class ImportApiCRDUseCase {
             .validateAndSanitize(new ValidateApiCRDDomainService.Input(input.auditInfo(), input.spec()))
             .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                )
+            );
+        });
 
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
@@ -278,9 +276,8 @@ public class ImportApiCRDUseCase {
                 // The platform owns the API's groups: keep them whatever the spec says
                 input.spec().setGroups(existingApi.getGroups());
             }
-            List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
-                ? existingApi.getPortalNavigation()
-                : List.of();
+            List<NavigationPath> previousNavigation =
+                existingApi.getPortalNavigation() != null ? existingApi.getPortalNavigation() : List.of();
             // Reject when navigation paths would collide with manually-managed content, before any API persistence.
             portalListingSyncDomainService.validateApiFolderConflictsForApi(
                 input.auditInfo,

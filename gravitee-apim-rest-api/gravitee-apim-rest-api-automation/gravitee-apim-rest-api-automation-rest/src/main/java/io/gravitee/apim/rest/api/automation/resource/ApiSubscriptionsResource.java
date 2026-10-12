@@ -117,7 +117,10 @@ public class ApiSubscriptionsResource extends AbstractResource {
         return apiKeys
             .stream()
             .map(k ->
-                ApiKeyCRDSpec.builder().key(k.getKey()).expireAt(k.getExpireAt() != null ? k.getExpireAt().toZonedDateTime() : null).build()
+                ApiKeyCRDSpec.builder()
+                    .key(k.getKey())
+                    .expireAt(k.getExpireAt() != null ? k.getExpireAt().toZonedDateTime() : null)
+                    .build()
             )
             .toList();
     }

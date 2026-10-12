@@ -51,7 +51,7 @@ public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCusto
         }
 
         var result = mongoTemplate.find(query, AsyncJobMongo.class);
-        return new Page<>(result, (pageable != null) ? pageable.pageNumber() : 0, result.size(), total);
+        return new Page<>(result, pageable != null ? pageable.pageNumber() : 0, result.size(), total);
     }
 
     @Override

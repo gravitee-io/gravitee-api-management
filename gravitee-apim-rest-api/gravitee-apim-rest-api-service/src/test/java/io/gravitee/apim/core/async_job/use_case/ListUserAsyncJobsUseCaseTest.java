@@ -109,7 +109,12 @@ class ListUserAsyncJobsUseCaseTest {
         // Given
         var jobNumber = 20L;
         var jobs = LongStream.range(0, jobNumber)
-            .mapToObj(i -> AsyncJobFixture.anAsyncJob("job" + i).toBuilder().initiatorId(USER_ID).build())
+            .mapToObj(i ->
+                AsyncJobFixture.anAsyncJob("job" + i)
+                    .toBuilder()
+                    .initiatorId(USER_ID)
+                    .build()
+            )
             .toList();
         givenAsyncJobs(jobs);
 

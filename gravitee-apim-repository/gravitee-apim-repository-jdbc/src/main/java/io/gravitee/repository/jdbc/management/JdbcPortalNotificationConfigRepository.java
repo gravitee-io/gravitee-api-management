@@ -51,7 +51,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcPortalNotificationConfigRepository
     extends JdbcAbstractFindAllRepository<PortalNotificationConfig>
-    implements PortalNotificationConfigRepository {
+    implements PortalNotificationConfigRepository
+{
 
     private final String PORTAL_NOTIFICATION_CONFIG_HOOKS;
     private final String PORTAL_NOTIFICATION_CONFIG_GROUPS;

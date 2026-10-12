@@ -34,17 +34,18 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
 
     @Override
     public SubscriptionForm create(SubscriptionForm subscriptionForm) {
-        SubscriptionForm toStore = subscriptionForm.getId() == null
-            ? SubscriptionForm.builder()
-                .id(SubscriptionFormId.random())
-                .environmentId(subscriptionForm.getEnvironmentId())
-                .name(subscriptionForm.getName())
-                .gmdContent(subscriptionForm.getGmdContent())
-                .enabled(subscriptionForm.isEnabled())
-                .apiIds(subscriptionForm.getApiIds())
-                .validationConstraints(subscriptionForm.getValidationConstraints())
-                .build()
-            : subscriptionForm;
+        SubscriptionForm toStore =
+            subscriptionForm.getId() == null
+                ? SubscriptionForm.builder()
+                      .id(SubscriptionFormId.random())
+                      .environmentId(subscriptionForm.getEnvironmentId())
+                      .name(subscriptionForm.getName())
+                      .gmdContent(subscriptionForm.getGmdContent())
+                      .enabled(subscriptionForm.isEnabled())
+                      .apiIds(subscriptionForm.getApiIds())
+                      .validationConstraints(subscriptionForm.getValidationConstraints())
+                      .build()
+                : subscriptionForm;
         storage.add(toStore);
         return toStore;
     }

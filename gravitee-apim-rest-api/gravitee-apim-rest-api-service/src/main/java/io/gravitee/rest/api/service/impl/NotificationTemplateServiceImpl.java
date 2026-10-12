@@ -250,7 +250,8 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
 
         // Then we add a loader for portal template in files.
         StringTemplateLoader fileNotificationTemplatesLoader = new StringTemplateLoader();
-        this.fromFilesNotificationTemplateEntities.values()
+        this.fromFilesNotificationTemplateEntities
+            .values()
             .stream()
             .forEach(template -> {
                 if (template.getTitle() != null && !template.getTitle().isEmpty()) {
@@ -344,7 +345,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
             File emailTemplateFile = new File(templatesPath + "/" + emailTemplate.getHtmlTemplate());
 
             try {
-                String title = (emailTemplate.getSubject() == null ? "unused title" : emailTemplate.getSubject());
+                String title = emailTemplate.getSubject() == null ? "unused title" : emailTemplate.getSubject();
                 String content = new String(Files.readAllBytes(emailTemplateFile.toPath()));
 
                 return new NotificationTemplateEntity(
@@ -610,7 +611,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         notificationTemplate.setReferenceId(organization);
         notificationTemplate.setReferenceType(NotificationTemplateReferenceType.ORGANIZATION);
         notificationTemplate.setName(notificationTemplateEntity.getName());
-        notificationTemplate.setDescription((notificationTemplateEntity.getDescription()));
+        notificationTemplate.setDescription(notificationTemplateEntity.getDescription());
         notificationTemplate.setTitle(notificationTemplateEntity.getTitle());
         notificationTemplate.setContent(notificationTemplateEntity.getContent());
         notificationTemplate.setType(NotificationTemplateType.valueOf(notificationTemplateEntity.getType().name()));
@@ -628,7 +629,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         notificationTemplateEntity.setHook(notificationTemplate.getHook());
         notificationTemplateEntity.setScope(notificationTemplate.getScope());
         notificationTemplateEntity.setName(notificationTemplate.getName());
-        notificationTemplateEntity.setDescription((notificationTemplate.getDescription()));
+        notificationTemplateEntity.setDescription(notificationTemplate.getDescription());
         notificationTemplateEntity.setTitle(notificationTemplate.getTitle());
         notificationTemplateEntity.setContent(notificationTemplate.getContent());
         notificationTemplateEntity.setType(

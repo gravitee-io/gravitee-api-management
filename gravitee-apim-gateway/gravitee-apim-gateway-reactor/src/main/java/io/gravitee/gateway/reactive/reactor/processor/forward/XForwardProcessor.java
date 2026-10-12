@@ -59,7 +59,7 @@ public class XForwardProcessor implements Processor {
                         int idx = xForwardFor.indexOf(':');
                         String[] splits = xForwardFor.split(":");
 
-                        xForwardFor = (idx == -1) || (splits.length > 2) ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
+                        xForwardFor = idx == -1 || splits.length > 2 ? xForwardFor.trim() : xForwardFor.substring(0, idx).trim();
 
                         // X-Forwarded-For header must be reconstructed to include the gateway host address
                         ctx.request().remoteAddress(xForwardFor);

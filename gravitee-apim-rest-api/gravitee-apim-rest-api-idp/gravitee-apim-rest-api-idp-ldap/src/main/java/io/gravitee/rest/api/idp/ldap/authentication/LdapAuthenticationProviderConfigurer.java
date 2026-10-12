@@ -48,8 +48,10 @@ import org.springframework.util.Assert;
  * @since 3.2
  */
 @CustomLog
-public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>>
-    extends SecurityConfigurerAdapter<AuthenticationManager, B> {
+public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>> extends SecurityConfigurerAdapter<
+    AuthenticationManager,
+    B
+> {
 
     private String groupRoleAttribute = "cn";
     private String groupSearchBase = "";
@@ -134,9 +136,8 @@ public class LdapAuthenticationProviderConfigurer<B extends ProviderManagerBuild
      * @return the {@link LdapAuthenticator} to use
      */
     private LdapAuthenticator createLdapAuthenticator(BaseLdapPathContextSource contextSource) {
-        AbstractLdapAuthenticator ldapAuthenticator = passwordEncoder == null
-            ? createBindAuthenticator(contextSource)
-            : createPasswordCompareAuthenticator(contextSource);
+        AbstractLdapAuthenticator ldapAuthenticator =
+            passwordEncoder == null ? createBindAuthenticator(contextSource) : createPasswordCompareAuthenticator(contextSource);
         LdapUserSearch userSearch = createUserSearch();
         if (userSearch != null) {
             ldapAuthenticator.setUserSearch(userSearch);

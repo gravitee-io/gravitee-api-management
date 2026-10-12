@@ -60,7 +60,8 @@ public class UpdatePortalMenuLinkUseCase {
         var shouldMoveDown = newOrder < oldOrder;
         var orderIncrement = shouldMoveDown ? 1 : -1;
 
-        this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(updatedPortalMenuLink.getEnvironmentId())
+        this.portalMenuLinkQueryService
+            .findByEnvironmentIdSortByOrder(updatedPortalMenuLink.getEnvironmentId())
             .stream()
             .filter(menuLink -> !Objects.equals(menuLink.getId(), updatedPortalMenuLink.getId()))
             .filter(menuLink ->

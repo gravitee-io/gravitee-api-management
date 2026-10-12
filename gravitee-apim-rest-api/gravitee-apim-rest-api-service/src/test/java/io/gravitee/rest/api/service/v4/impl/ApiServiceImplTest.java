@@ -1239,7 +1239,13 @@ public class ApiServiceImplTest {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
-        apiDefinition.setListeners(singletonList(HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build()));
+        apiDefinition.setListeners(
+            singletonList(
+                HttpListener.builder()
+                    .paths(List.of(Path.builder().path("/context").build()))
+                    .build()
+            )
+        );
         apiDefinition.setProperties(properties);
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
     }
@@ -1401,7 +1407,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().path("/old").build()))
+            .build();
         apiDefinition.setListeners(singletonList(httpListener));
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1441,7 +1449,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().path("/old").build()))
+            .build();
         apiDefinition.setListeners(singletonList(httpListener));
         api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
 
@@ -1478,7 +1488,9 @@ public class ApiServiceImplTest {
         apiDefinition.setId(API_ID);
         apiDefinition.setName(API_NAME);
 
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/old").build())).build();
+        HttpListener httpListener = HttpListener.builder()
+            .paths(List.of(Path.builder().path("/old").build()))
+            .build();
 
         Analytics analytics = new Analytics();
         analytics.setEnabled(true);
@@ -1593,7 +1605,9 @@ public class ApiServiceImplTest {
         updateApiEntity.setEndpointGroups(singletonList(endpointGroup));
         updateApiEntity.setLifecycleState(CREATED);
 
-        HttpListener listener = HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build();
+        HttpListener listener = HttpListener.builder()
+            .paths(List.of(Path.builder().path(path).build()))
+            .build();
         updateApiEntity.setListeners(singletonList(listener));
     }
 

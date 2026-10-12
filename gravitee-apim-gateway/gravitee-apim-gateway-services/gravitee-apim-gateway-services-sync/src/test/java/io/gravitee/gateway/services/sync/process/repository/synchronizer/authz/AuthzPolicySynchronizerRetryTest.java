@@ -185,7 +185,11 @@ class AuthzPolicySynchronizerRetryTest {
         // Subsequent cycles only ever re-drive from the pending set (window empty).
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzPolicySynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                .synchronize((long) (i + 2), Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
         }
 
         // After exhaustion the pending entry is abandoned: one more healthy cycle re-drives nothing.

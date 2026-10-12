@@ -46,7 +46,11 @@ public class ApiDefinitionFixtures {
             .name("an-api")
             .version("1.0.0")
             .executionMode(ExecutionMode.V3)
-            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build());
+            .proxy(
+                Proxy.builder()
+                    .virtualHosts(List.of(new VirtualHost("/")))
+                    .build()
+            );
 
     private static final Supplier<NativeApi.NativeApiBuilder<?, ?>> BASE_NATIVE = () ->
         NativeApi.builder().name("an-api").apiVersion("1.0.0").type(ApiType.NATIVE);

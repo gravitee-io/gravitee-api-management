@@ -88,15 +88,13 @@ public class JerseyClientBuilder {
         final ClientConfig clientConfig = new ClientConfig().connectorProvider(
             new HttpUrlConnectorProvider().connectionFactory(url -> {
                 final String host = url.getHost();
-                final boolean excluded = proxyExcludeHosts
-                    .stream()
-                    .anyMatch(excludedHost -> {
-                        if (excludedHost.startsWith("*.")) {
-                            return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
-                        } else {
-                            return host.equals(excludedHost);
-                        }
-                    });
+                final boolean excluded = proxyExcludeHosts.stream().anyMatch(excludedHost -> {
+                    if (excludedHost.startsWith("*.")) {
+                        return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
+                    } else {
+                        return host.equals(excludedHost);
+                    }
+                });
 
                 if (excluded || (httpProxy == null && httpsProxy == null)) {
                     return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);

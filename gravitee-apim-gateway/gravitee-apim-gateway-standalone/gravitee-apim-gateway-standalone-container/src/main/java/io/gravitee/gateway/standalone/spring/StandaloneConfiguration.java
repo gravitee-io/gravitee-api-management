@@ -54,25 +54,23 @@ import org.springframework.context.annotation.Primary;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        OpenTelemetryConfiguration.class,
-        ReactorConfiguration.class,
-        VertxReactorConfiguration.class,
-        ReporterConfiguration.class,
-        ApiHandlerConfiguration.class,
-        AccessPointConfiguration.class,
-        SharedPolicyGroupConfiguration.class,
-        ClusterConfiguration.class,
-        ApiProductConfiguration.class,
-        CredentialConfiguration.class,
-        DictionaryConfiguration.class,
-        PolicyConfiguration.class,
-        PlatformConfiguration.class,
-        ConnectorConfiguration.class,
-        RequestConfiguration.class,
-    }
-)
+@Import({
+    OpenTelemetryConfiguration.class,
+    ReactorConfiguration.class,
+    VertxReactorConfiguration.class,
+    ReporterConfiguration.class,
+    ApiHandlerConfiguration.class,
+    AccessPointConfiguration.class,
+    SharedPolicyGroupConfiguration.class,
+    ClusterConfiguration.class,
+    ApiProductConfiguration.class,
+    CredentialConfiguration.class,
+    DictionaryConfiguration.class,
+    PolicyConfiguration.class,
+    PlatformConfiguration.class,
+    ConnectorConfiguration.class,
+    RequestConfiguration.class,
+})
 public class StandaloneConfiguration {
 
     @Bean

@@ -89,7 +89,10 @@ public abstract class AbstractResponse implements MutableResponse, HttpResponseI
         return Completable.defer(() -> {
             final BufferFlow bufferFlow = lazyBufferFlow();
             if (bufferFlow.hasChunks()) {
-                return bufferFlow.chunks().ignoreElements().andThen(Completable.fromRunnable(() -> ended = true));
+                return bufferFlow
+                    .chunks()
+                    .ignoreElements()
+                    .andThen(Completable.fromRunnable(() -> ended = true));
             }
 
             ended = true;

@@ -46,7 +46,7 @@ public class CategoryQueryServiceInMemory implements CategoryQueryService, InMem
     public Optional<Category> findByIdOrKey(String idOrKey, String environmentId) {
         return storage
             .stream()
-            .filter(category -> Objects.equals(idOrKey, category.getId()) || (Objects.equals(idOrKey, category.getKey())))
+            .filter(category -> Objects.equals(idOrKey, category.getId()) || Objects.equals(idOrKey, category.getKey()))
             .findFirst();
     }
 }

@@ -157,11 +157,11 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     private ApiMongo mapApi(Api api) {
-        return (api == null) ? null : mapper.map(api);
+        return api == null ? null : mapper.map(api);
     }
 
     private Api mapApi(ApiMongo apiMongo) {
-        return (apiMongo == null) ? null : mapper.map(apiMongo);
+        return apiMongo == null ? null : mapper.map(apiMongo);
     }
 
     private boolean isEmpty(Page page) {
@@ -173,7 +173,10 @@ public class MongoApiRepository implements ApiRepository {
     }
 
     private Pageable nextPageable(Page currentPage, Pageable pageable) {
-        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
+        return new PageableBuilder()
+            .pageSize(pageable.pageSize())
+            .pageNumber(currentPage.getPageNumber() + 1)
+            .build();
     }
 
     @Override

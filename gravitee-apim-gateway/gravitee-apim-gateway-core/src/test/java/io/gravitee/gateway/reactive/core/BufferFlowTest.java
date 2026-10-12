@@ -92,8 +92,7 @@ class BufferFlowTest {
         void should_not_apply_onBody_and_set_chunks_when_streaming_is_true() {
             cut = new BufferFlow(() -> true);
             assertThat(cut.hasChunks()).isFalse();
-            cut
-                .onBody(buffer -> Maybe.just(Buffer.buffer()))
+            cut.onBody(buffer -> Maybe.just(Buffer.buffer()))
                 .test()
                 .assertComplete();
             assertThat(cut.hasChunks()).isFalse();
@@ -104,8 +103,7 @@ class BufferFlowTest {
             Buffer chunks = Buffer.buffer("init");
             Buffer buffer = Buffer.buffer("mapped");
             cut = new BufferFlow(Flowable.just(chunks), () -> false);
-            cut
-                .onBody(body -> Maybe.just(buffer))
+            cut.onBody(body -> Maybe.just(buffer))
                 .test()
                 .assertComplete();
             cut.body().test().assertValue(buffer).assertComplete();
@@ -116,8 +114,7 @@ class BufferFlowTest {
         void should_return_single_empty_body_when_streaming_is_true() {
             Buffer chunks = Buffer.buffer("init");
             cut = new BufferFlow(Flowable.just(chunks), () -> true);
-            cut
-                .bodyOrEmpty()
+            cut.bodyOrEmpty()
                 .test()
                 .assertValue(buffer -> buffer.length() == 0);
         }
@@ -176,8 +173,7 @@ class BufferFlowTest {
             cut = new BufferFlow(Flowable.just(initial), () -> false);
             cut.registerBodyChangeListener(received::add);
 
-            cut
-                .onBody(body -> Maybe.just(transformed))
+            cut.onBody(body -> Maybe.just(transformed))
                 .test()
                 .assertComplete();
 

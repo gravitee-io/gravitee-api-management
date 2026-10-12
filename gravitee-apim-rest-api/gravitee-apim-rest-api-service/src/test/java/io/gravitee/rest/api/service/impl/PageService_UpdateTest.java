@@ -400,7 +400,9 @@ public class PageService_UpdateTest {
         linkTranslationPage.setConfiguration(translationConf);
         linkTranslationPage.setVisibility("PUBLIC");
 
-        doReturn(asList(linkPage)).when(pageRepository).search(argThat(p -> PageType.LINK.name().equals(p.getType())));
+        doReturn(asList(linkPage))
+            .when(pageRepository)
+            .search(argThat(p -> PageType.LINK.name().equals(p.getType())));
         doReturn(asList(translationPage))
             .when(pageRepository)
             .search(argThat(p -> PageType.TRANSLATION.name().equals(p.getType()) && PAGE_ID.equals(p.getParent())));
@@ -423,7 +425,9 @@ public class PageService_UpdateTest {
         updatedPage.setType("TRANSLATION");
         updatedPage.setPublished(true);
         updatedPage.setVisibility("PUBLIC");
-        doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
+        doReturn(updatedPage)
+            .when(pageRepository)
+            .update(argThat(p -> p.getId().equals(PAGE_ID)));
 
         pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), PAGE_ID, updatePageEntity);
         // neither content nor name are updated
@@ -630,7 +634,9 @@ public class PageService_UpdateTest {
         updatedPage.setType("MARKDOWN");
         updatedPage.setPublished(false);
         updatedPage.setVisibility("PUBLIC");
-        doReturn(updatedPage).when(pageRepository).update(argThat(p -> p.getId().equals(PAGE_ID)));
+        doReturn(updatedPage)
+            .when(pageRepository)
+            .update(argThat(p -> p.getId().equals(PAGE_ID)));
 
         PlanEntity planEntity = new PlanEntity();
         planEntity.setGeneralConditions(PAGE_ID);

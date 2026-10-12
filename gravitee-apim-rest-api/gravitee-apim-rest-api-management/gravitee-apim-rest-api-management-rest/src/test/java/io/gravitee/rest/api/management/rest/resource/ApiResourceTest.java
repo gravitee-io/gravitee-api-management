@@ -213,7 +213,9 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldAccessToApiState_asAdmin() {
-        final Response response = envTarget(API + "/state").request().get();
+        final Response response = envTarget(API + "/state")
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -300,7 +302,9 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiService)
             .deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
 
-        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+        final Response response = envTarget(API + "/deploy")
+            .request()
+            .post(Entity.json(deployEntity));
 
         assertEquals(OK_200, response.getStatus());
 
@@ -318,7 +322,9 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiService)
             .deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), eq(EventType.PUBLISH_API), any());
 
-        final Response response = envTarget(API + "/deploy").request().post(Entity.json(deployEntity));
+        final Response response = envTarget(API + "/deploy")
+            .request()
+            .post(Entity.json(deployEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
@@ -334,7 +340,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload")
+            .request()
+            .post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(OK_200, response.getStatus());
     }
 
@@ -347,7 +355,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload")
+            .request()
+            .post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message.contains("File format unauthorized"), message);
@@ -382,7 +392,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         );
         final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
         multiPart.bodyPart(filePart);
-        final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
+        final Response response = envTarget(API + "/media/upload")
+            .request()
+            .post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
         assertTrue(message.contains("Invalid image format"), message);
@@ -399,7 +411,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             )
         ).thenReturn(mockApi);
 
-        final Response response = envTarget(API + "/import-path-mappings").queryParam("page", "Foo").request().post(null);
+        final Response response = envTarget(API + "/import-path-mappings")
+            .queryParam("page", "Foo")
+            .request()
+            .post(null);
         assertEquals(OK_200, response.getStatus());
     }
 
@@ -425,7 +440,10 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAskForReview() {
         doReturn(mockApi).when(apiService).askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
-        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.ASK).request().post(null);
+        final Response response = envTarget(API + "/reviews")
+            .queryParam("action", ReviewAction.ASK)
+            .request()
+            .post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
@@ -433,7 +451,10 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldAcceptReview() {
         doReturn(mockApi).when(apiService).acceptReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
-        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.ACCEPT).request().post(null);
+        final Response response = envTarget(API + "/reviews")
+            .queryParam("action", ReviewAction.ACCEPT)
+            .request()
+            .post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
@@ -441,14 +462,20 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Test
     public void shouldRejectReview() {
         doReturn(mockApi).when(apiService).rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), any(), any());
-        final Response response = envTarget(API + "/reviews").queryParam("action", ReviewAction.REJECT).request().post(null);
+        final Response response = envTarget(API + "/reviews")
+            .queryParam("action", ReviewAction.REJECT)
+            .request()
+            .post(null);
 
         assertEquals(NO_CONTENT_204, response.getStatus());
     }
 
     @Test
     public void shouldReturnBadRequestWithInvalidReviewsAction() {
-        final Response response = envTarget(API + "/reviews").queryParam("action", "Soo bad action").request().post(null);
+        final Response response = envTarget(API + "/reviews")
+            .queryParam("action", "Soo bad action")
+            .request()
+            .post(null);
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
@@ -503,7 +530,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiExportService)
             .exportAsCustomResourceDefinition(any(), any(), any());
 
-        final Response response = envTarget().path(API + "/crd").request().get();
+        final Response response = envTarget()
+            .path(API + "/crd")
+            .request()
+            .get();
 
         assertEquals(INTERNAL_SERVER_ERROR_500, response.getStatus());
 
@@ -519,7 +549,10 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         doReturn("some-yaml").when(apiExportService).exportAsCustomResourceDefinition(any(), any(), any());
 
-        final Response response = envTarget().path(API + "/crd").request().get();
+        final Response response = envTarget()
+            .path(API + "/crd")
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
 
@@ -531,21 +564,21 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldRollbackApi_withV2Payload() {
         //given
         final String v2Payload = """
-            {
-              "id": "my-api",
-              "name": "My Api",
-              "version": "v1.0",
-              "description": "rollback test for v2",
-              "visibility": "PUBLIC",
-              "proxy": {
-                "virtual_hosts": [ { "path": "/test" } ],
-                "groups": []
-              },
-              "plans": [],
-              "flows": [],
-              "paths": {}
-            }
-            """;
+        {
+          "id": "my-api",
+          "name": "My Api",
+          "version": "v1.0",
+          "description": "rollback test for v2",
+          "visibility": "PUBLIC",
+          "proxy": {
+            "virtual_hosts": [ { "path": "/test" } ],
+            "groups": []
+          },
+          "plans": [],
+          "flows": [],
+          "paths": {}
+        }
+        """;
 
         ApiEntity rollbacked = new ApiEntity();
         rollbacked.setId(API);
@@ -554,7 +587,9 @@ public class ApiResourceTest extends AbstractResourceTest {
         doReturn(rollbacked).when(apiService).rollback(eq(GraviteeContext.getExecutionContext()), eq(API), any());
 
         // when
-        Response response = envTarget(API + "/rollback").request().post(Entity.json(v2Payload));
+        Response response = envTarget(API + "/rollback")
+            .request()
+            .post(Entity.json(v2Payload));
 
         // then
         assertEquals(OK_200, response.getStatus());
@@ -568,25 +603,27 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldReturnBadRequest_onV4PayloadForRollback() {
         //given
         final String v4Payload = """
-            {
-              "id": "my-api",
-              "name": "v4 api",
-              "version": "1.0",
-              "description": "v4 api description",
-              "visibility": "PRIVATE",
-              "definitionVersion": "4.0.0",
-              "proxy": {
-                "virtual_hosts": [ { "path": "/" } ],
-                "groups": []
-              },
-              "plans": [],
-              "flows": [],
-              "paths": {}
-            }
-            """;
+        {
+          "id": "my-api",
+          "name": "v4 api",
+          "version": "1.0",
+          "description": "v4 api description",
+          "visibility": "PRIVATE",
+          "definitionVersion": "4.0.0",
+          "proxy": {
+            "virtual_hosts": [ { "path": "/" } ],
+            "groups": []
+          },
+          "plans": [],
+          "flows": [],
+          "paths": {}
+        }
+        """;
 
         // when
-        Response response = envTarget(API + "/rollback").request().post(Entity.json(v4Payload));
+        Response response = envTarget(API + "/rollback")
+            .request()
+            .post(Entity.json(v4Payload));
 
         // then
         assertEquals(BAD_REQUEST_400, response.getStatus());
@@ -616,7 +653,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiDuplicatorService)
             .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = envTarget().path(API + "/import").request().put(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = envTarget()
+            .path(API + "/import")
+            .request()
+            .put(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE));
 
         assertEquals(OK_200, response.getStatus());
 
@@ -647,7 +687,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiDuplicatorService)
             .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = envTarget().path(API + "/import-url").request().put(Entity.text(body));
+        final Response response = envTarget()
+            .path(API + "/import-url")
+            .request()
+            .put(Entity.text(body));
 
         assertEquals(OK_200, response.getStatus());
         ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
@@ -675,7 +718,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiDuplicatorService)
             .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = envTarget().path(API + "/import").request().put(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE));
+        final Response response = envTarget()
+            .path(API + "/import")
+            .request()
+            .put(Entity.entity(json, MediaType.APPLICATION_JSON_TYPE));
 
         assertEquals(OK_200, response.getStatus());
 
@@ -705,7 +751,10 @@ public class ApiResourceTest extends AbstractResourceTest {
             .when(apiDuplicatorService)
             .updateWithImportedDefinition(eq(GraviteeContext.getExecutionContext()), any(), any());
 
-        final Response response = envTarget().path(API + "/import-url").request().put(Entity.text(body));
+        final Response response = envTarget()
+            .path(API + "/import-url")
+            .request()
+            .put(Entity.text(body));
 
         assertEquals(OK_200, response.getStatus());
         ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);

@@ -229,7 +229,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void findByCriteria_should_find_by_subscriptions() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().includeRevoked(false).subscriptions(List.of("sub4", "sub5", "sub6")).build()
+            ApiKeyCriteria.builder()
+                .includeRevoked(false)
+                .subscriptions(List.of("sub4", "sub5", "sub6"))
+                .build()
         );
         assertEquals(1, apiKeys.size());
         assertTrue(Set.of("sub4", "sub5", "sub6").containsAll(apiKeys.get(0).getSubscriptions()));
@@ -326,7 +329,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
+            ApiKeyCriteria.builder()
+                .expireAfter(30019401755L)
+                .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
+                .build()
         );
 
         assertEquals(2, apiKeys.size(), "found 2 API Keys");
@@ -397,7 +403,10 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void findByCriteria_should_read_subscriptions_list() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
+            ApiKeyCriteria.builder()
+                .expireAfter(30019401755L)
+                .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
+                .build()
         );
         apiKeys.sort(Comparator.comparing(apikey -> apikey.getSubscriptions().size()));
 

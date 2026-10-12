@@ -151,12 +151,10 @@ public class FlowChain implements Hookable<ChainHook> {
         final ExecutionPhase phase,
         final List<Flow> executedFlows
     ) {
-        return conditionFilter
-            .filter(ctx, flow)
-            .flatMapCompletable(matchedFlow -> {
-                executedFlows.add(matchedFlow);
-                return executeFlow(ctx, matchedFlow, phase);
-            });
+        return conditionFilter.filter(ctx, flow).flatMapCompletable(matchedFlow -> {
+            executedFlows.add(matchedFlow);
+            return executeFlow(ctx, matchedFlow, phase);
+        });
     }
 
     private Completable interruptIfNoFlowExecuted(

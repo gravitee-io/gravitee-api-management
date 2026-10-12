@@ -209,7 +209,9 @@ public class ApiMetadataQueryServiceImplTest {
 
     @SneakyThrows
     private void givenExistingApiMetadata(String apiId, List<Metadata.MetadataBuilder> metadata) {
-        lenient().when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), any())).thenReturn(List.of());
+        lenient()
+            .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), any()))
+            .thenReturn(List.of());
 
         lenient()
             .when(metadataRepository.findByReferenceTypeAndReferenceId(eq(MetadataReferenceType.API), eq(apiId)))

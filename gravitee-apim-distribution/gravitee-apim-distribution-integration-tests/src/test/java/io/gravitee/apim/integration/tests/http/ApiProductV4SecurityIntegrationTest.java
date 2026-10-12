@@ -109,9 +109,11 @@ class ApiProductV4SecurityIntegrationTest {
     class JwtSecurityTypeScenarios extends SecurityTestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_return_200_success_with_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
             final String productId = "jwt-product-success";
             final String planId = "jwt-product-plan-success";
@@ -125,9 +127,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_return_401_unauthorized_with_wrong_security_on_the_api_product_api(HttpClient client) {
             final String productId = "jwt-product-wrong-security";
             final String planId = "jwt-product-plan-wrong-security";
@@ -141,9 +145,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_keep_sibling_api_accessible_via_jwt_after_one_api_is_removed_from_product(HttpClient client) throws Exception {
             final String productId = "jwt-product-deletion-sibling";
             final String planId = "jwt-product-plan-deletion-sibling";
@@ -166,9 +172,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_return_401_unauthorized_with_expired_jwt_and_subscription_on_the_api_product_api(HttpClient client) throws Exception {
             final String productId = "jwt-product-expired";
             final String planId = "jwt-product-plan-expired";
@@ -215,9 +223,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_be_able_to_call_api_product_with_mtls_plan(@WithCert HttpClient client) throws Exception {
             final String productId = "mtls-product-success";
             final String planId = PLAN_MTLS_ID;
@@ -235,9 +245,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_be_able_to_call_api_product_with_mtls_plan_and_several_cert(@WithCert HttpClient client) throws Exception {
             final String productId = "mtls-product-multi-cert";
             final String planId = PLAN_MTLS_ID;
@@ -255,9 +267,11 @@ class ApiProductV4SecurityIntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_not_be_able_to_call_api_product_with_mtls_plan_if_no_cert_in_request(HttpClient client) {
             final String productId = "mtls-product-no-cert";
             final String planId = PLAN_MTLS_ID;

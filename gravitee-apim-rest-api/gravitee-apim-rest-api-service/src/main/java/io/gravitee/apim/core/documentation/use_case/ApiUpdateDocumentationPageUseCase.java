@@ -131,7 +131,8 @@ public class ApiUpdateDocumentationPageUseCase {
         var shouldMoveDown = newOrder < oldOrder;
         var orderIncrement = shouldMoveDown ? 1 : -1;
 
-        this.pageQueryService.searchByApiIdAndParentId(updatedPage.getReferenceId(), updatedPage.getParentId())
+        this.pageQueryService
+            .searchByApiIdAndParentId(updatedPage.getReferenceId(), updatedPage.getParentId())
             .stream()
             .filter(page -> !Objects.equals(page.getId(), updatedPage.getId()))
             .filter(page ->

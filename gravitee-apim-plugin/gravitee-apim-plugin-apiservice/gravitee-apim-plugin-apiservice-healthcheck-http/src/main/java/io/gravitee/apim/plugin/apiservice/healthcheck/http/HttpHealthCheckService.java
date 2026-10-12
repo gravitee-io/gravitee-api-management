@@ -297,19 +297,20 @@ public class HttpHealthCheckService implements ApiService {
             ctx.withLogger(log).debug("HealthCheck failed for API [{}] endpoint [{}], request timed out", api.getId(), endpointName, err);
             statusCode = HttpStatusCode.GATEWAY_TIMEOUT_504;
         } else if (err instanceof UnknownHostException || err instanceof SocketException) {
-            ctx
-                .withLogger(log)
-                .debug("HealthCheck failed for API [{}] endpoint [{}], unable to connect to the service", api.getId(), endpointName, err);
+            ctx.withLogger(log).debug(
+                "HealthCheck failed for API [{}] endpoint [{}], unable to connect to the service",
+                api.getId(),
+                endpointName,
+                err
+            );
             statusCode = UNREACHABLE_SERVICE;
         } else if (err instanceof InterruptionFailureException ife && ife.getExecutionFailure() != null) {
-            ctx
-                .withLogger(log)
-                .debug(
-                    "HealthCheck failed for API [{}] endpoint [{}], connector raised an execution failure",
-                    api.getId(),
-                    endpointName,
-                    err
-                );
+            ctx.withLogger(log).debug(
+                "HealthCheck failed for API [{}] endpoint [{}], connector raised an execution failure",
+                api.getId(),
+                endpointName,
+                err
+            );
             statusCode = ife.getExecutionFailure().statusCode();
         } else {
             ctx.withLogger(log).debug("HealthCheck failed for API [{}] endpoint [{}], unexpected error", api.getId(), endpointName, err);
@@ -336,7 +337,7 @@ public class HttpHealthCheckService implements ApiService {
                 endpoint.getDefinition().getName(),
                 throwable
             );
-        } else if ((errorCount.get() % LOG_ERROR_COUNT == 0)) {
+        } else if (errorCount.get() % LOG_ERROR_COUNT == 0) {
             logFromNullableExecutionContext(ctxRef).warn(
                 "Unable to run health check for api [{}] and endpoint [{}] (times: {}, see previous log report for details).",
                 api.getId(),

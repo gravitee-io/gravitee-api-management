@@ -403,7 +403,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             // closes on, which spans the interval starting at `to` — a point of the series like any other.
             // 245.0 is their average, and it is only in range because TimeProvider.TRAFFIC_SAMPLE_TIME sits
             // inside that interval. Move the constant past it and this value disappears.
-            assertThat(requireNonNull(result).getAverageBy().entrySet()).hasSize((int) nbBuckets + 1).haveAtMost(3, STRICT_POSITIVE);
+            assertThat(requireNonNull(result).getAverageBy().entrySet())
+                .hasSize((int) nbBuckets + 1)
+                .haveAtMost(3, STRICT_POSITIVE);
             double[] array = result
                 .getAverageBy()
                 .values()
@@ -445,9 +447,18 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             var nbBuckets = Duration.between(from, to).dividedBy(interval) + 1;
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(result.getStatusCount()).containsOnlyKeys("200", "202", "404");
-                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).contains(1L, atIndex(28));
-                softly.assertThat(result.getStatusCount().get("202")).hasSize((int) nbBuckets).contains(2L, atIndex(61));
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).contains(3L, atIndex(61));
+                softly
+                    .assertThat(result.getStatusCount().get("200"))
+                    .hasSize((int) nbBuckets)
+                    .contains(1L, atIndex(28));
+                softly
+                    .assertThat(result.getStatusCount().get("202"))
+                    .hasSize((int) nbBuckets)
+                    .contains(2L, atIndex(61));
+                softly
+                    .assertThat(result.getStatusCount().get("404"))
+                    .hasSize((int) nbBuckets)
+                    .contains(3L, atIndex(61));
             });
         }
 
@@ -482,7 +493,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                             .sum()
                     )
                     .isEqualTo(5);
-                softly.assertThat(result.getStatusCount().get("200")).hasSize((int) nbBuckets).haveAtMost(5, not(is(0)));
+                softly
+                    .assertThat(result.getStatusCount().get("200"))
+                    .hasSize((int) nbBuckets)
+                    .haveAtMost(5, not(is(0)));
                 softly
                     .assertThat(result.getStatusCount().get("202"))
                     .hasSize((int) nbBuckets)
@@ -498,7 +512,10 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                             .sum()
                     )
                     .isEqualTo(3);
-                softly.assertThat(result.getStatusCount().get("404")).hasSize((int) nbBuckets).haveAtMost(2, not(is(0)));
+                softly
+                    .assertThat(result.getStatusCount().get("404"))
+                    .hasSize((int) nbBuckets)
+                    .haveAtMost(2, not(is(0)));
             });
         }
 

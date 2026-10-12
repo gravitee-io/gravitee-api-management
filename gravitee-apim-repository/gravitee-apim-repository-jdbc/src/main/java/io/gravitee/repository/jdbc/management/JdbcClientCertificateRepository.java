@@ -44,7 +44,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcClientCertificateRepository
     extends JdbcAbstractCrudRepository<ClientCertificate, String>
-    implements ClientCertificateRepository {
+    implements ClientCertificateRepository
+{
 
     JdbcClientCertificateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "client_certificates");
@@ -201,15 +202,16 @@ public class JdbcClientCertificateRepository
                 sql += " AND cc.application_id != ?";
             }
 
-            Object[] args = excludeApplicationId != null
-                ? new Object[] {
-                    fingerprint,
-                    environmentId,
-                    ClientCertificateStatus.REVOKED.name(),
-                    ApplicationStatus.ACTIVE.name(),
-                    excludeApplicationId,
-                }
-                : new Object[] { fingerprint, environmentId, ClientCertificateStatus.REVOKED.name(), ApplicationStatus.ACTIVE.name() };
+            Object[] args =
+                excludeApplicationId != null
+                    ? new Object[] {
+                          fingerprint,
+                          environmentId,
+                          ClientCertificateStatus.REVOKED.name(),
+                          ApplicationStatus.ACTIVE.name(),
+                          excludeApplicationId,
+                      }
+                    : new Object[] { fingerprint, environmentId, ClientCertificateStatus.REVOKED.name(), ApplicationStatus.ACTIVE.name() };
 
             List<Integer> results = jdbcTemplate.queryForList(sql, Integer.class, args);
 

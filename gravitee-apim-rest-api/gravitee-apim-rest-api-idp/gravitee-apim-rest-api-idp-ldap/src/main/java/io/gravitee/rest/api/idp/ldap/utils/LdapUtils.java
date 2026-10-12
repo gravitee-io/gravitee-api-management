@@ -41,7 +41,7 @@ public final class LdapUtils {
             String attribute = parts[0];
             int idxSep = Math.max(attribute.lastIndexOf(','), attribute.lastIndexOf('('));
 
-            int idx = (idxSep == -1) ? 0 : idxSep + 1;
+            int idx = idxSep == -1 ? 0 : idxSep + 1;
             return attribute.substring(idx);
         }
 

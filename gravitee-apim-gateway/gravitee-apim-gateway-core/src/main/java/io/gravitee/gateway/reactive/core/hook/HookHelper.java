@@ -124,18 +124,19 @@ public class HookHelper {
         final ExecutionFailure executionFailure
     ) {
         return Flowable.fromIterable(hooks)
-            .concatMapCompletable(hook ->
-                switch (phase) {
-                    case PRE -> hook.pre(componentId, ctx, executionPhase);
-                    case POST -> hook.post(componentId, ctx, executionPhase);
-                    case INTERRUPT -> hook.interrupt(componentId, ctx, executionPhase);
-                    case INTERRUPT_WITH -> hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
-                    case ERROR -> hook.error(componentId, ctx, executionPhase, throwable);
-                    case CANCEL -> {
-                        hook.cancel(componentId, ctx, executionPhase);
-                        yield Completable.complete();
+            .concatMapCompletable(
+                hook ->
+                    switch (phase) {
+                        case PRE -> hook.pre(componentId, ctx, executionPhase);
+                        case POST -> hook.post(componentId, ctx, executionPhase);
+                        case INTERRUPT -> hook.interrupt(componentId, ctx, executionPhase);
+                        case INTERRUPT_WITH -> hook.interruptWith(componentId, ctx, executionPhase, executionFailure);
+                        case ERROR -> hook.error(componentId, ctx, executionPhase, throwable);
+                        case CANCEL -> {
+                            hook.cancel(componentId, ctx, executionPhase);
+                            yield Completable.complete();
+                        }
                     }
-                }
             )
             .doOnError(error -> ctx.withLogger(log).warn("Unable to execute '{}' hook on '{}'", phase.name(), componentId, error))
             .onErrorComplete();

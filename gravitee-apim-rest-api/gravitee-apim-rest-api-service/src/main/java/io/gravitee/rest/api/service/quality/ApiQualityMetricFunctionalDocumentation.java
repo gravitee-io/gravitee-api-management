@@ -45,8 +45,7 @@ public class ApiQualityMetricFunctionalDocumentation implements ApiQualityMetric
                     executionContext.getEnvironmentId(),
                     new PageQuery.Builder().api(api.getId()).published(true).type(PageType.MARKDOWN).build()
                 )
-                .size() >
-            0L
+                .size() > 0L
         );
     }
 }

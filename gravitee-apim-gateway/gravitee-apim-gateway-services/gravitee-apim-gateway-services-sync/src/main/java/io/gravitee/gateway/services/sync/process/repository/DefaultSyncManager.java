@@ -210,21 +210,19 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                             .compose(upstream -> retrySynchronizer(upstream, synchronizer.getClass().getSimpleName()))
                     );
                 }
-                return synchronizationCompletable
-                    .andThen(distributedSyncService.storeState(nextFromTime, nextToTime))
-                    .doOnComplete(() -> {
-                        lastSyncOnError.set(false);
-                        lastSyncErrorMessage.set(null);
-                        syncReadyForProbe.set(true);
-                        nextFromTime = nextToTime;
+                return synchronizationCompletable.andThen(distributedSyncService.storeState(nextFromTime, nextToTime)).doOnComplete(() -> {
+                    lastSyncOnError.set(false);
+                    lastSyncErrorMessage.set(null);
+                    syncReadyForProbe.set(true);
+                    nextFromTime = nextToTime;
 
-                        log.debug(
-                            "Synchronization #{} ended at {} (took {}ms}",
-                            syncCounter.get(),
-                            Instant.now().toString(),
-                            System.currentTimeMillis() - nextToTime
-                        );
-                    });
+                    log.debug(
+                        "Synchronization #{} ended at {} (took {}ms}",
+                        syncCounter.get(),
+                        Instant.now().toString(),
+                        System.currentTimeMillis() - nextToTime
+                    );
+                });
             })
             .doOnError(throwable -> {
                 // This condition is only to avoid printing the stacktrace on every loop

@@ -1621,8 +1621,14 @@ class PatchApiUseCaseTest {
             flowCrudService.saveApiFlows(
                 API_ID,
                 List.of(
-                    aFlow("flow-0", List.of(aStep("s0", "policy-a"))).toBuilder().id("flow-0-id").build(),
-                    aFlow("flow-1", List.of(aStep("s1", "policy-b"))).toBuilder().id("flow-1-id").build()
+                    aFlow("flow-0", List.of(aStep("s0", "policy-a")))
+                        .toBuilder()
+                        .id("flow-0-id")
+                        .build(),
+                    aFlow("flow-1", List.of(aStep("s1", "policy-b")))
+                        .toBuilder()
+                        .id("flow-1-id")
+                        .build()
                 )
             );
 
@@ -1728,7 +1734,11 @@ class PatchApiUseCaseTest {
         @Test
         void selector_polymorphism_round_trips_through_patch_view() {
             var http = HttpSelector.builder().path("/foo").build();
-            var flowWithSelector = Flow.builder().name("f1").selectors(List.of(http)).request(List.of(aStep("s1", "policy-a"))).build();
+            var flowWithSelector = Flow.builder()
+                .name("f1")
+                .selectors(List.of(http))
+                .request(List.of(aStep("s1", "policy-a")))
+                .build();
             givenExistingApi(apiWithFlows(List.of(flowWithSelector)));
 
             var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
@@ -1861,9 +1871,10 @@ class PatchApiUseCaseTest {
                 )
             );
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/flows/0/request/0/" + field, newValue)
-                : buildMergeStepEdit(field, newValue);
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/flows/0/request/0/" + field, newValue)
+                    : buildMergeStepEdit(field, newValue);
 
             var output = execute(type, body, false);
 
@@ -1984,7 +1995,14 @@ class PatchApiUseCaseTest {
             var http = HttpSelector.builder().path("/api").pathOperator(Operator.EQUALS).build();
             givenExistingApi(
                 apiWithFlows(
-                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                    List.of(
+                        Flow.builder()
+                            .name("f1")
+                            .enabled(true)
+                            .selectors(List.of(http))
+                            .request(List.of(aStep("s1", "p1")))
+                            .build()
+                    )
                 )
             );
 
@@ -2029,7 +2047,14 @@ class PatchApiUseCaseTest {
                 .build();
             givenExistingApi(
                 apiWithFlows(
-                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                    List.of(
+                        Flow.builder()
+                            .name("f1")
+                            .enabled(true)
+                            .selectors(List.of(http))
+                            .request(List.of(aStep("s1", "p1")))
+                            .build()
+                    )
                 )
             );
 
@@ -2055,7 +2080,14 @@ class PatchApiUseCaseTest {
             var http = HttpSelector.builder().path("/old").pathOperator(Operator.EQUALS).build();
             givenExistingApi(
                 apiWithFlows(
-                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                    List.of(
+                        Flow.builder()
+                            .name("f1")
+                            .enabled(true)
+                            .selectors(List.of(http))
+                            .request(List.of(aStep("s1", "p1")))
+                            .build()
+                    )
                 )
             );
 
@@ -2084,7 +2116,14 @@ class PatchApiUseCaseTest {
                 .build();
             givenExistingApi(
                 apiWithFlows(
-                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(http)).request(List.of(aStep("s1", "p1"))).build())
+                    List.of(
+                        Flow.builder()
+                            .name("f1")
+                            .enabled(true)
+                            .selectors(List.of(http))
+                            .request(List.of(aStep("s1", "p1")))
+                            .build()
+                    )
                 )
             );
 
@@ -2104,7 +2143,14 @@ class PatchApiUseCaseTest {
             var cond = ConditionSelector.builder().condition("{#old}").build();
             givenExistingApi(
                 apiWithFlows(
-                    List.of(Flow.builder().name("f1").enabled(true).selectors(List.of(cond)).request(List.of(aStep("s1", "p1"))).build())
+                    List.of(
+                        Flow.builder()
+                            .name("f1")
+                            .enabled(true)
+                            .selectors(List.of(cond))
+                            .request(List.of(aStep("s1", "p1")))
+                            .build()
+                    )
                 )
             );
 
@@ -2224,7 +2270,12 @@ class PatchApiUseCaseTest {
         @EnumSource(PatchApiUseCase.PatchType.class)
         void real_patch_response_returns_db_generated_flow_id(PatchApiUseCase.PatchType type) {
             givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
-            var dbFlow = Flow.builder().id("server-uuid").name("f1").enabled(true).request(List.of(aStep("s1", "policy-a"))).build();
+            var dbFlow = Flow.builder()
+                .id("server-uuid")
+                .name("f1")
+                .enabled(true)
+                .request(List.of(aStep("s1", "policy-a")))
+                .build();
             when(updateApiDomainService.updateV4(any(), any())).thenAnswer(inv -> {
                 flowCrudService.saveApiFlows(API_ID, List.of(dbFlow));
                 return inv.getArgument(0);
@@ -2834,36 +2885,37 @@ class PatchApiUseCaseTest {
         void modifying_endpoint_weight_persists_only_that_field(PatchApiUseCase.PatchType type) {
             givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/endpoints/0/weight", 5)
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    5,
-                                    "inheritConfiguration",
-                                    true,
-                                    "configuration",
-                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/endpoints/0/weight", 5)
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          5,
+                                          "inheritConfiguration",
+                                          true,
+                                          "configuration",
+                                          "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -2878,38 +2930,39 @@ class PatchApiUseCaseTest {
         void modifying_endpoint_secondary_flag_persists_only_that_field(PatchApiUseCase.PatchType type) {
             givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/endpoints/0/secondary", true)
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    1,
-                                    "inheritConfiguration",
-                                    true,
-                                    "secondary",
-                                    true,
-                                    "configuration",
-                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/endpoints/0/secondary", true)
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          1,
+                                          "inheritConfiguration",
+                                          true,
+                                          "secondary",
+                                          true,
+                                          "configuration",
+                                          "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -2926,38 +2979,39 @@ class PatchApiUseCaseTest {
             givenExistingApi(apiWithEndpointGroups(List.of(groupWithHc)));
 
             var enabledHc = Map.of("enabled", true, "type", "http-health-check");
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/services/healthCheck", enabledHc)
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "services",
-                            Map.of("healthCheck", enabledHc),
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    1,
-                                    "inheritConfiguration",
-                                    true,
-                                    "configuration",
-                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/services/healthCheck", enabledHc)
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "services",
+                                  Map.of("healthCheck", enabledHc),
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          1,
+                                          "inheritConfiguration",
+                                          true,
+                                          "configuration",
+                                          "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -3051,36 +3105,37 @@ class PatchApiUseCaseTest {
                 .build();
             givenExistingApi(apiWithEndpointGroups(List.of(group)));
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/endpoints/0/inheritConfiguration", true)
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    1,
-                                    "inheritConfiguration",
-                                    true,
-                                    "configuration",
-                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/endpoints/0/inheritConfiguration", true)
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          1,
+                                          "inheritConfiguration",
+                                          true,
+                                          "configuration",
+                                          "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -3096,9 +3151,10 @@ class PatchApiUseCaseTest {
         void modifying_group_name_persists_only_that_field(PatchApiUseCase.PatchType type) {
             givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/name", "group-renamed")
-                : mergePatch("endpointGroups", List.of(groupMap("group-renamed")));
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/name", "group-renamed")
+                    : mergePatch("endpointGroups", List.of(groupMap("group-renamed")));
 
             var output = execute(type, body, false);
 
@@ -3116,38 +3172,39 @@ class PatchApiUseCaseTest {
             var group = aGroup("group-a").toBuilder().loadBalancer(loadBalancer).build();
             givenExistingApi(apiWithEndpointGroups(List.of(group)));
 
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/loadBalancer/type", "RANDOM")
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "loadBalancer",
-                            Map.of("type", "RANDOM"),
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    1,
-                                    "inheritConfiguration",
-                                    true,
-                                    "configuration",
-                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/loadBalancer/type", "RANDOM")
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "loadBalancer",
+                                  Map.of("type", "RANDOM"),
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          1,
+                                          "inheritConfiguration",
+                                          true,
+                                          "configuration",
+                                          "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -3178,36 +3235,37 @@ class PatchApiUseCaseTest {
             givenExistingApi(apiWithEndpointGroups(List.of(group)));
 
             var newConfig = Map.of("target", "https://updated.io");
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups/0/endpoints/0/configuration", newConfig)
-                : mergePatch(
-                    "endpointGroups",
-                    List.of(
-                        Map.of(
-                            "name",
-                            "group-a",
-                            "type",
-                            "http-proxy",
-                            "sharedConfiguration",
-                            "{}",
-                            "endpoints",
-                            List.of(
-                                Map.of(
-                                    "name",
-                                    "default-endpoint",
-                                    "type",
-                                    "http-proxy",
-                                    "weight",
-                                    1,
-                                    "inheritConfiguration",
-                                    true,
-                                    "configuration",
-                                    newConfig
-                                )
-                            )
-                        )
-                    )
-                );
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups/0/endpoints/0/configuration", newConfig)
+                    : mergePatch(
+                          "endpointGroups",
+                          List.of(
+                              Map.of(
+                                  "name",
+                                  "group-a",
+                                  "type",
+                                  "http-proxy",
+                                  "sharedConfiguration",
+                                  "{}",
+                                  "endpoints",
+                                  List.of(
+                                      Map.of(
+                                          "name",
+                                          "default-endpoint",
+                                          "type",
+                                          "http-proxy",
+                                          "weight",
+                                          1,
+                                          "inheritConfiguration",
+                                          true,
+                                          "configuration",
+                                          newConfig
+                                      )
+                                  )
+                              )
+                          )
+                      );
 
             var output = execute(type, body, false);
 
@@ -3271,9 +3329,10 @@ class PatchApiUseCaseTest {
                     )
                 )
             );
-            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
-                ? patch("replace", "/endpointGroups", List.of(malformedGroup))
-                : mergePatch("endpointGroups", List.of(malformedGroup));
+            var body =
+                type == PatchApiUseCase.PatchType.JSON_PATCH
+                    ? patch("replace", "/endpointGroups", List.of(malformedGroup))
+                    : mergePatch("endpointGroups", List.of(malformedGroup));
 
             assertThatThrownBy(() -> execute(type, body, false))
                 .isInstanceOf(ValidationDomainException.class)

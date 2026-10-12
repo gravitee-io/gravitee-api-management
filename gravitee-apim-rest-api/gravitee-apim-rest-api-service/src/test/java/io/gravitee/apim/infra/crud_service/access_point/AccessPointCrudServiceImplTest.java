@@ -94,12 +94,10 @@ class AccessPointCrudServiceImplTest {
 
             var accessPointCaptor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.AccessPoint.class);
             verify(accessPointRepository, times(2)).update(accessPointCaptor.capture());
-            accessPointCaptor
-                .getAllValues()
-                .forEach(ap -> {
-                    assertThat(ap.getStatus()).isEqualTo(AccessPointStatus.DELETED);
-                    assertThat(ap.getUpdatedAt()).isAfter(dateBeforeDeletion).isBefore(dateAfterDeletion);
-                });
+            accessPointCaptor.getAllValues().forEach(ap -> {
+                assertThat(ap.getStatus()).isEqualTo(AccessPointStatus.DELETED);
+                assertThat(ap.getUpdatedAt()).isAfter(dateBeforeDeletion).isBefore(dateAfterDeletion);
+            });
             verify(eventManager, times(2)).publishEvent(eq(AccessPointEvent.DELETED), any(AccessPoint.class));
         }
     }
@@ -148,7 +146,10 @@ class AccessPointCrudServiceImplTest {
                 .build();
             var accessPoints = List.of(
                 // update the host to make sure the upper case is considered as equals too
-                AccessPointAdapter.INSTANCE.toEntity(unmodifiedAccessPoint).toBuilder().host("host-1".toUpperCase()).build(),
+                AccessPointAdapter.INSTANCE.toEntity(unmodifiedAccessPoint)
+                    .toBuilder()
+                    .host("host-1".toUpperCase())
+                    .build(),
                 AccessPointAdapter.INSTANCE.toEntity(modifiedAccessPoint).toBuilder().host("modified-host").build()
             );
             when(accessPointRepository.findByCriteria(any(AccessPointCriteria.class), any(), any())).thenReturn(

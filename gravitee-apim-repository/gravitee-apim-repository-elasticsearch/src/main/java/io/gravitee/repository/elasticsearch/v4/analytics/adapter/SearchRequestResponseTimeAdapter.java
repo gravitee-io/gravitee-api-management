@@ -103,7 +103,7 @@ public class SearchRequestResponseTimeAdapter {
             var totalRequestValue = response.getSearchHits().getTotal().getValue();
             requestResponseTimeAggregateBuilder.requestsTotal(totalRequestValue);
 
-            var timeDiffInSeconds = ((queryCriteria.to() - queryCriteria.from()) / 1000);
+            var timeDiffInSeconds = (queryCriteria.to() - queryCriteria.from()) / 1000;
             double requestsPerSecond = (double) totalRequestValue / timeDiffInSeconds;
             requestResponseTimeAggregateBuilder.requestsPerSecond(requestsPerSecond);
         }

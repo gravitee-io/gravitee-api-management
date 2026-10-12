@@ -42,7 +42,7 @@ public class V4EmulationEngineServiceImpl implements V4EmulationEngineService {
     @Override
     public ExecutionMode getExecutionModeFor(final JsonNode apiDefinition) {
         // When apiDefinition is null, that means it is not an import
-        if (((defaultMode == DefaultMode.YES) || (apiDefinition == null && defaultMode == DefaultMode.CREATION_ONLY))) {
+        if (defaultMode == DefaultMode.YES || (apiDefinition == null && defaultMode == DefaultMode.CREATION_ONLY)) {
             return ExecutionMode.V4_EMULATION_ENGINE;
         }
         return ExecutionMode.V3;

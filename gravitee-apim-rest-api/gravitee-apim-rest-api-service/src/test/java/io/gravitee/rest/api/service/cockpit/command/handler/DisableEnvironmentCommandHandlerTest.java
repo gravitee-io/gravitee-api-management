@@ -121,8 +121,7 @@ class DisableEnvironmentCommandHandlerTest {
             Optional.ofNullable(User.builder().id(RESOLVED_APIM_USER_ID).build())
         );
 
-        cut
-            .handle(aDisableEnvCommand())
+        cut.handle(aDisableEnvCommand())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
@@ -140,8 +139,7 @@ class DisableEnvironmentCommandHandlerTest {
     void handleThrowsException() {
         when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenThrow(new EnvironmentNotFoundException(ENV_COCKPIT_ID));
 
-        cut
-            .handle(aDisableEnvCommand())
+        cut.handle(aDisableEnvCommand())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));

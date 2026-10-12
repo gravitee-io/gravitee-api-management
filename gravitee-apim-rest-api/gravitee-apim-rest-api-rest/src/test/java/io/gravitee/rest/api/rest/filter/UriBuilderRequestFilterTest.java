@@ -247,7 +247,7 @@ public class UriBuilderRequestFilterTest {
         MultivaluedHashMap<String, String> mockHeaders = new MultivaluedHashMap<>();
         for (int i = 0; i < headers.length / 2; i++) {
             String hName = headers[2 * i];
-            String hValue = headers[(2 * i) + 1];
+            String hValue = headers[2 * i + 1];
             mockHeaders.put(hName, Collections.singletonList(hValue));
         }
         when(containerRequestContext.getHeaders()).thenReturn(mockHeaders);

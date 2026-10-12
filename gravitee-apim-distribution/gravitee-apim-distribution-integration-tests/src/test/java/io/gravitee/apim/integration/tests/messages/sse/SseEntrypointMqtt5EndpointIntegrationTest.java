@@ -171,24 +171,21 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive 400 bad request with {0} qos")
-    @DeployApi(
-        { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+    })
     void should_receive_400_bad_request_with_qos(Qos qos, HttpClient httpClient) {
         final TestObserver<Buffer> obs = createSseRequest("/test-qos-" + qos.getLabel(), UUID.random().toString(), httpClient)
             .doOnSuccess(response -> assertThat(response.statusCode()).isEqualTo(400))
             .flatMap(HttpClientResponse::body)
             .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo(
-                    "Incompatible Qos capabilities between entrypoint requirements and endpoint supports"
-                );
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(body -> {
+            assertThat(body.toString()).isEqualTo("Incompatible Qos capabilities between entrypoint requirements and endpoint supports");
 
-                return true;
-            });
+            return true;
+        });
     }
 
     @Test
@@ -199,24 +196,20 @@ class SseEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5EndpointInt
             .flatMap(HttpClientResponse::body)
             .test();
 
-        obs
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(body -> {
-                assertThat(body.toString()).isEqualTo("Endpoint connection failed");
+        obs.awaitDone(30, TimeUnit.SECONDS).assertValue(body -> {
+            assertThat(body.toString()).isEqualTo("Endpoint connection failed");
 
-                return true;
-            });
+            return true;
+        });
     }
 
     @NonNull
     private Single<HttpClientResponse> createSseRequest(String path, String clientIdentifier, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
-                request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), MediaType.TEXT_EVENT_STREAM);
+            request.putHeader("X-Gravitee-Client-Identifier", clientIdentifier);
+            return request.rxSend();
+        });
     }
 
     @NonNull

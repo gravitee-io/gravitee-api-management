@@ -111,7 +111,9 @@ public class ElasticsearchOtelLogTestRepositoryInitializer implements TestReposi
      * set — matching what the production repository normalises back to {@code attributes["event.name"]}.
      */
     private void seedSpanEvents(String collectorHost) {
-        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder().setEndpoint("http://" + collectorHost + "/v1/traces").build();
+        OtlpHttpSpanExporter exporter = OtlpHttpSpanExporter.builder()
+            .setEndpoint("http://" + collectorHost + "/v1/traces")
+            .build();
         SdkTracerProvider tracerProvider = SdkTracerProvider.builder()
             .setResource(Resource.create(Attributes.of(stringKey("service.name"), "otel-log-fixtures")))
             .setIdGenerator(new FixtureIdGenerator())

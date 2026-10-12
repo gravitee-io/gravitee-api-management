@@ -105,8 +105,8 @@ public class InMemoryTracingPort implements TracingPort {
                     .stream()
                     .allMatch(e -> Objects.equals(t.scope().get(e.getKey()), e.getValue()))
             )
-            .filter(t -> (start == null || !t.trace().startTime().isBefore(start)))
-            .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
+            .filter(t -> start == null || !t.trace().startTime().isBefore(start))
+            .filter(t -> end == null || !t.trace().startTime().isAfter(end))
             .map(TraceFixture::trace)
             .toList();
 

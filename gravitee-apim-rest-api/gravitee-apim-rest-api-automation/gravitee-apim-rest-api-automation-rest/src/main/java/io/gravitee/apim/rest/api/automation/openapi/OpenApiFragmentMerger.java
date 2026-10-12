@@ -84,16 +84,14 @@ public final class OpenApiFragmentMerger {
             return;
         }
         ObjectNode into = target.withObject("/" + field);
-        entries
-            .properties()
-            .forEach(entry -> {
-                if (into.has(entry.getKey())) {
-                    throw new IllegalStateException(
-                        "Automation OpenAPI fragment of module [" + module + "] redefines " + what + " [" + entry.getKey() + "]"
-                    );
-                }
-                into.set(entry.getKey(), entry.getValue());
-            });
+        entries.properties().forEach(entry -> {
+            if (into.has(entry.getKey())) {
+                throw new IllegalStateException(
+                    "Automation OpenAPI fragment of module [" + module + "] redefines " + what + " [" + entry.getKey() + "]"
+                );
+            }
+            into.set(entry.getKey(), entry.getValue());
+        });
     }
 
     private static ObjectNode readObject(InputStream yaml) throws IOException {

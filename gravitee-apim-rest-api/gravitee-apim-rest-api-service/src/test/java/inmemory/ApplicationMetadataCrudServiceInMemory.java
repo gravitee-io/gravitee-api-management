@@ -28,7 +28,8 @@ import java.util.OptionalInt;
  * @author GraviteeSource Team
  */
 public class ApplicationMetadataCrudServiceInMemory
-    implements ApplicationMetadataCrudService, InMemoryAlternative<ApplicationMetadataEntity> {
+    implements ApplicationMetadataCrudService, InMemoryAlternative<ApplicationMetadataEntity>
+{
 
     private final List<ApplicationMetadataEntity> storage = new ArrayList<>();
 

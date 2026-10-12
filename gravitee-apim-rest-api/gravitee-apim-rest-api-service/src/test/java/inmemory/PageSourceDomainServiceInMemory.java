@@ -40,14 +40,12 @@ public class PageSourceDomainServiceInMemory implements PageSourceDomainService 
     @Override
     public void removeSensitiveData(Page page) {
         if (page.getSource() != null && page.getSource().getConfiguration() != null) {
-            page
-                .getSource()
-                .setConfiguration(
-                    page
-                        .getSource()
-                        .getConfiguration()
-                        .replace("I'm a sensitive data", "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"")
-                );
+            page.getSource().setConfiguration(
+                page
+                    .getSource()
+                    .getConfiguration()
+                    .replace("I'm a sensitive data", "\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"")
+            );
         }
     }
 

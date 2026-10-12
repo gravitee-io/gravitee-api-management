@@ -56,7 +56,13 @@ public class Stubs {
     public static DebugApiV4 aDebugApiV4Definition(HttpRequest debugRequest) {
         Api api = Api.builder()
             .name("api")
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/path1"), new Path("/path2"), new Path("/path3"))).build()))
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(new Path("/path1"), new Path("/path2"), new Path("/path3")))
+                        .build()
+                )
+            )
             .plans(Map.of("plan", Plan.builder().name("plan").status(PlanStatus.PUBLISHED).build()))
             .build();
 

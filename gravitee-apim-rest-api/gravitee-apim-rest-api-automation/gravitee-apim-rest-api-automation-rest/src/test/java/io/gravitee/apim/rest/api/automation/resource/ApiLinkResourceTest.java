@@ -86,7 +86,10 @@ class ApiLinkResourceTest extends AbstractResourceTest {
             );
 
             try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("api-link.json")))
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-link.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdateApiLinkUseCase).execute(any(CreateOrUpdateApiLinkUseCase.Input.class));
@@ -121,7 +124,10 @@ class ApiLinkResourceTest extends AbstractResourceTest {
             );
 
             try (
-                var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("api-link.json")))
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-link.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
 

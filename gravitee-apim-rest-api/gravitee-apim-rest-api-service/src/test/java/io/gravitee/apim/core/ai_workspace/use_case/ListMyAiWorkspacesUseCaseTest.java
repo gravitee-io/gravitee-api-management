@@ -172,7 +172,13 @@ class ListMyAiWorkspacesUseCaseTest {
     }
 
     private static ApiProduct product(String id, String name, String environmentId, ApiProductKind kind) {
-        return ApiProduct.builder().id(id).name(name).description(name + " description").environmentId(environmentId).kind(kind).build();
+        return ApiProduct.builder()
+            .id(id)
+            .name(name)
+            .description(name + " description")
+            .environmentId(environmentId)
+            .kind(kind)
+            .build();
     }
 
     private static SubscriptionEntity subscription(

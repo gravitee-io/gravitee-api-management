@@ -100,10 +100,8 @@ public class EventsLatestUpgrader implements Upgrader {
         modelCounter = 0;
         eventsForModelCounter = 0;
         List<ApiCriteria> emptyCriteria = List.of();
-        PageUtils.forEachPage(
-            pageable -> apiRepository.searchIds(emptyCriteria, pageable, null),
-            BULK_SIZE,
-            page -> migrateEvents(Event.EventProperties.API_ID.getValue(), page.getContent())
+        PageUtils.forEachPage(pageable -> apiRepository.searchIds(emptyCriteria, pageable, null), BULK_SIZE, page ->
+            migrateEvents(Event.EventProperties.API_ID.getValue(), page.getContent())
         );
         log.info("{} events regarding {} APIs have been migrated", eventsForModelCounter, modelCounter);
     }

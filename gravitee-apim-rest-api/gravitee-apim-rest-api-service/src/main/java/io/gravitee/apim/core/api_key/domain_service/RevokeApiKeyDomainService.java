@@ -70,40 +70,38 @@ public class RevokeApiKeyDomainService {
 
         var revoked = apiKeyCrudService.update(apiKey.revoke());
 
-        apiKey
-            .getSubscriptions()
-            .forEach(subscriptionId -> {
-                var subscription = subscriptionCrudService.get(subscriptionId);
-                createAuditLog(apiKey, revoked, subscription, auditInfo);
-                String referenceId = subscription.getReferenceId();
-                if (referenceId != null) {
-                    var referenceType = subscription.getReferenceType();
-                    if (SubscriptionReferenceType.API_PRODUCT.equals(referenceType)) {
-                        triggerNotificationDomainService.triggerApiProductNotification(
-                            auditInfo.organizationId(),
-                            auditInfo.environmentId(),
-                            new ApiKeyRevokedApiProductHookContext(
-                                referenceId,
-                                subscription.getApplicationId(),
-                                subscription.getPlanId(),
-                                apiKey.getKey()
-                            )
-                        );
-                    } else {
-                        triggerNotificationDomainService.triggerApiSubscriptionNotification(
-                            auditInfo.organizationId(),
-                            auditInfo.environmentId(),
+        apiKey.getSubscriptions().forEach(subscriptionId -> {
+            var subscription = subscriptionCrudService.get(subscriptionId);
+            createAuditLog(apiKey, revoked, subscription, auditInfo);
+            String referenceId = subscription.getReferenceId();
+            if (referenceId != null) {
+                var referenceType = subscription.getReferenceType();
+                if (SubscriptionReferenceType.API_PRODUCT.equals(referenceType)) {
+                    triggerNotificationDomainService.triggerApiProductNotification(
+                        auditInfo.organizationId(),
+                        auditInfo.environmentId(),
+                        new ApiKeyRevokedApiProductHookContext(
                             referenceId,
-                            new ApiKeyRevokedApiHookContext(
-                                referenceId,
-                                subscription.getApplicationId(),
-                                subscription.getPlanId(),
-                                apiKey.getKey()
-                            )
-                        );
-                    }
+                            subscription.getApplicationId(),
+                            subscription.getPlanId(),
+                            apiKey.getKey()
+                        )
+                    );
+                } else {
+                    triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                        auditInfo.organizationId(),
+                        auditInfo.environmentId(),
+                        referenceId,
+                        new ApiKeyRevokedApiHookContext(
+                            referenceId,
+                            subscription.getApplicationId(),
+                            subscription.getPlanId(),
+                            apiKey.getKey()
+                        )
+                    );
                 }
-            });
+            }
+        });
 
         return revoked;
     }

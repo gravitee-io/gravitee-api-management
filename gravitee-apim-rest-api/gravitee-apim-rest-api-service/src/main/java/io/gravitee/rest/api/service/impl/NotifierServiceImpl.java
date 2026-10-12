@@ -325,10 +325,10 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                         var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, data.params);
                         // extract emails of opted-in users if trial instance
                         var validRecipients = parameterService.findAsBoolean(
-                                executionContext,
-                                Key.TRIAL_INSTANCE,
-                                ParameterReferenceType.SYSTEM
-                            )
+                            executionContext,
+                            Key.TRIAL_INSTANCE,
+                            ParameterReferenceType.SYSTEM
+                        )
                             ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
                             : processedRecipients;
 

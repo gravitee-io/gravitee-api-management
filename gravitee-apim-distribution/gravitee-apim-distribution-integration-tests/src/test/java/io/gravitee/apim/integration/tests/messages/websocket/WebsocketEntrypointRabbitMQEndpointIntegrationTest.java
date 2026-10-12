@@ -53,12 +53,10 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+        obs.assertValue(frame -> {
+            assertThat(frame).hasToString("message");
+            return true;
+        }).assertNoErrors();
     }
 
     @Test
@@ -73,12 +71,10 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+        obs.assertValue(frame -> {
+            assertThat(frame).hasToString("message");
+            return true;
+        }).assertNoErrors();
     }
 
     @Test
@@ -113,11 +109,9 @@ class WebsocketEntrypointRabbitMQEndpointIntegrationTest extends AbstractRabbitM
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 1);
-        obs
-            .assertValue(frame -> {
-                assertThat(frame).hasToString("message");
-                return true;
-            })
-            .assertNoErrors();
+        obs.assertValue(frame -> {
+            assertThat(frame).hasToString("message");
+            return true;
+        }).assertNoErrors();
     }
 }

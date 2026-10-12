@@ -60,15 +60,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ApplicationClientCertificateMigrationUpgraderTest {
 
     private static final String VALID_PEM_CERTIFICATE = """
-        -----BEGIN CERTIFICATE-----
-        MIIBkTCB+wIJAKHBfpegPjMCMA0GCSqGSIb3DQEBCwUAMBExDzANBgNVBAMMBnVu
-        dXNlZDAeFw0yMzAxMDEwMDAwMDBaFw0yNDAxMDEwMDAwMDBaMBExDzANBgNVBAMM
-        BnVudXNlZDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC5CrQrqVk4reoLH5lD9Bnb
-        qtiJoGBzkhHyUn8I8lTm8hRKmPT5Y5K5Kn5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K
-        AgMBAAEwDQYJKoZIhvcNAQELBQADQQBKLXrQm8K5K5K5K5K5K5K5K5K5K5K5K5K5
-        K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5
-        -----END CERTIFICATE-----
-        """;
+    -----BEGIN CERTIFICATE-----
+    MIIBkTCB+wIJAKHBfpegPjMCMA0GCSqGSIb3DQEBCwUAMBExDzANBgNVBAMMBnVu
+    dXNlZDAeFw0yMzAxMDEwMDAwMDBaFw0yNDAxMDEwMDAwMDBaMBExDzANBgNVBAMM
+    BnVudXNlZDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQC5CrQrqVk4reoLH5lD9Bnb
+    qtiJoGBzkhHyUn8I8lTm8hRKmPT5Y5K5Kn5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K
+    AgMBAAEwDQYJKoZIhvcNAQELBQADQQBKLXrQm8K5K5K5K5K5K5K5K5K5K5K5K5K5
+    K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5K5
+    -----END CERTIFICATE-----
+    """;
 
     @InjectMocks
     private ApplicationClientCertificateMigrationUpgrader upgrader;
@@ -172,7 +172,14 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         for (int i = 0; i < ApplicationClientCertificateMigrationUpgrader.PAGE_SIZE; i++) {
             Map<String, String> metadata = new HashMap<>();
             metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
-            firstPageApps.add(Application.builder().id("app-" + i).name("App " + i).environmentId("env-1").metadata(metadata).build());
+            firstPageApps.add(
+                Application.builder()
+                    .id("app-" + i)
+                    .name("App " + i)
+                    .environmentId("env-1")
+                    .metadata(metadata)
+                    .build()
+            );
         }
 
         Map<String, String> lastMetadata = new HashMap<>();
@@ -187,7 +194,9 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         Page<Application> page1 = new Page<>(firstPageApps, 0, firstPageApps.size(), firstPageApps.size() + 1);
         Page<Application> page2 = new Page<>(List.of(appOnSecondPage), 1, 1, firstPageApps.size() + 1);
 
-        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page1).thenReturn(page2);
+        when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class)))
+            .thenReturn(page1)
+            .thenReturn(page2);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
         when(clientCertificateCrudService.create(any(), any(ClientCertificate.class))).thenReturn(mock(ClientCertificate.class));
 

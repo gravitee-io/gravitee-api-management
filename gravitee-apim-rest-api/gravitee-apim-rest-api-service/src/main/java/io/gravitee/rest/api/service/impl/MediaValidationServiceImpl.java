@@ -121,10 +121,11 @@ public class MediaValidationServiceImpl implements MediaValidationService {
             }
 
             PDDestinationOrAction openAction = catalog.getOpenAction();
-            boolean isForbiddenAction = (openAction instanceof PDActionJavaScript ||
+            boolean isForbiddenAction =
+                openAction instanceof PDActionJavaScript ||
                 openAction instanceof PDActionLaunch ||
                 openAction instanceof PDActionImportData ||
-                openAction instanceof PDActionSubmitForm);
+                openAction instanceof PDActionSubmitForm;
             if (isForbiddenAction) {
                 log.warn("PDF file {} use forbidden open action.", media.getFileName());
                 return false;

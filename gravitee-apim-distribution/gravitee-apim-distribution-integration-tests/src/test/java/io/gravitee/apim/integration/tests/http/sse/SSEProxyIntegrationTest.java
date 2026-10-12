@@ -89,22 +89,24 @@ abstract class SSEProxyIntegrationTest extends AbstractGatewayTest {
             .flatMap(HttpClientRequest::rxSend)
             .flatMapPublisher(response -> {
                 assertThat(response.statusCode()).isEqualTo(200);
-                return response
-                    .toFlowable()
-                    .doOnNext(buffer -> {
-                        // Check the number of active client connections is 1 (gateway to sse mock backend) while consuming the SSE stream.
-                        assertThat(registry.get("http.client.active.connections").gauge().value()).isEqualTo(1.0);
-                    })
-                    // Keep the connection open for 1 second, then close it.
-                    .takeUntil(
-                        response
-                            .request()
-                            .connection()
-                            .rxClose()
-                            .toFlowable()
-                            .delaySubscription(1, TimeUnit.SECONDS)
-                            .doOnComplete(() -> log.info("Connection closed"))
-                    );
+                return (
+                    response
+                        .toFlowable()
+                        .doOnNext(buffer -> {
+                            // Check the number of active client connections is 1 (gateway to sse mock backend) while consuming the SSE stream.
+                            assertThat(registry.get("http.client.active.connections").gauge().value()).isEqualTo(1.0);
+                        })
+                        // Keep the connection open for 1 second, then close it.
+                        .takeUntil(
+                            response
+                                .request()
+                                .connection()
+                                .rxClose()
+                                .toFlowable()
+                                .delaySubscription(1, TimeUnit.SECONDS)
+                                .doOnComplete(() -> log.info("Connection closed"))
+                        )
+                );
             })
             .test()
             .awaitDone(10, TimeUnit.SECONDS)

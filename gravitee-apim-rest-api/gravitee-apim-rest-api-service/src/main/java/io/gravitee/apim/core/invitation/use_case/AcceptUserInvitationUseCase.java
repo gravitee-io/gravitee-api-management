@@ -86,7 +86,8 @@ public class AcceptUserInvitationUseCase {
             );
 
         switch (input.action()) {
-            case UserRegistrationAction ignored -> {}
+            case UserRegistrationAction ignored -> {
+            }
             case InvitationBasedAction ignored -> pendingInvitations.forEach(invitation ->
                 processInvitation(input.executionContext(), invitation, user.getId())
             );

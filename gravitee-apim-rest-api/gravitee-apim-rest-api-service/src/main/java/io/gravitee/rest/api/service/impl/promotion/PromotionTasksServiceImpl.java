@@ -152,8 +152,9 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
                     onlyEnvironmentId(environmentIdsByCockpitId.get(promotionEntity.getTargetEnvCockpitId()))
                 );
             })
-            .filter(taskEntity ->
-                ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
+            .filter(
+                taskEntity ->
+                    (Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion
             )
             .collect(toList());
     }

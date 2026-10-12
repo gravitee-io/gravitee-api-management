@@ -193,9 +193,10 @@ public class UpdateApiProductUseCase {
             return;
         }
 
-        Set<String> cleanedTags = (currentProductTags == null || currentProductTags.isEmpty())
-            ? Set.of()
-            : planDef.getTags().stream().filter(currentProductTags::contains).collect(Collectors.toSet());
+        Set<String> cleanedTags =
+            currentProductTags == null || currentProductTags.isEmpty()
+                ? Set.of()
+                : planDef.getTags().stream().filter(currentProductTags::contains).collect(Collectors.toSet());
         if (cleanedTags.size() >= planDef.getTags().size()) {
             return;
         }

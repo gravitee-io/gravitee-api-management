@@ -41,8 +41,10 @@ public class McpSelector extends Selector {
         super(SelectorType.MCP);
     }
 
-    public abstract static class McpSelectorBuilder<C extends McpSelector, B extends McpSelector.McpSelectorBuilder<C, B>>
-        extends SelectorBuilder<C, B> {
+    public abstract static class McpSelectorBuilder<
+        C extends McpSelector,
+        B extends McpSelector.McpSelectorBuilder<C, B>
+    > extends SelectorBuilder<C, B> {
 
         McpSelectorBuilder() {
             type(SelectorType.MCP);

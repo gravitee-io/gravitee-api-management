@@ -181,11 +181,9 @@ class GroupsResourceTest extends AbstractResourceTest {
             var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
             verify(importGroupCRDUseCase).execute(input.capture());
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(input.getValue().spec().getDefaultMemberRoles())
-                    .containsExactlyInAnyOrderEntriesOf(
-                        Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER")
-                    );
+                soft.assertThat(input.getValue().spec().getDefaultMemberRoles()).containsExactlyInAnyOrderEntriesOf(
+                    Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER")
+                );
                 soft.assertThat(input.getValue().spec().isIgnoreMembers()).isFalse();
                 soft.assertThat(state.getDefaultMemberRoles().getApiProduct()).isEqualTo("USER");
             });

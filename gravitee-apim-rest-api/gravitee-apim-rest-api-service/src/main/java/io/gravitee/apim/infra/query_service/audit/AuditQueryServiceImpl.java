@@ -72,7 +72,10 @@ public class AuditQueryServiceImpl implements AuditQueryService {
     private SearchResponse search(AuditCriteria.Builder criteria, Pageable pageable) {
         Page<Audit> result = auditRepository.search(
             criteria.build(),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+            new PageableBuilder()
+                .pageNumber(pageable.getPageNumber() - 1)
+                .pageSize(pageable.getPageSize())
+                .build()
         );
 
         return new SearchResponse(result.getTotalElements(), result.getContent().stream().map(AuditAdapter.INSTANCE::toEntity).toList());

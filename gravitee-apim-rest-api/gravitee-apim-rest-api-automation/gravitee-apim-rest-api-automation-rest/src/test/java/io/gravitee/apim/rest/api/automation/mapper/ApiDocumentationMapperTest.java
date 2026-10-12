@@ -139,17 +139,17 @@ class ApiDocumentationMapperTest {
                 io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
             );
             soft.assertThat(publicDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PUBLIC);
-            soft
-                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(publicDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC);
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(publicDomain)).isEqualTo(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PUBLIC
+            );
 
             var privateDomain = ApiDocumentationMapper.INSTANCE.toDomainVisibility(
                 io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
             );
             soft.assertThat(privateDomain).isEqualTo(io.gravitee.apim.core.portal.model.PortalVisibility.PRIVATE);
-            soft
-                .assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(privateDomain))
-                .isEqualTo(io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE);
+            soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(privateDomain)).isEqualTo(
+                io.gravitee.apim.rest.api.automation.model.PortalVisibility.PRIVATE
+            );
 
             soft.assertThat(ApiDocumentationMapper.INSTANCE.toDomainVisibility(null)).isNull();
             soft.assertThat(ApiDocumentationMapper.INSTANCE.toWireVisibility(null)).isNull();

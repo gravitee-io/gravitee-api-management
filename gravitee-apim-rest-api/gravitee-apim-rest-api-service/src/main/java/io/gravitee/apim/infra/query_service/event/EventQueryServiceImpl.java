@@ -55,7 +55,10 @@ public class EventQueryServiceImpl implements EventQueryService {
 
         var result = eventRepository.search(
             criteriaBuilder.build(),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+            new PageableBuilder()
+                .pageNumber(pageable.getPageNumber() - 1)
+                .pageSize(pageable.getPageSize())
+                .build()
         );
 
         return new SearchResponse(result.getTotalElements(), result.getContent().stream().map(EventAdapter.INSTANCE::map).toList());

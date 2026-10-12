@@ -63,7 +63,13 @@ public class ApiGetDocumentationPagesUseCase {
             var pageBreadcrumbList = this.constructBreadcrumbs(page).toList();
             for (int i = 0; i < pageBreadcrumbList.size(); i++) {
                 var pageBreadcrumb = pageBreadcrumbList.get(i);
-                breadcrumbList.add(Breadcrumb.builder().id(pageBreadcrumb.getId()).name(pageBreadcrumb.getName()).position(i + 1).build());
+                breadcrumbList.add(
+                    Breadcrumb.builder()
+                        .id(pageBreadcrumb.getId())
+                        .name(pageBreadcrumb.getName())
+                        .position(i + 1)
+                        .build()
+                );
             }
         }
 

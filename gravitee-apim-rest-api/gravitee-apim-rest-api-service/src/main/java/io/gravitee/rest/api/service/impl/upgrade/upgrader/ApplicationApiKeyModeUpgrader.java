@@ -74,14 +74,12 @@ public class ApplicationApiKeyModeUpgrader implements Upgrader {
         List<String> apiKeyPlansIds = findAllApiKeyPlansId();
         Map<String, Long> apiKeySubscriptionsCountByApplication = countApiKeySubscriptionsByApplication(apiKeyPlansIds);
 
-        applicationRepository
-            .findAll()
-            .forEach(application -> {
-                if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
-                    Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
-                    updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
-                }
-            });
+        applicationRepository.findAll().forEach(application -> {
+            if (application.getApiKeyMode() == null || application.getApiKeyMode() == UNSPECIFIED) {
+                Long apiKeysSubscriptionCount = apiKeySubscriptionsCountByApplication.getOrDefault(application.getId(), 0L);
+                updateApplicationApiKeyMode(application, apiKeysSubscriptionCount > 1 ? EXCLUSIVE : UNSPECIFIED);
+            }
+        });
         return true;
     }
 

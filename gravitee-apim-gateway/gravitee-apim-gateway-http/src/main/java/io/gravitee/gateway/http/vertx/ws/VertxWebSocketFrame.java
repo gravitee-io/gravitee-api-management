@@ -36,16 +36,16 @@ class VertxWebSocketFrame implements WebSocketFrame {
         return frame.isBinary()
             ? Type.BINARY
             : frame.isClose()
-                ? Type.CLOSE
-                : frame.isContinuation()
-                    ? Type.CONTINUATION
-                    : frame.isText()
-                        ? Type.TEXT
-                        : frame.isPing()
-                            ? Type.PING
-                            : frame.type() == WebSocketFrameType.PONG
-                                ? Type.PONG
-                                : Type.CLOSE;
+              ? Type.CLOSE
+              : frame.isContinuation()
+                ? Type.CONTINUATION
+                : frame.isText()
+                  ? Type.TEXT
+                  : frame.isPing()
+                    ? Type.PING
+                    : frame.type() == WebSocketFrameType.PONG
+                      ? Type.PONG
+                      : Type.CLOSE;
     }
 
     @Override

@@ -1679,7 +1679,7 @@ public class UserServiceTest {
                 MembershipReferenceType.APPLICATION,
                 appPoRole.getId()
             )
-        ).thenReturn(Set.of((new MembershipEntity())));
+        ).thenReturn(Set.of(new MembershipEntity()));
 
         try {
             userService.delete(EXECUTION_CONTEXT, USER_NAME);
@@ -1754,13 +1754,13 @@ public class UserServiceTest {
         verify(userRepository, times(1)).update(
             argThat(
                 (ArgumentMatcher<User>) u ->
-                    (userId.equals(u.getId()) &&
-                        UserStatus.ARCHIVED.equals(u.getStatus()) &&
-                        ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
-                        !updatedAt.equals(u.getUpdatedAt()) &&
-                        firstName.equals(u.getFirstname()) &&
-                        lastName.equals(u.getLastname()) &&
-                        email.equals(u.getEmail()))
+                    userId.equals(u.getId()) &&
+                    UserStatus.ARCHIVED.equals(u.getStatus()) &&
+                    ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
+                    !updatedAt.equals(u.getUpdatedAt()) &&
+                    firstName.equals(u.getFirstname()) &&
+                    lastName.equals(u.getLastname()) &&
+                    email.equals(u.getEmail())
             )
         );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
@@ -1836,15 +1836,15 @@ public class UserServiceTest {
         verify(userRepository, times(1)).update(
             argThat(
                 (ArgumentMatcher<User>) u ->
-                    (userId.equals(u.getId()) &&
-                        organizationId.equals(u.getOrganizationId()) &&
-                        UserStatus.ARCHIVED.equals(u.getStatus()) &&
-                        ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
-                        !updatedAt.equals(u.getUpdatedAt()) &&
-                        "Unknown".equals(u.getFirstname()) &&
-                        u.getLastname().isEmpty() &&
-                        u.getEmail() == null &&
-                        u.getPicture() == null)
+                    userId.equals(u.getId()) &&
+                    organizationId.equals(u.getOrganizationId()) &&
+                    UserStatus.ARCHIVED.equals(u.getStatus()) &&
+                    ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
+                    !updatedAt.equals(u.getUpdatedAt()) &&
+                    "Unknown".equals(u.getFirstname()) &&
+                    u.getLastname().isEmpty() &&
+                    u.getEmail() == null &&
+                    u.getPicture() == null
             )
         );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
@@ -2058,7 +2058,9 @@ public class UserServiceTest {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
         // The profile refresh writes first and must succeed; the claims write is the one that fails
-        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg()).thenThrow(new TechnicalException("boom"));
+        when(userRepository.update(any(User.class)))
+            .thenAnswer(returnsFirstArg())
+            .thenThrow(new TechnicalException("boom"));
 
         String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
         String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());

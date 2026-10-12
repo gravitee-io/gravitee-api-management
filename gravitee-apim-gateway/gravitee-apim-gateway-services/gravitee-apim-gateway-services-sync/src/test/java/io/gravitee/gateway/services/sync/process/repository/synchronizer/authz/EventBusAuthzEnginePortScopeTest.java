@@ -52,12 +52,10 @@ class EventBusAuthzEnginePortScopeTest {
     }
 
     private void recordAndReplyOn(String address) {
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                hits.add(address);
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            hits.add(address);
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
     }
 
     @Test
@@ -290,25 +288,24 @@ class EventBusAuthzEnginePortScopeTest {
         Set<String> staged = ConcurrentHashMap.newKeySet();
         Set<String> served = ConcurrentHashMap.newKeySet();
         List<String> ops = Collections.synchronizedList(new ArrayList<>());
-        vertx
-            .eventBus()
-            .<JsonObject>consumer(address, msg -> {
-                JsonObject body = msg.body();
-                String op = body.getString("op");
-                // Entities are addressed by uid, policies and schemas by docId.
-                String docId = body.getString("docId", body.getString("uid"));
-                ops.add(docId == null ? op : op + ":" + docId);
-                switch (op) {
-                    case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
-                    case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
-                    case "commit" -> {
-                        served.clear();
-                        served.addAll(staged);
-                    }
-                    default -> {}
+        vertx.eventBus().<JsonObject>consumer(address, msg -> {
+            JsonObject body = msg.body();
+            String op = body.getString("op");
+            // Entities are addressed by uid, policies and schemas by docId.
+            String docId = body.getString("docId", body.getString("uid"));
+            ops.add(docId == null ? op : op + ":" + docId);
+            switch (op) {
+                case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
+                case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
+                case "commit" -> {
+                    served.clear();
+                    served.addAll(staged);
                 }
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+                default -> {
+                }
+            }
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
         return new FakeEngine(served, ops);
     }
 

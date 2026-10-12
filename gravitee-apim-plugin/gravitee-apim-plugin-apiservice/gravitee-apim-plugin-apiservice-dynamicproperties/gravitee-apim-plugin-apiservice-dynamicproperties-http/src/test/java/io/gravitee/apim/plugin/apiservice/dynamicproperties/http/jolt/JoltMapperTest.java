@@ -34,51 +34,51 @@ public class JoltMapperTest {
     private JoltMapper mapper;
 
     private static final String RESPONSE = """
-        {
-            "content": {
-                "name": "Elysee",
-                "country": "FRANCE",
-                "address": "Avenue des Champs-Élysées",
-                "city": "PARIS",
-                "stores_id": 1,
-                "zip_code": "75000",
-                "gps_x": "48.869729",
-                "gps_y": "2.307784",
-                "phone_number": "01 00 00 00 00",
-                "backend_url": "https://north-europe.company.com/"
-            }
+    {
+        "content": {
+            "name": "Elysee",
+            "country": "FRANCE",
+            "address": "Avenue des Champs-Élysées",
+            "city": "PARIS",
+            "stores_id": 1,
+            "zip_code": "75000",
+            "gps_x": "48.869729",
+            "gps_y": "2.307784",
+            "phone_number": "01 00 00 00 00",
+            "backend_url": "https://north-europe.company.com/"
         }
-        """;
+    }
+    """;
 
     private static final String SPEC_KEY_VALUE_SIMPLE = """
-        [
-          {
-            "operation": "shift",
-            "spec": {
-              "content": {
-                "*": {
-                  "$": "[#2].key",
-                  "@": "[#2].value"
-                }
-              }
+    [
+      {
+        "operation": "shift",
+        "spec": {
+          "content": {
+            "*": {
+              "$": "[#2].key",
+              "@": "[#2].value"
             }
           }
-        ]""";
+        }
+      }
+    ]""";
 
     private static final String SPEC_VALUE_AS_KEY = """
-        [
-          {
-            "operation": "shift",
-            "spec": {
-              "content": {
-                "*": {
-                  "$": "[#2].value",
-                  "@": "[#2].key"
-                }
-              }
+    [
+      {
+        "operation": "shift",
+        "spec": {
+          "content": {
+            "*": {
+              "$": "[#2].value",
+              "@": "[#2].key"
             }
           }
-        ]""";
+        }
+      }
+    ]""";
 
     @Test
     public void shouldReturnPropertiesWithValueAsKey() throws IOException {

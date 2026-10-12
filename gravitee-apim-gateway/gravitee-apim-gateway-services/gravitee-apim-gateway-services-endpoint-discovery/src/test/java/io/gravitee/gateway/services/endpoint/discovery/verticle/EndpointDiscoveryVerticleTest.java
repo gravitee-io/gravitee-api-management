@@ -215,13 +215,8 @@ public class EndpointDiscoveryVerticleTest {
             "\"backup\":false," +
             "\"type\":\"http\"," +
             (withSsl
-                    ? "\"ssl\":{" +
-                    "\"trustAll\":true," +
-                    "\"hostnameVerifier\":false," +
-                    "\"trustStore\":null," +
-                    "\"keyStore\":null" +
-                    "},"
-                    : "") +
+                ? "\"ssl\":{" + "\"trustAll\":true," + "\"hostnameVerifier\":false," + "\"trustStore\":null," + "\"keyStore\":null" + "},"
+                : "") +
             "\"http\":{" +
             "\"idleTimeout\":60000," +
             "\"keepAliveTimeout\":30000," +

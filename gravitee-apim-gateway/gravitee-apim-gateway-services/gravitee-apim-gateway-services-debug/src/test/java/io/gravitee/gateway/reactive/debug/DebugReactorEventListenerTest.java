@@ -519,7 +519,8 @@ class DebugReactorEventListenerTest {
 
             verify(reactorHandlerRegistry, times(1)).contains(
                 argThat(debugApi ->
-                    ((DebugApiV2) debugApi).getDefinition()
+                    ((DebugApiV2) debugApi)
+                        .getDefinition()
                         .getPlans()
                         .stream()
                         .noneMatch(plan -> plan.getStatus().equals("CLOSED"))
@@ -722,7 +723,8 @@ class DebugReactorEventListenerTest {
 
             verify(reactorHandlerRegistry, times(1)).contains(
                 argThat(debugApi ->
-                    ((io.gravitee.gateway.debug.definition.DebugApiV4) debugApi).getDefinition()
+                    ((io.gravitee.gateway.debug.definition.DebugApiV4) debugApi)
+                        .getDefinition()
                         .getPlans()
                         .stream()
                         .noneMatch(plan -> plan.getStatus().equals(PlanStatus.CLOSED))

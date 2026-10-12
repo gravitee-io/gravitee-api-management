@@ -277,9 +277,10 @@ public class HttpConnector implements ProxyConnector {
                 // Attempt 1's acquired flag must not survive into attempt 2's failure classification (the same
                 // hazard APIM-12769 addressed at the outer retry boundary).
                 ctx.removeInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
-                ctx
-                    .withLogger(log)
-                    .warn("Pooled connection to [{}] was closed or reset by the peer, retrying once on a fresh connection", absoluteUri);
+                ctx.withLogger(log).warn(
+                    "Pooled connection to [{}] was closed or reset by the peer, retrying once on a fresh connection",
+                    absoluteUri
+                );
                 return true;
             })
         );
@@ -308,25 +309,23 @@ public class HttpConnector implements ProxyConnector {
             // Taken once the client is in hand: building it on first use — SSL options, keystore loading, under a lock
             // other requests queue on — is gateway start-up cost, not what the pool and the network contribute.
             final long connectStartNs = System.nanoTime();
-            httpClient
-                .request(options)
-                .onComplete(asyncRequest -> {
-                    if (asyncRequest.succeeded()) {
-                        recordEndpointConnectTime(ctx, connectStartNs);
-                        final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
-                        // Publish the request before checking for disposal so a concurrent disposal either sees it
-                        // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
-                        // a no-op.
-                        pendingUpstreamRequest.set(upstreamRequest);
-                        if (emitter.isDisposed()) {
-                            resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
-                        } else {
-                            emitter.onSuccess(upstreamRequest);
-                        }
+            httpClient.request(options).onComplete(asyncRequest -> {
+                if (asyncRequest.succeeded()) {
+                    recordEndpointConnectTime(ctx, connectStartNs);
+                    final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
+                    // Publish the request before checking for disposal so a concurrent disposal either sees it
+                    // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
+                    // a no-op.
+                    pendingUpstreamRequest.set(upstreamRequest);
+                    if (emitter.isDisposed()) {
+                        resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
                     } else {
-                        emitter.tryOnError(asyncRequest.cause());
+                        emitter.onSuccess(upstreamRequest);
                     }
-                });
+                } else {
+                    emitter.tryOnError(asyncRequest.cause());
+                }
+            });
         });
     }
 
@@ -356,12 +355,10 @@ public class HttpConnector implements ProxyConnector {
             // it fixed-length: drop Transfer-Encoding and set Content-Length to its actual length. Only
             // chunked is dropped — a content-coding like gzip must stay, or the backend can't decode the body.
             httpClientRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
-            return request
-                .bodyOrEmpty()
-                .flatMap(body -> {
-                    httpClientRequest.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
-                    return httpClientRequest.rxSend(BufferInternal.buffer(body.getNativeBuffer()));
-                });
+            return request.bodyOrEmpty().flatMap(body -> {
+                httpClientRequest.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+                return httpClientRequest.rxSend(BufferInternal.buffer(body.getNativeBuffer()));
+            });
         }
         if (sendsRequestBodyBytes(request)) {
             return httpClientRequest.rxSend(request.chunks().map(buffer -> BufferInternal.buffer(buffer.getNativeBuffer())));
@@ -423,50 +420,55 @@ public class HttpConnector implements ProxyConnector {
 
         // A backend failure while streaming the response body (after status/headers were committed) is recorded on
         // the metrics below so the truncated response is observable instead of reported as a success.
-        return endpointResponse
-            .toFlowable()
-            .doOnNext(chunk -> {
-                lastUpstreamActivityNs.setPlain(System.nanoTime());
-                bytesReceived.addAndGet(chunk.length());
-            })
-            .map(Buffer::buffer)
-            .doOnComplete(() ->
-                // Write trailers when chunks are completed
-                copyHeaders(endpointResponse.trailers(), response.trailers())
-            )
-            .onErrorResumeNext(throwable -> {
-                if (throwable instanceof StreamResetException) {
-                    // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
-                    ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
-                } else {
-                    // The response status/headers are already committed to the client, so we cannot change them; record
-                    // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
-                    // That call also logs the failure, with the timeout context needed to interpret it.
-                    final long silenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
-                    recordBackendResponseStreamFailure(
-                        ctx,
-                        absoluteUri,
-                        silenceMs,
-                        bytesReceived.getPlain(),
-                        announcedBodyLength,
-                        throwable
-                    );
-                }
-                return Flowable.empty();
-            })
-            .doOnCancel(() -> {
-                try {
-                    ctx.withLogger(log).debug("Downstream request has been cancelled, cancelling upstream request to [{}]", absoluteUri);
+        return (
+            endpointResponse
+                .toFlowable()
+                .doOnNext(chunk -> {
+                    lastUpstreamActivityNs.setPlain(System.nanoTime());
+                    bytesReceived.addAndGet(chunk.length());
+                })
+                .map(Buffer::buffer)
+                .doOnComplete(() ->
+                    // Write trailers when chunks are completed
+                    copyHeaders(endpointResponse.trailers(), response.trailers())
+                )
+                .onErrorResumeNext(throwable -> {
+                    if (throwable instanceof StreamResetException) {
+                        // Means that we have manually reset the stream because the downstream request has been cancelled (see doOnCancel).
+                        ctx.withLogger(log).debug("Stream reset to the backend [{}]", absoluteUri);
+                    } else {
+                        // The response status/headers are already committed to the client, so we cannot change them; record
+                        // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
+                        // That call also logs the failure, with the timeout context needed to interpret it.
+                        final long silenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
+                        recordBackendResponseStreamFailure(
+                            ctx,
+                            absoluteUri,
+                            silenceMs,
+                            bytesReceived.getPlain(),
+                            announcedBodyLength,
+                            throwable
+                        );
+                    }
+                    return Flowable.empty();
+                })
+                .doOnCancel(() -> {
+                    try {
+                        ctx.withLogger(log).debug(
+                            "Downstream request has been cancelled, cancelling upstream request to [{}]",
+                            absoluteUri
+                        );
 
-                    // Reset forces the upstream connection to be closed and avoid consuming the response while downstream is already gone.
-                    endpointResponse.request().reset();
-                } catch (Exception e) {
-                    ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
-                }
-            })
-            // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
-            // point it stopped rather than left at the time to first byte.
-            .doFinally(() -> recordEndpointResponseTime(ctx));
+                        // Reset forces the upstream connection to be closed and avoid consuming the response while downstream is already gone.
+                        endpointResponse.request().reset();
+                    } catch (Exception e) {
+                        ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
+                    }
+                })
+                // Last: covers completion, error and cancellation alike, so a truncated response is measured up to the
+                // point it stopped rather than left at the time to first byte.
+                .doFinally(() -> recordEndpointResponseTime(ctx))
+        );
     }
 
     /**
@@ -523,14 +525,12 @@ public class HttpConnector implements ProxyConnector {
         // response: only the closure was abrupt, and that costs nothing. Reporting it would raise an error on an
         // exchange that lost no data — the noisiest kind of false positive, since nothing downstream is affected.
         if (announcedBodyLength >= 0 && bytesReceived >= announcedBodyLength) {
-            ctx
-                .withLogger(log)
-                .debug(
-                    "Upstream closed the connection abruptly after a complete response body [target={}, bytesReceived={}, announcedContentLength={}]",
-                    absoluteUri,
-                    bytesReceived,
-                    announcedBodyLength
-                );
+            ctx.withLogger(log).debug(
+                "Upstream closed the connection abruptly after a complete response body [target={}, bytesReceived={}, announcedContentLength={}]",
+                absoluteUri,
+                bytesReceived,
+                announcedBodyLength
+            );
             return;
         }
 
@@ -564,26 +564,24 @@ public class HttpConnector implements ProxyConnector {
 
         // Single technical log holding everything needed to tell a backend problem from a gateway misconfiguration,
         // without having to correlate several sources afterwards. WARN, not ERROR: the caller did get a response.
-        ctx
-            .withLogger(log)
-            .warn(
-                "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, " +
-                    "bytesReceived={}, announcedContentLength={}, bytesSent={}, " +
-                    "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
-                absoluteUri,
-                elapsedMs,
-                silenceMs,
-                bytesReceived,
-                announcedBodyLength,
-                metrics != null ? metrics.getResponseContentLength() : -1,
-                ctx.response().status(),
-                sharedConfiguration.getHttpOptions().getReadTimeout(),
-                sharedConfiguration.getHttpOptions().getIdleTimeout(),
-                effectiveIdleTimeoutMillis(),
-                errorKey,
-                detail,
-                throwable
-            );
+        ctx.withLogger(log).warn(
+            "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, " +
+                "bytesReceived={}, announcedContentLength={}, bytesSent={}, " +
+                "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
+            absoluteUri,
+            elapsedMs,
+            silenceMs,
+            bytesReceived,
+            announcedBodyLength,
+            metrics != null ? metrics.getResponseContentLength() : -1,
+            ctx.response().status(),
+            sharedConfiguration.getHttpOptions().getReadTimeout(),
+            sharedConfiguration.getHttpOptions().getIdleTimeout(),
+            effectiveIdleTimeoutMillis(),
+            errorKey,
+            detail,
+            throwable
+        );
     }
 
     /**

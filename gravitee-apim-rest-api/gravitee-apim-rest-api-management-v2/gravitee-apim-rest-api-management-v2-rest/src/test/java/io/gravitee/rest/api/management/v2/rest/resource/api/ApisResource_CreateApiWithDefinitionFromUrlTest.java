@@ -53,61 +53,61 @@ public class ApisResource_CreateApiWithDefinitionFromUrlTest extends AbstractRes
     private static final String ENVIRONMENT_ID = "my-env";
     private static final String TEST_URL = "https://example.com/api-definition.json";
     private static final String VALID_API_DEFINITION_JSON = """
-        {
-          "api": {
-            "id": "test-api-id",
-            "name": "Test API",
-            "description": "Test API Description",
-            "version": "1.0.0",
-            "definitionVersion": "V4",
-            "type": "PROXY",
-            "apiVersion": "1.0.0",
-            "listeners": [
+    {
+      "api": {
+        "id": "test-api-id",
+        "name": "Test API",
+        "description": "Test API Description",
+        "version": "1.0.0",
+        "definitionVersion": "V4",
+        "type": "PROXY",
+        "apiVersion": "1.0.0",
+        "listeners": [
+          {
+            "type": "HTTP",
+            "paths": [
               {
-                "type": "HTTP",
-                "paths": [
-                  {
-                    "path": "/test"
-                  }
-                ],
-                "entrypoints": [
-                  {
-                    "type": "http-proxy"
-                  }
-                ]
+                "path": "/test"
               }
             ],
-            "endpointGroups": [
+            "entrypoints": [
               {
-                "name": "default-group",
+                "type": "http-proxy"
+              }
+            ]
+          }
+        ],
+        "endpointGroups": [
+          {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+              {
+                "name": "default",
                 "type": "http-proxy",
-                "endpoints": [
-                  {
-                    "name": "default",
-                    "type": "http-proxy",
-                    "weight": 1,
-                    "inheritConfiguration": false,
-                    "configuration": {
-                      "target": "http://localhost:8080/endpoint"
-                    }
-                  }
-                ]
+                "weight": 1,
+                "inheritConfiguration": false,
+                "configuration": {
+                  "target": "http://localhost:8080/endpoint"
+                }
               }
-            ],
-            "flowExecution": {
-              "mode": "DEFAULT",
-              "matchRequired": false
-            },
-            "flows": [],
-            "responseTemplates": {},
-            "analytics": {
-              "enabled": false
-            },
-            "lifecycleState": "CREATED"
-          },
-          "plans": []
-        }
-        """;
+            ]
+          }
+        ],
+        "flowExecution": {
+          "mode": "DEFAULT",
+          "matchRequired": false
+        },
+        "flows": [],
+        "responseTemplates": {},
+        "analytics": {
+          "enabled": false
+        },
+        "lifecycleState": "CREATED"
+      },
+      "plans": []
+    }
+    """;
 
     @Autowired
     private HttpClientService httpClientService;

@@ -76,13 +76,13 @@ public class GetApiMetadataUseCase {
         }
 
         return switch (sortBy) {
-            case ("value") -> stream.sorted(new ApiMetadataValueComparator()).toList();
-            case ("-value") -> stream.sorted(Collections.reverseOrder(new ApiMetadataValueComparator())).toList();
-            case ("name") -> stream.sorted(Comparator.comparing(ApiMetadata::getName)).toList();
-            case ("-name") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getName))).toList();
-            case ("format") -> stream.sorted(Comparator.comparing(ApiMetadata::getFormatToString)).toList();
-            case ("-format") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getFormatToString))).toList();
-            case ("-key") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getKey))).toList();
+            case "value" -> stream.sorted(new ApiMetadataValueComparator()).toList();
+            case "-value" -> stream.sorted(Collections.reverseOrder(new ApiMetadataValueComparator())).toList();
+            case "name" -> stream.sorted(Comparator.comparing(ApiMetadata::getName)).toList();
+            case "-name" -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getName))).toList();
+            case "format" -> stream.sorted(Comparator.comparing(ApiMetadata::getFormatToString)).toList();
+            case "-format" -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getFormatToString))).toList();
+            case "-key" -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getKey))).toList();
             default -> stream.sorted(Comparator.comparing(ApiMetadata::getKey)).toList();
         };
     }

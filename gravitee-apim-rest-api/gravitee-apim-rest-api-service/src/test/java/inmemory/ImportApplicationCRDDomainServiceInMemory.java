@@ -32,7 +32,8 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class ImportApplicationCRDDomainServiceInMemory
-    implements ImportApplicationCRDDomainService, InMemoryAlternative<BaseApplicationEntity> {
+    implements ImportApplicationCRDDomainService, InMemoryAlternative<BaseApplicationEntity>
+{
 
     private final Map<String, BaseApplicationEntity> storage;
 

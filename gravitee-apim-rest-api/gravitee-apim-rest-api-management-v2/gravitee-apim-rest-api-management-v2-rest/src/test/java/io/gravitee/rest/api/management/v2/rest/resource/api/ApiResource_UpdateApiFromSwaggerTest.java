@@ -68,7 +68,9 @@ class ApiResource_UpdateApiFromSwaggerTest extends ApiResourceTest {
     void should_return_404_when_api_not_found() {
         when(oaiToUpdateApiUseCase.execute(any())).thenThrow(new ApiNotFoundException(API));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
@@ -83,7 +85,9 @@ class ApiResource_UpdateApiFromSwaggerTest extends ApiResourceTest {
             io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
         );
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -108,7 +112,9 @@ class ApiResource_UpdateApiFromSwaggerTest extends ApiResourceTest {
             io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
         );
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         var body = response.readEntity(ApiV4.class);
@@ -120,7 +126,9 @@ class ApiResource_UpdateApiFromSwaggerTest extends ApiResourceTest {
     void should_return_400_when_swagger_cannot_be_read() {
         when(oaiToUpdateApiUseCase.execute(any())).thenThrow(new InvalidApiDefinitionException("Unable to read the swagger specification"));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }
@@ -129,7 +137,9 @@ class ApiResource_UpdateApiFromSwaggerTest extends ApiResourceTest {
     void should_return_400_when_invalid_paths_exception() {
         when(oaiToUpdateApiUseCase.execute(any())).thenThrow(new InvalidPathsException("Path [/foo] already exists"));
 
-        Response response = rootTarget().request().put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
+        Response response = rootTarget()
+            .request()
+            .put(Entity.entity(buildDescriptor("{}"), MediaType.APPLICATION_JSON));
 
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
     }

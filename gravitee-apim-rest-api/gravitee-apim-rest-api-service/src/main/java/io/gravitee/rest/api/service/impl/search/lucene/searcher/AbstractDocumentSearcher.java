@@ -114,9 +114,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                     .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
             } else {
                 var luceneSort = sort == null ? defaultSort : convert(sort);
-                topDocs = luceneSort == null
-                    ? searcher.search(query, Integer.MAX_VALUE)
-                    : searcher.search(query, Integer.MAX_VALUE, luceneSort);
+                topDocs =
+                    luceneSort == null ? searcher.search(query, Integer.MAX_VALUE) : searcher.search(query, Integer.MAX_VALUE, luceneSort);
             }
 
             final Set<String> results = new LinkedHashSet<>();

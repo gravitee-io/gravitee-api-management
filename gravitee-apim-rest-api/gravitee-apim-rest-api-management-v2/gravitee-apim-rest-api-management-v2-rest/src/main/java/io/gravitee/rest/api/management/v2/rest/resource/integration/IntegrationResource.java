@@ -199,12 +199,10 @@ public class IntegrationResource extends AbstractResource {
     @DELETE
     @Path("/apis")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        {
-            @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }),
-            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.INTEGRATION_DEFINITION, acls = { RolePermissionAction.DELETE }),
+        @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }),
+    })
     public DeletedIngestedApisResponse deleteIngestedApis(@PathParam("integrationId") String integrationId) {
         AuditInfo audit = getAuditInfo();
 

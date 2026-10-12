@@ -79,8 +79,7 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         Map<String, ApplicationMetadata> metaMap = new HashMap<>();
 
         // Unknown applications
-        keys
-            .stream()
+        keys.stream()
             .filter(key -> UNKNOWN_SERVICE.equals(key) || UNKNOWN_SERVICE_MAPPED.equals(key))
             .forEach(key -> metaMap.put(key, UNKNOWN_APPLICATION));
 
@@ -107,6 +106,9 @@ public class ApplicationMetadataProvider implements AnalyticsMetadataProvider {
         }
 
         // Build output Map<String, Map<String, String>>
-        return metaMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
+        return metaMap
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toMap()));
     }
 }

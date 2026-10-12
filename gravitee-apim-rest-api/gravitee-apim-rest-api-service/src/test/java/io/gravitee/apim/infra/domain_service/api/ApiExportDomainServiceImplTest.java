@@ -198,7 +198,9 @@ class ApiExportDomainServiceImplTest {
             )
             .thenReturn(true);
 
-        lenient().when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class))).thenReturn(List.of());
+        lenient()
+            .when(apiCategoryQueryService.findApiCategoryKeys(any(Api.class)))
+            .thenReturn(List.of());
         lenient()
             .when(groupQueryService.findByIds(anySet()))
             .thenAnswer(invocation -> {
@@ -221,20 +223,20 @@ class ApiExportDomainServiceImplTest {
         String apiId = UUID.randomUUID().toString();
         var definition = new io.gravitee.definition.model.v4.Api();
         var configuration = """
-            {
-                "schedule": "*/1 * * * * *",
-                "headers": [],
-                "method": "POST",
-                "systemProxy": true,
-                "transformation": "[
-                    {
-                        "operation": "default",
-                        "spec": {}
-                    }
-                ]",
-                "url": "gravitee-test.com/test"
-            }
-            """;
+        {
+            "schedule": "*/1 * * * * *",
+            "headers": [],
+            "method": "POST",
+            "systemProxy": true,
+            "transformation": "[
+                {
+                    "operation": "default",
+                    "spec": {}
+                }
+            ]",
+            "url": "gravitee-test.com/test"
+        }
+        """;
 
         definition.setServices(
             new ApiServices(
@@ -768,7 +770,9 @@ class ApiExportDomainServiceImplTest {
             .extracting(io.gravitee.definition.model.v4.flow.Flow::getId)
             .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.V4) export).plans()).extracting(PlanDescriptor.V4::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.V4) export).plans())
+            .extracting(PlanDescriptor.V4::id)
+            .allMatch(Objects::isNull);
     }
 
     @Test
@@ -800,9 +804,13 @@ class ApiExportDomainServiceImplTest {
 
         // Then
         assertThat(export.api().id()).isNull();
-        assertThat(((ApiDescriptor.Native) export.api()).flows()).extracting(NativeFlow::getId).allMatch(Objects::isNull);
+        assertThat(((ApiDescriptor.Native) export.api()).flows())
+            .extracting(NativeFlow::getId)
+            .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.Native) export).plans()).extracting(PlanDescriptor.Native::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.Native) export).plans())
+            .extracting(PlanDescriptor.Native::id)
+            .allMatch(Objects::isNull);
     }
 
     @Test
@@ -838,7 +846,9 @@ class ApiExportDomainServiceImplTest {
             .extracting(io.gravitee.definition.model.flow.Flow::getId)
             .allMatch(Objects::isNull);
         assertThat(export.pages()).extracting(PageExport::getId).allMatch(Objects::nonNull);
-        assertThat(((GraviteeDefinition.V2) export).plans()).extracting(PlanDescriptor.V2::id).allMatch(Objects::isNull);
+        assertThat(((GraviteeDefinition.V2) export).plans())
+            .extracting(PlanDescriptor.V2::id)
+            .allMatch(Objects::isNull);
     }
 
     private Set<BaseUserEntity> users() {

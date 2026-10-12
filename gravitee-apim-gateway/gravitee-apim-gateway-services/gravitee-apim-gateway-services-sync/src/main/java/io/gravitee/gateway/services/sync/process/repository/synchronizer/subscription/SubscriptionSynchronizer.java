@@ -98,7 +98,7 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
                 .count()
                 .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
                 .doOnSuccess(count ->
-                    log.debug("Subscriptions of {} apis refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
+                    log.debug("Subscriptions of {} apis refreshed in {}ms", count, System.currentTimeMillis() - launchTime.get())
                 )
                 .ignoreElement();
         }
@@ -133,9 +133,8 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
     }
 
     private boolean isPlanDeployed(Subscription subscription) {
-        Plan.PlanReferenceType referenceType = subscription.getReferenceType() != null
-            ? toPlanReferenceType(subscription.getReferenceType())
-            : Plan.PlanReferenceType.API;
+        Plan.PlanReferenceType referenceType =
+            subscription.getReferenceType() != null ? toPlanReferenceType(subscription.getReferenceType()) : Plan.PlanReferenceType.API;
         String identifier = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
         return planCache.isDeployed(identifier, subscription.getPlan(), referenceType);
     }

@@ -201,7 +201,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                     SortBuilder.on(
                         order.getField(),
                         order.isOrder() ? Order.ASC : Order.DESC,
-                        (order.getType() == null) ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())
+                        order.getType() == null ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())
                     )
                 );
             }
@@ -335,7 +335,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                         // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
                         // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
                         bucket ->
-                            (UNKNOWN_SERVICE.equals(bucket.name()) && !fieldName.startsWith(CUSTOM_FIELD_NAME))
+                            UNKNOWN_SERVICE.equals(bucket.name()) && !fieldName.startsWith(CUSTOM_FIELD_NAME)
                                 ? UNKNOWN_SERVICE_MAPPED
                                 : bucket.name(),
                         GroupByResponse.Bucket::value,
@@ -464,7 +464,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     private Map<String, String> getCountryName(String country_iso) {
         Map<String, String> metadata = new HashMap<>();
 
-        metadata.put(METADATA_NAME, (new Locale("", country_iso)).getDisplayCountry(Locale.UK));
+        metadata.put(METADATA_NAME, new Locale("", country_iso).getDisplayCountry(Locale.UK));
 
         return metadata;
     }

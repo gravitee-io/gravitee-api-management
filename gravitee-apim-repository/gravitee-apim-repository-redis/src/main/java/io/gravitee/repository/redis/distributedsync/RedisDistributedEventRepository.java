@@ -100,7 +100,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     public RedisDistributedEventRepository(final RedisClient redisClient) {
         this.redisClient = redisClient;
-        this.redisClient.redisApi()
+        this.redisClient
+            .redisApi()
             .flatMap(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
             .onFailure(throwable -> {
                 if (!"Index already exists".equals(throwable.getMessage())) {
@@ -345,20 +346,32 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         }
 
         if (criteria.getType() != null) {
-            query.append("@" + DistributedEvent.Fields.type + ":{").append(criteria.getType()).append("}");
+            query
+                .append("@" + DistributedEvent.Fields.type + ":{")
+                .append(criteria.getType())
+                .append("}");
         }
 
         if (criteria.getSyncActions() != null) {
             var syncActions = criteria.getSyncActions().stream().map(Enum::name).collect(Collectors.joining("|"));
-            query.append("@" + DistributedEvent.Fields.syncAction + ":{").append(syncActions).append("}");
+            query
+                .append("@" + DistributedEvent.Fields.syncAction + ":{")
+                .append(syncActions)
+                .append("}");
         }
 
         if (criteria.getFrom() > 0) {
-            query.append("@" + DistributedEvent.Fields.updatedAt + ":[").append(criteria.getFrom()).append(" +inf]");
+            query
+                .append("@" + DistributedEvent.Fields.updatedAt + ":[")
+                .append(criteria.getFrom())
+                .append(" +inf]");
         }
 
         if (criteria.getTo() > 0) {
-            query.append("@" + DistributedEvent.Fields.updatedAt + ":[-inf ").append(criteria.getTo()).append("]");
+            query
+                .append("@" + DistributedEvent.Fields.updatedAt + ":[-inf ")
+                .append(criteria.getTo())
+                .append("]");
         }
 
         // If no criteria have been applied, retrieve all events

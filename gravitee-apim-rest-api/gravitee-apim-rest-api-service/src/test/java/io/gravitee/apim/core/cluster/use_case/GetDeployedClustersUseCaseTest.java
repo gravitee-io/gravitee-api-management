@@ -56,22 +56,22 @@ class GetDeployedClustersUseCaseTest {
     @Test
     void should_return_deployed_cluster_with_connections() {
         String payload = """
-            {
-                "id": "cluster-id",
-                "crossId": "my-kafka-cluster",
-                "name": "My Kafka Cluster",
-                "description": "A test cluster",
-                "type": "KAFKA_CLUSTER",
-                "deployedAt": 1698000000,
-                "version": 2,
-                "configuration": {
-                    "connections": [
-                        { "crossId": "primary", "name": "Primary Connection", "bootstrapServers": "kafka:9092", "security": { "protocol": "PLAINTEXT" } },
-                        { "crossId": "secondary", "name": "Secondary Connection", "bootstrapServers": "kafka2:9092", "security": { "protocol": "SSL" } }
-                    ]
-                }
+        {
+            "id": "cluster-id",
+            "crossId": "my-kafka-cluster",
+            "name": "My Kafka Cluster",
+            "description": "A test cluster",
+            "type": "KAFKA_CLUSTER",
+            "deployedAt": 1698000000,
+            "version": 2,
+            "configuration": {
+                "connections": [
+                    { "crossId": "primary", "name": "Primary Connection", "bootstrapServers": "kafka:9092", "security": { "protocol": "PLAINTEXT" } },
+                    { "crossId": "secondary", "name": "Secondary Connection", "bootstrapServers": "kafka2:9092", "security": { "protocol": "SSL" } }
+                ]
             }
-            """;
+        }
+        """;
 
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         properties.put(Event.EventProperties.CLUSTER_ID, "my-kafka-cluster");
@@ -106,14 +106,14 @@ class GetDeployedClustersUseCaseTest {
     @Test
     void should_not_return_clusters_from_other_environments() {
         String payload = """
-            {
-                "id": "cluster-id",
-                "crossId": "other-cluster",
-                "name": "Other Cluster",
-                "type": "KAFKA_CLUSTER",
-                "configuration": { "connections": [] }
-            }
-            """;
+        {
+            "id": "cluster-id",
+            "crossId": "other-cluster",
+            "name": "Other Cluster",
+            "type": "KAFKA_CLUSTER",
+            "configuration": { "connections": [] }
+        }
+        """;
 
         var properties = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         properties.put(Event.EventProperties.CLUSTER_ID, "other-cluster");
@@ -138,24 +138,24 @@ class GetDeployedClustersUseCaseTest {
     @Test
     void should_filter_deployed_clusters_by_type() {
         String kafkaClusterPayload = """
-            {
-                "id": "cluster-1",
-                "crossId": "kafka-cluster",
-                "name": "Kafka Cluster",
-                "type": "KAFKA_CLUSTER",
-                "configuration": { "connections": [] }
-            }
-            """;
+        {
+            "id": "cluster-1",
+            "crossId": "kafka-cluster",
+            "name": "Kafka Cluster",
+            "type": "KAFKA_CLUSTER",
+            "configuration": { "connections": [] }
+        }
+        """;
 
         String virtualClusterPayload = """
-            {
-                "id": "cluster-2",
-                "crossId": "virtual-cluster",
-                "name": "Virtual Cluster",
-                "type": "KAFKA_VIRTUAL_CLUSTER",
-                "configuration": { "backends": [] }
-            }
-            """;
+        {
+            "id": "cluster-2",
+            "crossId": "virtual-cluster",
+            "name": "Virtual Cluster",
+            "type": "KAFKA_VIRTUAL_CLUSTER",
+            "configuration": { "backends": [] }
+        }
+        """;
 
         var props1 = new EnumMap<Event.EventProperties, String>(Event.EventProperties.class);
         props1.put(Event.EventProperties.CLUSTER_ID, "kafka-cluster");

@@ -110,7 +110,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         SubscriptionEntity subC1 = new SubscriptionEntity();
         subC1.setApplication("C");
         subC1.setApi(API);
-        doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(subB1, subC1, subA1))
+            .when(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), any());
 
         ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");
@@ -169,7 +171,9 @@ public class ApiSubscribersResourceTest extends AbstractResourceTest {
         SubscriptionEntity subC1 = new SubscriptionEntity();
         subC1.setApplication("C");
         subC1.setApi(API);
-        doReturn(Arrays.asList(subB1, subC1, subA1)).when(subscriptionService).search(eq(GraviteeContext.getExecutionContext()), any());
+        doReturn(Arrays.asList(subB1, subC1, subA1))
+            .when(subscriptionService)
+            .search(eq(GraviteeContext.getExecutionContext()), any());
 
         ApplicationListItem appA = new ApplicationListItem();
         appA.setId("A");

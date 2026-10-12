@@ -89,21 +89,19 @@ public class CorsDeserializer extends StdScalarDeserializer<Cors> {
         cors.setAccessControlAllowOrigin(allowOrigin);
         cors.setAccessControlAllowOriginRegex(allowOriginRegex);
         if (allowOriginNode != null) {
-            allowOriginNode
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    allowOrigin.add(jsonNode.asText());
-                    if (
-                        !"*".equals(jsonNode.asText()) &&
-                        (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
-                    ) {
-                        try {
-                            allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
-                        } catch (PatternSyntaxException pse) {
-                            log.error("Allow origin regex invalid: {} {}", jsonNode.asText(), pse.getMessage());
-                        }
+            allowOriginNode.elements().forEachRemaining(jsonNode -> {
+                allowOrigin.add(jsonNode.asText());
+                if (
+                    !"*".equals(jsonNode.asText()) &&
+                    (jsonNode.asText().contains("(") || jsonNode.asText().contains("[") || jsonNode.asText().contains("*"))
+                ) {
+                    try {
+                        allowOriginRegex.add(Pattern.compile(jsonNode.asText()));
+                    } catch (PatternSyntaxException pse) {
+                        log.error("Allow origin regex invalid: {} {}", jsonNode.asText(), pse.getMessage());
                     }
-                });
+                }
+            });
         }
     }
 

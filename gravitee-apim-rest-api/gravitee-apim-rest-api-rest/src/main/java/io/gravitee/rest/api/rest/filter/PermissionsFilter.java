@@ -84,8 +84,8 @@ public class PermissionsFilter implements ContainerRequestFilter {
     private boolean hasPermission(Permission permission, ContainerRequestContext requestContext, ExecutionContext executionContext) {
         return switch (permission.value().getScope()) {
             case ORGANIZATION -> hasPermission(executionContext, permission, executionContext.getOrganizationId());
-            case ENVIRONMENT -> (executionContext.hasEnvironmentId() &&
-                hasPermission(executionContext, permission, executionContext.getEnvironmentId()));
+            case ENVIRONMENT -> executionContext.hasEnvironmentId() &&
+                hasPermission(executionContext, permission, executionContext.getEnvironmentId());
             case APPLICATION -> hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API -> hasPermission(executionContext, permission, getApiId(requestContext));
             case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));

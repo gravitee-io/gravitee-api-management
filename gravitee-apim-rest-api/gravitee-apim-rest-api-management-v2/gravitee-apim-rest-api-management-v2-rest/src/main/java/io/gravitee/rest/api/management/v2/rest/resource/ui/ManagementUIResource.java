@@ -81,9 +81,10 @@ public class ManagementUIResource {
         if (enforceOrganizationId != null) {
             organizationId = enforceOrganizationId;
         } else {
-            organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+            organizationId =
+                GraviteeContext.getCurrentOrganization() != null
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
 
         String consoleApiUrl = installationAccessQueryService.getConsoleAPIUrl(organizationId);

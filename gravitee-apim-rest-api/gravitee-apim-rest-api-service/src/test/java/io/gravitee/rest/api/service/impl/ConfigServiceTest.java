@@ -324,14 +324,12 @@ class ConfigServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            // systemConfigured, envOverride, expectedInherited
-            "false, false, true", // no valid system value and no environment override -> inherited from the organization
-            "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
-            "true, false, false", // a valid system value is in effect -> comes from system, not inherited
-        }
-    )
+    @CsvSource({
+        // systemConfigured, envOverride, expectedInherited
+        "false, false, true", // no valid system value and no environment override -> inherited from the organization
+        "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
+        "true, false, false", // a valid system value is in effect -> comes from system, not inherited
+    })
     void shouldFlagBrandedSendersInheritedFromSystemAndEnvOverride(
         boolean systemConfigured,
         boolean envOverride,

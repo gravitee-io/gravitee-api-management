@@ -94,7 +94,10 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_return_sanitized_groups_from_mutated_update_api_entity() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("requested-group"))).build();
+        var api = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .groups(new HashSet<>(Set.of("requested-group")))
+            .build();
         stubValidate(entity -> entity.setGroups(Set.of("filtered-group")));
 
         var result = cut.validateV4(api, auditInfo);
@@ -160,7 +163,10 @@ class UpdateApiDomainServiceImplTest {
 
     @Test
     void should_preserve_original_groups_when_validator_returns_null() {
-        var api = ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(Set.of("group-1"))).build();
+        var api = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .groups(new HashSet<>(Set.of("group-1")))
+            .build();
         var originalGroups = api.getGroups();
         stubValidate(entity -> entity.setGroups(null));
 

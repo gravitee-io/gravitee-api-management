@@ -25,8 +25,8 @@ import java.util.Map;
 public class HttpErrorRateBuilder {
 
     private static final String SCRIPT_SOURCE = """
-        (params.success + params.error) > 0 ? params.error / (params.success + params.error) * 100 : 0
-        """;
+    (params.success + params.error) > 0 ? params.error / (params.success + params.error) * 100 : 0
+    """;
 
     private final SingleDateHistogramBucketBuilder singleBucketBuilder = new SingleDateHistogramBucketBuilder();
 

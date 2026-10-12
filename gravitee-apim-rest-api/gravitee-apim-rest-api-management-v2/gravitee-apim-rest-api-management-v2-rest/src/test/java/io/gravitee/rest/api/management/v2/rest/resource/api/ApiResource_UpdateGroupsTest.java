@@ -55,7 +55,9 @@ public class ApiResource_UpdateGroupsTest extends ApiResourceTest {
             )
         ).thenReturn(false);
 
-        var response = rootTarget().request().put(Entity.json(List.of("group-1")));
+        var response = rootTarget()
+            .request()
+            .put(Entity.json(List.of("group-1")));
 
         assertThat(response)
             .hasStatus(FORBIDDEN_403)

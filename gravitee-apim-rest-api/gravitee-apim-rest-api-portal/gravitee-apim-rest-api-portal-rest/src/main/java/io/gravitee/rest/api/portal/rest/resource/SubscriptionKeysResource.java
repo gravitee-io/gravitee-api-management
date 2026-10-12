@@ -116,9 +116,8 @@ public class SubscriptionKeysResource extends AbstractResource {
             ) ||
             hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            final String referenceId = subscriptionEntity.getReferenceId() != null
-                ? subscriptionEntity.getReferenceId()
-                : subscriptionEntity.getApi();
+            final String referenceId =
+                subscriptionEntity.getReferenceId() != null ? subscriptionEntity.getReferenceId() : subscriptionEntity.getApi();
             final String referenceType = subscriptionEntity.getReferenceType() != null ? subscriptionEntity.getReferenceType() : "API";
             revokeSubscriptionApiKeyUsecase.execute(
                 new RevokeSubscriptionApiKeyUseCase.Input(subscriptionId, apiKey, referenceId, referenceType, getAuditInfo())

@@ -656,7 +656,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         void should_return_404_if_subscription_not_found() {
             when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION_ID));
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID).request().put(json(SubscriptionFixtures.anUpdateApiKey()));
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID)
+                .request()
+                .put(json(SubscriptionFixtures.anUpdateApiKey()));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
@@ -674,7 +677,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
                 .build();
             when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKey);
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID).request().put(json(SubscriptionFixtures.anUpdateApiKey()));
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID)
+                .request()
+                .put(json(SubscriptionFixtures.anUpdateApiKey()));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
             Error error = response.readEntity(Error.class);
@@ -695,7 +701,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
             when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKey);
             when(apiKeyService.update(any(), any())).thenReturn(apiKey);
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID).request().put(json(SubscriptionFixtures.anUpdateApiKey()));
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID)
+                .request()
+                .put(json(SubscriptionFixtures.anUpdateApiKey()));
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             verify(apiKeyService).update(eq(GraviteeContext.getExecutionContext()), any());
@@ -704,7 +713,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.API_PRODUCT_SUBSCRIPTION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("api-keys/" + API_KEY_ID).request().put(json(SubscriptionFixtures.anUpdateApiKey()))
+                rootTarget()
+                    .path("api-keys/" + API_KEY_ID)
+                    .request()
+                    .put(json(SubscriptionFixtures.anUpdateApiKey()))
             );
         }
     }
@@ -731,7 +743,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
             );
             // No subscription in memory -> use case throws SubscriptionNotFoundException
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID + "/_revoke").request().post(null);
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID + "/_revoke")
+                .request()
+                .post(null);
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
@@ -764,7 +779,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
                 )
             );
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID + "/_revoke").request().post(null);
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID + "/_revoke")
+                .request()
+                .post(null);
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             var apiKeyResponse = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ApiKey.class);
@@ -775,7 +793,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.API_PRODUCT_SUBSCRIPTION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("api-keys/" + API_KEY_ID + "/_revoke").request().post(null)
+                rootTarget()
+                    .path("api-keys/" + API_KEY_ID + "/_revoke")
+                    .request()
+                    .post(null)
             );
         }
     }
@@ -789,7 +810,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         void should_return_404_if_subscription_not_found() {
             when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(new SubscriptionNotFoundException(SUBSCRIPTION_ID));
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID + "/_reactivate").request().post(null);
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID + "/_reactivate")
+                .request()
+                .post(null);
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
@@ -804,7 +828,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
                 .build();
             when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKey);
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID + "/_reactivate").request().post(null);
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID + "/_reactivate")
+                .request()
+                .post(null);
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
         }
@@ -823,7 +850,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
             when(apiKeyService.findById(GraviteeContext.getExecutionContext(), API_KEY_ID)).thenReturn(apiKey);
             when(apiKeyService.reactivate(any(), any())).thenReturn(apiKey);
 
-            Response response = rootTarget().path("api-keys/" + API_KEY_ID + "/_reactivate").request().post(null);
+            Response response = rootTarget()
+                .path("api-keys/" + API_KEY_ID + "/_reactivate")
+                .request()
+                .post(null);
 
             assertThat(response.getStatus()).isEqualTo(OK_200);
             verify(apiKeyService).reactivate(eq(GraviteeContext.getExecutionContext()), eq(apiKey));
@@ -832,7 +862,10 @@ class ApiProductSubscriptionResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.API_PRODUCT_SUBSCRIPTION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("api-keys/" + API_KEY_ID + "/_reactivate").request().post(null)
+                rootTarget()
+                    .path("api-keys/" + API_KEY_ID + "/_reactivate")
+                    .request()
+                    .post(null)
             );
         }
     }

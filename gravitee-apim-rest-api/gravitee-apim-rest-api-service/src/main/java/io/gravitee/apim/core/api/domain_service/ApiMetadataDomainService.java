@@ -178,9 +178,8 @@ public class ApiMetadataDomainService {
     }
 
     private String findDefaultValue(String environmentId, String key) {
-        return this.metadataCrudService.findById(
-                MetadataId.builder().key(key).referenceId(environmentId).referenceType(Metadata.ReferenceType.ENVIRONMENT).build()
-            )
+        return this.metadataCrudService
+            .findById(MetadataId.builder().key(key).referenceId(environmentId).referenceType(Metadata.ReferenceType.ENVIRONMENT).build())
             .map(Metadata::getValue)
             .orElse(null);
     }

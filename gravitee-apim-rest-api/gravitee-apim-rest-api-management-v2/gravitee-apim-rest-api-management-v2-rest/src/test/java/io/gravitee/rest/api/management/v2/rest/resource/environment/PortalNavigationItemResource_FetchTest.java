@@ -313,7 +313,8 @@ class PortalNavigationItemResource_FetchTest extends AbstractResourceTest {
     }
 
     private String storedContentOf(PortalNavigationPage page) {
-        return ((PortalPageContentCrudServiceInMemory) portalPageContentCrudService).storage()
+        return ((PortalPageContentCrudServiceInMemory) portalPageContentCrudService)
+            .storage()
             .stream()
             .filter(content -> content.getId().equals(page.getPortalPageContentId()))
             .findFirst()

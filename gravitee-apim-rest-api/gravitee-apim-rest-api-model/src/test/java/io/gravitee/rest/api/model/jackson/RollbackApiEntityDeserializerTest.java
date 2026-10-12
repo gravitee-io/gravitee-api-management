@@ -41,29 +41,29 @@ class RollbackApiEntityDeserializerTest {
     @Test
     void should_deserialize_v2_payload_and_map_gravitee_and_snake_case_fields() throws Exception {
         String json = """
-            {
-              "id": "api-123",
-              "name": "Test API",
-              "version": "1.0.0",
-              "description": "desc",
-              "gravitee": "2.0.0",
-              "flow_mode": "DEFAULT",
-              "execution_mode": "v4-emulation-engine",
-              "picture_url": "http://example/logo.png",
-              "path_mappings": ["/a/**"],
-              "categories": ["cat1","cat2"],
-              "labels": ["l1","l2"],
-              "groups": ["g1","g2"],
-              "lifecycle_state": "CREATED",
-              "disable_membership_notifications": true,
-              "background_url": "http://example/bg.png",
-              "response_templates": { "DEFAULT": { "en": { "status": 418 } } },
-              "properties": [
-                { "key": "k1", "value": "v1" },
-                { "key": "k2", "value": "v2" }
-              ]
-            }
-            """;
+        {
+          "id": "api-123",
+          "name": "Test API",
+          "version": "1.0.0",
+          "description": "desc",
+          "gravitee": "2.0.0",
+          "flow_mode": "DEFAULT",
+          "execution_mode": "v4-emulation-engine",
+          "picture_url": "http://example/logo.png",
+          "path_mappings": ["/a/**"],
+          "categories": ["cat1","cat2"],
+          "labels": ["l1","l2"],
+          "groups": ["g1","g2"],
+          "lifecycle_state": "CREATED",
+          "disable_membership_notifications": true,
+          "background_url": "http://example/bg.png",
+          "response_templates": { "DEFAULT": { "en": { "status": 418 } } },
+          "properties": [
+            { "key": "k1", "value": "v1" },
+            { "key": "k2", "value": "v2" }
+          ]
+        }
+        """;
 
         RollbackApiEntity e = mapper.readValue(json, RollbackApiEntity.class);
 
@@ -96,12 +96,12 @@ class RollbackApiEntityDeserializerTest {
     @Test
     void should_throw_on_v4_definitionVersion() {
         String json = """
-            {
-              "id": "api-456",
-              "name": "v4 API",
-              "definitionVersion": "4.0.0"
-            }
-            """;
+        {
+          "id": "api-456",
+          "name": "v4 API",
+          "definitionVersion": "4.0.0"
+        }
+        """;
 
         assertThatThrownBy(() -> mapper.readValue(json, RollbackApiEntity.class))
             .isInstanceOf(JsonMappingException.class)
@@ -111,11 +111,11 @@ class RollbackApiEntityDeserializerTest {
     @Test
     void should_deserialize_minimal_payload_and_apply_fallbacks() throws Exception {
         String json = """
-            {
-              "id": "api-min",
-              "name": "Minimal API"
-            }
-            """;
+        {
+          "id": "api-min",
+          "name": "Minimal API"
+        }
+        """;
 
         RollbackApiEntity e = mapper.readValue(json, RollbackApiEntity.class);
 
@@ -132,13 +132,13 @@ class RollbackApiEntityDeserializerTest {
     @Test
     void should_ignore_unknown_fields_and_allow_non_v4_definitionVersion() throws Exception {
         String json = """
-            {
-              "id": "api-789",
-              "name": "Unknowns API",
-              "definitionVersion": "3.0.0",
-              "some_unknown_field": "whatever"
-            }
-            """;
+        {
+          "id": "api-789",
+          "name": "Unknowns API",
+          "definitionVersion": "3.0.0",
+          "some_unknown_field": "whatever"
+        }
+        """;
 
         RollbackApiEntity e = mapper.readValue(json, RollbackApiEntity.class);
 

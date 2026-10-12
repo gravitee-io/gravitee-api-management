@@ -100,7 +100,10 @@ public class SharedPolicyGroupResource_DeployTest extends AbstractResourceTest {
         var response = rootTarget().request().post(null);
 
         // Then
-        assertThat(response).hasStatus(404).asError().hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(404)
+            .asError()
+            .hasMessage("SharedPolicyGroup [" + SHARED_POLICY_GROUP_ID + "] cannot be found.");
         var captor = ArgumentCaptor.forClass(DeploySharedPolicyGroupUseCase.Input.class);
         verify(deploySharedPolicyGroupUseCase).execute(captor.capture());
         SoftAssertions.assertSoftly(soft -> {

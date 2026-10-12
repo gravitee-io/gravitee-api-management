@@ -41,23 +41,23 @@ public class JoltMapper {
         if (source == null || source.isEmpty()) {
             return List.of();
         }
-        ArrayList<Object> transformedProperties = (ArrayList<Object>) (isJsonArray(source)
-                ? joltReader.transform(JsonUtils.jsonToList(source))
-                : joltReader.transform(JsonUtils.jsonToMap(source)));
+        ArrayList<Object> transformedProperties = (ArrayList<Object>) (
+            isJsonArray(source) ? joltReader.transform(JsonUtils.jsonToList(source)) : joltReader.transform(JsonUtils.jsonToMap(source))
+        );
         final String newProperties = JsonUtils.toJsonString(transformedProperties);
 
         final List<Object> extractObjects = JsonUtils.jsonToList(newProperties);
         return extractObjects == null
             ? List.of()
             : extractObjects
-                .stream()
-                .map(property -> {
-                    Map<Object, Object> mapItem = (Map<Object, Object>) property;
-                    String key = String.valueOf(mapItem.get("key"));
-                    String value = String.valueOf(mapItem.get("value"));
-                    return new Property(key, value, false, true);
-                })
-                .toList();
+                  .stream()
+                  .map(property -> {
+                      Map<Object, Object> mapItem = (Map<Object, Object>) property;
+                      String key = String.valueOf(mapItem.get("key"));
+                      String value = String.valueOf(mapItem.get("value"));
+                      return new Property(key, value, false, true);
+                  })
+                  .toList();
     }
 
     private boolean isJsonArray(String source) {

@@ -969,8 +969,10 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     private enum FlowStepPhase {
         @Deprecated
         PRE,
+
         @Deprecated
         POST,
+
         REQUEST,
         RESPONSE,
         SUBSCRIBE,

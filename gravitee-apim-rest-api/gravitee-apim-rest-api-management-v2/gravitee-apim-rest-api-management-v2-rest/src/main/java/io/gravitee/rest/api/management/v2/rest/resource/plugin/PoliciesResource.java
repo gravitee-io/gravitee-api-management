@@ -46,9 +46,10 @@ public class PoliciesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<PolicyPlugin> getPolicies() {
-        String organizationId = GraviteeContext.getCurrentOrganization() != null
-            ? GraviteeContext.getCurrentOrganization()
-            : GraviteeContext.getDefaultOrganization();
+        String organizationId =
+            GraviteeContext.getCurrentOrganization() != null
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization();
         return PolicyPluginMapper.INSTANCE.mapFromCore(
             getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input(organizationId)).plugins()
         );

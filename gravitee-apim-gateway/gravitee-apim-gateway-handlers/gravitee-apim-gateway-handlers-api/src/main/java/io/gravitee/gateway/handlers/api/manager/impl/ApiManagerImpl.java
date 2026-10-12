@@ -82,7 +82,9 @@ public class ApiManagerImpl implements ApiManager {
      * nothing outside deployment.
      */
     private static final int API_LOCK_STRIPES = 64;
-    private final Lock[] apiLocks = Stream.generate(ReentrantLock::new).limit(API_LOCK_STRIPES).toArray(Lock[]::new);
+    private final Lock[] apiLocks = Stream.generate(ReentrantLock::new)
+        .limit(API_LOCK_STRIPES)
+        .toArray(Lock[]::new);
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
     private final ApiProductRegistry apiProductRegistry;
 
@@ -127,14 +129,11 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     private void subscribeToSecretDiscoveryEvents() {
-        eventManager.subscribeForEvents(
-            event -> {
-                if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
-                    onSecretDiscoveryValueChanged(secretDiscoveryEvent);
-                }
-            },
-            SecretDiscoveryEventType.VALUE_CHANGED
-        );
+        eventManager.subscribeForEvents(event -> {
+            if (event.content() instanceof SecretDiscoveryEvent secretDiscoveryEvent) {
+                onSecretDiscoveryValueChanged(secretDiscoveryEvent);
+            }
+        }, SecretDiscoveryEventType.VALUE_CHANGED);
     }
 
     private void onSecretDiscoveryValueChanged(SecretDiscoveryEvent secretDiscoveryEvent) {
@@ -175,14 +174,11 @@ public class ApiManagerImpl implements ApiManager {
         if (apiProductRegistry == null) {
             return;
         }
-        eventManager.subscribeForEvents(
-            event -> {
-                if (event.content() instanceof ApiProductChangedEvent productEvent) {
-                    onApiProductUndeploy(productEvent);
-                }
-            },
-            ApiProductEventType.UNDEPLOY
-        );
+        eventManager.subscribeForEvents(event -> {
+            if (event.content() instanceof ApiProductChangedEvent productEvent) {
+                onApiProductUndeploy(productEvent);
+            }
+        }, ApiProductEventType.UNDEPLOY);
     }
 
     private void onApiProductUndeploy(ApiProductChangedEvent productEvent) {
@@ -223,7 +219,8 @@ public class ApiManagerImpl implements ApiManager {
             boolean apiToDeploy = deployedApi == null || force;
             boolean apiToUpdate =
                 !apiToDeploy &&
-                (deployedApi.getDeployedAt().before(api.getDeployedAt()) && !Objects.equals(deployedApi.getRevision(), api.getRevision()));
+                deployedApi.getDeployedAt().before(api.getDeployedAt()) &&
+                !Objects.equals(deployedApi.getRevision(), api.getRevision());
 
             if (apiToDeploy || apiToUpdate) {
                 Deployer deployer = deployers.get(api.getClass());
@@ -260,8 +257,8 @@ public class ApiManagerImpl implements ApiManager {
             boolean apiToDeploy = deployedApi == null;
             boolean apiToUpdate =
                 !apiToDeploy &&
-                (deployedApi.getDeployedAt().before(reactableApi.getDeployedAt()) &&
-                    !Objects.equals(deployedApi.getRevision(), reactableApi.getRevision()));
+                deployedApi.getDeployedAt().before(reactableApi.getDeployedAt()) &&
+                !Objects.equals(deployedApi.getRevision(), reactableApi.getRevision());
 
             if (apiToDeploy || apiToUpdate) {
                 log.debug(
@@ -317,7 +314,7 @@ public class ApiManagerImpl implements ApiManager {
 
         final List<Callable<Boolean>> toInvoke = allApis
             .stream()
-            .map(api -> ((Callable<Boolean>) () -> register(api, true)))
+            .map(api -> (Callable<Boolean>) () -> register(api, true))
             .collect(Collectors.toList());
 
         try {
@@ -331,7 +328,7 @@ public class ApiManagerImpl implements ApiManager {
             refreshAllExecutor.shutdown();
         }
 
-        log.info("Apis refresh done in {}ms", (System.currentTimeMillis() - begin));
+        log.info("Apis refresh done in {}ms", System.currentTimeMillis() - begin);
     }
 
     private void deploy(ReactableApi api) {

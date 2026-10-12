@@ -234,16 +234,16 @@ class BrandedSendersEnvironmentReaderTest {
         // Guards against the hand-stubbed indexed-key shape drifting from Spring's real yaml-list flattening: load
         // actual yaml through the same SnakeYAML mechanism gravitee-node uses, then read it back end to end.
         String yaml = """
-            email:
-              branded_senders:
-                - domains:
-                    - example.com
-                    - example.org
-                  from: noreply@example.com
-                  subject: "[Example] %s"
-                - domains: [sample.net]
-                  from: noreply@sample.net
-            """;
+        email:
+          branded_senders:
+            - domains:
+                - example.com
+                - example.org
+              from: noreply@example.com
+              subject: "[Example] %s"
+            - domains: [sample.net]
+              from: noreply@sample.net
+        """;
         YamlPropertiesFactoryBean factory = new YamlPropertiesFactoryBean();
         factory.setResources(new ByteArrayResource(yaml.getBytes(StandardCharsets.UTF_8)));
         MockEnvironment realEnvironment = new MockEnvironment();

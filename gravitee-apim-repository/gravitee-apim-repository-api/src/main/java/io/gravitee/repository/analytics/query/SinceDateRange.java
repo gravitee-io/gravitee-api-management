@@ -46,7 +46,7 @@ public class SinceDateRange implements DateRange {
 
     @Override
     public Long from() {
-        return end - (time * chronoUnit.getDuration().toMillis());
+        return end - time * chronoUnit.getDuration().toMillis();
     }
 
     @Override

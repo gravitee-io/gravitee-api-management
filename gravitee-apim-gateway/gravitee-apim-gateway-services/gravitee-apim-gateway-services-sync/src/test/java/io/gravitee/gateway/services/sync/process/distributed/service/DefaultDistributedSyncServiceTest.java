@@ -250,8 +250,7 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_distribute_credential() {
-            cut
-                .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+            cut.distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
                 .test()
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
@@ -265,10 +264,9 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_distribute_organization() {
-            cut
-                .distributeIfNeeded(
-                    OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
-                )
+            cut.distributeIfNeeded(
+                OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
+            )
                 .test()
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
@@ -276,12 +274,11 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_distribute_access_point() {
-            cut
-                .distributeIfNeeded(
-                    AccessPointDeployable.builder()
-                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
-                        .build()
-                )
+            cut.distributeIfNeeded(
+                AccessPointDeployable.builder()
+                    .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
+                    .build()
+            )
                 .test()
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
@@ -368,8 +365,7 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_not_call_repository_when_distributing_credential() {
-            cut
-                .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+            cut.distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
                 .test()
                 .assertComplete();
             verifyNoInteractions(distributedEventRepository);
@@ -377,10 +373,9 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_not_call_repository_when_distributing_organization() {
-            cut
-                .distributeIfNeeded(
-                    OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
-                )
+            cut.distributeIfNeeded(
+                OrganizationDeployable.builder().reactableOrganization(new ReactableOrganization(new Organization())).build()
+            )
                 .test()
                 .assertComplete();
             verifyNoInteractions(distributedEventRepository);
@@ -394,12 +389,11 @@ class DefaultDistributedSyncServiceTest {
 
         @Test
         void should_not_call_repository_when_distributing_access_point() {
-            cut
-                .distributeIfNeeded(
-                    AccessPointDeployable.builder()
-                        .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
-                        .build()
-                )
+            cut.distributeIfNeeded(
+                AccessPointDeployable.builder()
+                    .reactableAccessPoint(ReactableAccessPoint.builder().id("id").host("host").environmentId("environmentId").build())
+                    .build()
+            )
                 .test()
                 .assertComplete();
             verifyNoInteractions(distributedEventRepository);
@@ -446,8 +440,7 @@ class DefaultDistributedSyncServiceTest {
             when(distributedEventRepository.createOrUpdate(any())).thenReturn(
                 Completable.error(new RuntimeException("Redis waiting queue is full"))
             );
-            cut
-                .distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
                 .test()
                 .assertError(DistributedSyncException.class);
 

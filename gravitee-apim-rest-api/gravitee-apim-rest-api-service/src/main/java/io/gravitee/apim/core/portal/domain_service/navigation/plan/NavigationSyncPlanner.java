@@ -120,7 +120,8 @@ public final class NavigationSyncPlanner {
                         throw PathConflictException.folderPath(create.desired().path());
                     }
                 }
-                default -> {}
+                default -> {
+                }
             }
         }
     }

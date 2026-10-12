@@ -67,14 +67,12 @@ public class AmConnectionResource {
     }
 
     @PUT
-    @Permissions(
-        {
-            @Permission(
-                value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
-                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
-            ),
-        }
-    )
+    @Permissions({
+        @Permission(
+            value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+        ),
+    })
     public AmConnectionResponse save(@PathParam("orgId") String orgId, @Valid @NotNull AmConnectionRequest req) {
         var output = saveAmConnectionUseCase.execute(
             new SaveAmConnectionUseCase.Input(
@@ -101,14 +99,12 @@ public class AmConnectionResource {
 
     @POST
     @Path("/_test")
-    @Permissions(
-        {
-            @Permission(
-                value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
-                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
-            ),
-        }
-    )
+    @Permissions({
+        @Permission(
+            value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+        ),
+    })
     public AmConnectionTestResultResponse test(@PathParam("orgId") String orgId, AmConnectionRequest req) {
         String inboundBaseUrl = req == null ? null : req.baseUrl();
         String inboundToken = req == null ? null : req.serviceAccountAccessToken();

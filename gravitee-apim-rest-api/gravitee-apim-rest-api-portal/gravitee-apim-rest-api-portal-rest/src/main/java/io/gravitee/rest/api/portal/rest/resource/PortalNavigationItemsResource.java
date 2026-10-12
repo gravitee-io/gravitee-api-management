@@ -215,9 +215,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     private Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> parseIncludes(Set<String> include) {
         try {
-            Set<PortalNavigationSearchInclude> restIncludes = include == null
-                ? Set.of()
-                : include.stream().map(PortalNavigationSearchInclude::fromValue).collect(Collectors.toSet());
+            Set<PortalNavigationSearchInclude> restIncludes =
+                include == null ? Set.of() : include.stream().map(PortalNavigationSearchInclude::fromValue).collect(Collectors.toSet());
             return portalNavigationItemMapper.map(restIncludes);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Unsupported include value: " + include, e);

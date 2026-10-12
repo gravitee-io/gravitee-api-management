@@ -184,7 +184,7 @@ public final class ImageUtils {
         }
 
         public int getSize() {
-            return (data == null) ? 0 : data.length;
+            return data == null ? 0 : data.length;
         }
 
         public String toBase64() {

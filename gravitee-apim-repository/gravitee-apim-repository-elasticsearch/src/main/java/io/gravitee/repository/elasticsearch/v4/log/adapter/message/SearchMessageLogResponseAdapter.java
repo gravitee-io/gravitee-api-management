@@ -126,21 +126,26 @@ public class SearchMessageLogResponseAdapter {
         if (messageJson != null) {
             var isError = messageJson.get("isError") != null && messageJson.get("isError").asBoolean();
             var headersJson = messageJson.get("headers");
-            var messageHeaders = null != headersJson
-                ? headersJson
-                    .properties()
-                    .stream()
-                    .collect(
-                        Collectors.toMap(Map.Entry::getKey, entry ->
-                            StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
-                        )
-                    )
-                : null;
+            var messageHeaders =
+                null != headersJson
+                    ? headersJson
+                          .properties()
+                          .stream()
+                          .collect(
+                              Collectors.toMap(Map.Entry::getKey, entry ->
+                                  StreamSupport.stream(entry.getValue().spliterator(), false).map(JsonNodeUtils::asTextOrNull).toList()
+                              )
+                          )
+                    : null;
 
             var metadataJson = messageJson.get("metadata");
-            var messageMetadata = null != metadataJson
-                ? metadataJson.properties().stream().collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
-                : null;
+            var messageMetadata =
+                null != metadataJson
+                    ? metadataJson
+                          .properties()
+                          .stream()
+                          .collect(Collectors.toMap(Map.Entry::getKey, value -> asTextOrNull(value.getValue())))
+                    : null;
             return AggregatedMessageLog.Message.builder()
                 .connectorId(asTextOrNull(json.get("connector-id")))
                 .timestamp(asTextOrNull(json.get("@timestamp")))

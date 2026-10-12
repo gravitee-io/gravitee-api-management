@@ -137,9 +137,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
         }
 
-        String portalStatus = api.getLifecycleState() == ApiLifecycleState.PUBLISHED
-            ? ApiLifecycleState.PUBLISHED.name()
-            : ApiLifecycleState.UNPUBLISHED.name();
+        String portalStatus =
+            api.getLifecycleState() == ApiLifecycleState.PUBLISHED
+                ? ApiLifecycleState.PUBLISHED.name()
+                : ApiLifecycleState.UNPUBLISHED.name();
         doc.add(new StringField(FIELD_PORTAL_STATUS, portalStatus, Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_PORTAL_STATUS_SORTED, toSortedValue(portalStatus)));
 
@@ -244,8 +245,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
 
         // metadata
         if (api.getMetadata() != null) {
-            api
-                .getMetadata()
+            api.getMetadata()
                 .values()
                 .forEach(metadataValue -> {
                     doc.add(new StringField(FIELD_METADATA, metadataValue.toString(), NO));

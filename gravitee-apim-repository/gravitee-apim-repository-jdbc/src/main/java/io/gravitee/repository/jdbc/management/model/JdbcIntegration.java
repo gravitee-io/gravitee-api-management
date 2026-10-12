@@ -53,9 +53,10 @@ public class JdbcIntegration {
     }
 
     public static JdbcIntegration fromIntegration(Integration integration) throws JsonProcessingException {
-        String wellKnownUrls = integration.getWellKnownUrls() != null && !integration.getWellKnownUrls().isEmpty()
-            ? JSON_MAPPER.writeValueAsString(integration.getWellKnownUrls())
-            : null;
+        String wellKnownUrls =
+            integration.getWellKnownUrls() != null && !integration.getWellKnownUrls().isEmpty()
+                ? JSON_MAPPER.writeValueAsString(integration.getWellKnownUrls())
+                : null;
         return new JdbcIntegration(
             integration.getId(),
             integration.getName(),

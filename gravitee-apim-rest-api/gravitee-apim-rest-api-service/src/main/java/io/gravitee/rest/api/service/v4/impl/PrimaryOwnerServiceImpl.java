@@ -263,12 +263,10 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 .forEach(userEntity -> primaryOwnerIdToPrimaryOwnerEntity.put(userEntity.getId(), new PrimaryOwnerEntity(userEntity)));
         }
         if (!groupIds.isEmpty()) {
-            groupService
-                .findByIds(groupIds)
-                .forEach(groupEntity -> {
-                    final String poMail = computePrimaryOwnerMailFromGroup(executionContext, groupEntity.getId());
-                    primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity, poMail));
-                });
+            groupService.findByIds(groupIds).forEach(groupEntity -> {
+                final String poMail = computePrimaryOwnerMailFromGroup(executionContext, groupEntity.getId());
+                primaryOwnerIdToPrimaryOwnerEntity.put(groupEntity.getId(), new PrimaryOwnerEntity(groupEntity, poMail));
+            });
         }
         return memberships
             .stream()

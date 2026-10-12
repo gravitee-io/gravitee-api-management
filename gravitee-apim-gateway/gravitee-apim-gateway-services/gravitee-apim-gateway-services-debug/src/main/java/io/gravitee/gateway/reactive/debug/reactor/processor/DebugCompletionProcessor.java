@@ -231,20 +231,18 @@ public class DebugCompletionProcessor implements Processor {
         }
 
         Map<String, Object> result = new HashMap<>();
-        ds
-            .getDiff()
-            .forEach((key, value) -> {
-                if (PolicyStep.DIFF_KEY_HEADERS.equals(key)) {
-                    // Headers are converted to Map<String, List<String>>
-                    result.put(PolicyStep.DIFF_KEY_HEADERS, ((HttpHeaders) value).toListValuesMap());
-                } else if (PolicyStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
-                    // Body is converted from Buffer to String
-                    result.put(PolicyStep.DIFF_KEY_BODY, value.toString());
-                } else {
-                    // Everything else is kept as is
-                    result.put(key, value);
-                }
-            });
+        ds.getDiff().forEach((key, value) -> {
+            if (PolicyStep.DIFF_KEY_HEADERS.equals(key)) {
+                // Headers are converted to Map<String, List<String>>
+                result.put(PolicyStep.DIFF_KEY_HEADERS, ((HttpHeaders) value).toListValuesMap());
+            } else if (PolicyStep.DIFF_KEY_BODY_BUFFER.equals(key)) {
+                // Body is converted from Buffer to String
+                result.put(PolicyStep.DIFF_KEY_BODY, value.toString());
+            } else {
+                // Everything else is kept as is
+                result.put(key, value);
+            }
+        });
 
         debugStep.setResult(result);
         return debugStep;

@@ -36,7 +36,7 @@ public class OverrideResponseContentPolicy {
 
     @OnResponse
     public void onResponse(Request request, Response response, PolicyChain policyChain) {
-        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString((STREAM_POLICY_CONTENT.length())));
+        response.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(STREAM_POLICY_CONTENT.length()));
 
         policyChain.doNext(request, response);
     }

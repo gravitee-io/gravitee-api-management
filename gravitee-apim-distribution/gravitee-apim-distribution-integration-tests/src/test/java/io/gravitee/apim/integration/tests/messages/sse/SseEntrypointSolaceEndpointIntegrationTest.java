@@ -83,11 +83,10 @@ class SseEntrypointSolaceEndpointIntegrationTest extends AbstractSolaceEndpointI
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 4);
-        obs
-            .assertValueAt(0, chunk -> {
-                SseAssertions.assertRetry(chunk);
-                return true;
-            })
+        obs.assertValueAt(0, chunk -> {
+            SseAssertions.assertRetry(chunk);
+            return true;
+        })
             .assertValueAt(1, chunk -> {
                 SseAssertions.assertOnMessage(chunk, "message1");
                 return true;

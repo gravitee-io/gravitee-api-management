@@ -140,18 +140,16 @@ public class ApiEventsResource extends AbstractResource {
             Collections.singletonList(GraviteeContext.getCurrentEnvironment())
         );
 
-        apiEvents
-            .getContent()
-            .forEach(event -> {
-                Map<String, String> properties1 = event.getProperties();
-                if (!eventSearchParam.isWithPayload()) {
-                    // Remove payload content from response since it's not required anymore
-                    event.setPayload(null);
-                }
-                // complete event with API info
-                properties1.put("api_name", genericApi.getName());
-                properties1.put("api_version", genericApi.getApiVersion());
-            });
+        apiEvents.getContent().forEach(event -> {
+            Map<String, String> properties1 = event.getProperties();
+            if (!eventSearchParam.isWithPayload()) {
+                // Remove payload content from response since it's not required anymore
+                event.setPayload(null);
+            }
+            // complete event with API info
+            properties1.put("api_name", genericApi.getName());
+            properties1.put("api_version", genericApi.getApiVersion());
+        });
 
         return new EventEntityPage(apiEvents);
     }

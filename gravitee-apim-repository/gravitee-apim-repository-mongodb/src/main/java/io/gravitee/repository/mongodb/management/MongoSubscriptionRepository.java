@@ -166,7 +166,7 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     private Subscription map(SubscriptionMongo subscriptionMongo) {
-        return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo);
+        return subscriptionMongo == null ? null : mapper.map(subscriptionMongo);
     }
 
     @Override

@@ -39,9 +39,9 @@ class ApiTest {
     @Test
     void does_not_need_to_update() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api
-            .getApiDefinitionHttpV4()
-            .setProperties(List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
+        api.getApiDefinitionHttpV4().setProperties(
+            List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true))
+        );
         assertThat(
             api.updateDynamicProperties(List.of(new Property("key", "value", false, true), new Property("dynamic", "value", false, true)))
         ).isFalse();

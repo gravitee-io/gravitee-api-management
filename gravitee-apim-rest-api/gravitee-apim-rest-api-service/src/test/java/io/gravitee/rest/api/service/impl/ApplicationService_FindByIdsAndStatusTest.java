@@ -132,7 +132,9 @@ public class ApplicationService_FindByIdsAndStatusTest {
             .status(ApplicationStatus.ACTIVE)
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
@@ -154,7 +156,9 @@ public class ApplicationService_FindByIdsAndStatusTest {
             .environmentIds(Set.of(executionContext.getEnvironmentId()))
             .build();
 
-        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page<>(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
@@ -174,7 +178,9 @@ public class ApplicationService_FindByIdsAndStatusTest {
             .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
             .status(ApplicationStatus.ACTIVE)
             .build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+            .when(applicationRepository)
+            .search(criteria, null);
         doReturn(2).when(primaryOwners).size();
 
         final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
@@ -211,7 +217,9 @@ public class ApplicationService_FindByIdsAndStatusTest {
                 .status(ApplicationStatus.ACTIVE)
                 .environmentIds(Set.of(executionContext.getEnvironmentId()))
                 .build();
-            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2))
+                .when(applicationRepository)
+                .search(criteria, null);
 
             final Set<ApplicationListItem> applications = applicationService.findByIdsAndStatus(
                 GraviteeContext.getExecutionContext(),

@@ -34,7 +34,10 @@ public class ServiceFixture {
     private ServiceFixture() {}
 
     private static final Supplier<EndpointDiscoveryService> BASE_ENDPOINT_DISCOVERY_SERVICE = () ->
-        new EndpointDiscoveryService().enabled(true).provider("consul").configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
+        new EndpointDiscoveryService()
+            .enabled(true)
+            .provider("consul")
+            .configuration(new LinkedHashMap<>(Map.of("nice", "configuration")));
     private static final Supplier<DynamicPropertyService> BASE_DYNAMIC_PROPERTY_SERVICE = () ->
         new DynamicPropertyService()
             .enabled(true)
@@ -58,7 +61,10 @@ public class ServiceFixture {
         new EndpointGroupServicesV2().discovery(BASE_ENDPOINT_DISCOVERY_SERVICE.get());
 
     private static final Supplier<ServiceV4> BASE_API_V4_SERVICE = () ->
-        new ServiceV4().type("dynamicProperty").configuration(new LinkedHashMap<>(Map.of("url", "http://localhost"))).enabled(true);
+        new ServiceV4()
+            .type("dynamicProperty")
+            .configuration(new LinkedHashMap<>(Map.of("url", "http://localhost")))
+            .enabled(true);
 
     public static ApiServicesV2 anApiServicesV2() {
         return BASE_API_SERVICES_V2.get();

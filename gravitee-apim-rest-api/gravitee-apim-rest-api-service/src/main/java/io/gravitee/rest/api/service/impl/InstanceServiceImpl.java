@@ -216,17 +216,17 @@ public class InstanceServiceImpl implements InstanceService {
                     info.getSystemProperties() == null
                         ? Collections.emptyMap()
                         : info
-                            .getSystemProperties()
-                            .entrySet()
-                            .stream()
-                            .map(e -> {
-                                if (e.getKey().toLowerCase().contains("password")) {
-                                    return Map.entry(e.getKey(), REDACTED);
-                                } else {
-                                    return e;
-                                }
-                            })
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                              .getSystemProperties()
+                              .entrySet()
+                              .stream()
+                              .map(e -> {
+                                  if (e.getKey().toLowerCase().contains("password")) {
+                                      return Map.entry(e.getKey(), REDACTED);
+                                  } else {
+                                      return e;
+                                  }
+                              })
+                              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
                 );
                 instance.setPlugins(info.getPlugins());
                 instance.setClusterId(info.getClusterId());
@@ -287,7 +287,7 @@ public class InstanceServiceImpl implements InstanceService {
             boolean result = true;
             if (instance.getState().equals(InstanceState.UNKNOWN)) {
                 Instant now = Instant.now();
-                result = (now.toEpochMilli() - instance.getLastHeartbeatAt().getTime() <= threshold.toMillis());
+                result = now.toEpochMilli() - instance.getLastHeartbeatAt().getTime() <= threshold.toMillis();
             }
             return result;
         }

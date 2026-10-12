@@ -160,25 +160,23 @@ class AuditQueryServiceImplTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result.total()).isOne();
-                softly
-                    .assertThat(result.audits())
-                    .containsExactly(
-                        AuditEntity.builder()
-                            .id("audit-id")
-                            .organizationId("organization-id")
-                            .environmentId("environment-id")
-                            .referenceType(AuditEntity.AuditReferenceType.API)
-                            .referenceId("api-id")
-                            .user("user-id")
-                            .properties(Map.of("API", "myapi"))
-                            .event("event-1")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .patch(
-                                """
-                                [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
-                            )
-                            .build()
-                    );
+                softly.assertThat(result.audits()).containsExactly(
+                    AuditEntity.builder()
+                        .id("audit-id")
+                        .organizationId("organization-id")
+                        .environmentId("environment-id")
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId("api-id")
+                        .user("user-id")
+                        .properties(Map.of("API", "myapi"))
+                        .event("event-1")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .patch(
+                            """
+                            [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
+                        )
+                        .build()
+                );
             });
         }
 

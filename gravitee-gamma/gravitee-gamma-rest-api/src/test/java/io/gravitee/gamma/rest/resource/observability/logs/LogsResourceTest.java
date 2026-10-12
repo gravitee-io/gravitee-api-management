@@ -237,7 +237,11 @@ class LogsResourceTest extends AbstractResourceTest {
                 .gatewayHostname("gw-eu.example.com")
                 .gatewayResponseTime(12L)
                 .entrypointRequest(
-                    HttpPayload.builder().method("GET").uri("/pets/42").headers(Map.of("Accept", List.of("application/json"))).build()
+                    HttpPayload.builder()
+                        .method("GET")
+                        .uri("/pets/42")
+                        .headers(Map.of("Accept", List.of("application/json")))
+                        .build()
                 )
                 .entrypointResponse(HttpPayload.builder().status(200).body("{\"id\":42}").build())
                 .build();
@@ -326,7 +330,10 @@ class LogsResourceTest extends AbstractResourceTest {
                 .build();
             when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.of(decision)));
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -345,7 +352,10 @@ class LogsResourceTest extends AbstractResourceTest {
         void should_forward_apiId_and_eventId_to_the_use_case() {
             when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
 
-            rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            rootTarget("decisions/" + EVENT_ID)
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             var captor = ArgumentCaptor.forClass(GetAuthzDecisionUseCase.Input.class);
             verify(getAuthzDecisionUseCase).execute(captor.capture());
@@ -355,7 +365,9 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_apiId_is_missing() {
-            Response response = rootTarget("decisions/" + EVENT_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             verifyNoInteractions(getAuthzDecisionUseCase);
@@ -365,7 +377,10 @@ class LogsResourceTest extends AbstractResourceTest {
         void should_return_404_when_the_decision_does_not_exist() {
             when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.empty()));
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -376,7 +391,10 @@ class LogsResourceTest extends AbstractResourceTest {
                 false
             );
 
-            Response response = rootTarget("decisions/" + EVENT_ID).queryParam("apiId", API_ID).request().get();
+            Response response = rootTarget("decisions/" + EVENT_ID)
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             verifyNoInteractions(getAuthzDecisionUseCase);
@@ -405,7 +423,10 @@ class LogsResourceTest extends AbstractResourceTest {
                 new SearchObservabilityLogMessagesUseCase.Output(new MessageLogsPage(List.of(message), 1), 1, 20)
             );
 
-            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+            var response = rootTarget(REQUEST_ID + "/messages")
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             JsonNode body = response.readEntity(JsonNode.class);
@@ -418,7 +439,9 @@ class LogsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_apiId_is_missing() {
-            var response = rootTarget(REQUEST_ID + "/messages").request().get();
+            var response = rootTarget(REQUEST_ID + "/messages")
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
             verifyNoInteractions(searchLogMessagesUseCase);
@@ -430,7 +453,10 @@ class LogsResourceTest extends AbstractResourceTest {
                 false
             );
 
-            var response = rootTarget(REQUEST_ID + "/messages").queryParam("apiId", API_ID).request().get();
+            var response = rootTarget(REQUEST_ID + "/messages")
+                .queryParam("apiId", API_ID)
+                .request()
+                .get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
             verifyNoInteractions(searchLogMessagesUseCase);

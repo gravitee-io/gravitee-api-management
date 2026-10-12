@@ -126,43 +126,43 @@ public final class EventMetricsQueryAdapter {
     }
 
     private static void applyDeltaAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
-                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
-                var filteredAgg = filteredNode.putObject(AGGS);
-                filteredAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
-            });
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+            filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+            var filteredAgg = filteredNode.putObject(AGGS);
+            filteredAgg
+                .putObject(TOTAL_PREFIX + field)
+                .putObject(SUM)
+                .put(FIELD, field);
+        });
     }
 
     private static void applyValueAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
-                filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
-                var filteredAgg = filteredNode.putObject(AGGS);
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            var filteredNode = aggregationsNode.putObject(FILTERED_PREFIX + field);
+            filteredNode.putObject(FILTER).putObject(TERM).put("doc-type", getDocType(field));
+            var filteredAgg = filteredNode.putObject(AGGS);
 
-                var latestTopHitts = filteredAgg.putObject(LATEST_PREFIX + field).putObject(TOP_HITS);
-                var sort = latestTopHitts.putArray(SORT);
-                sort.addObject().putObject(TIMESTAMP).put(ORDER, DESC);
+            var latestTopHitts = filteredAgg.putObject(LATEST_PREFIX + field).putObject(TOP_HITS);
+            var sort = latestTopHitts.putArray(SORT);
+            sort.addObject().putObject(TIMESTAMP).put(ORDER, DESC);
 
-                latestTopHitts.put(SIZE, 1);
-                latestTopHitts.putObject(SOURCE).putArray("includes").add(field);
-            });
+            latestTopHitts.put(SIZE, 1);
+            latestTopHitts.putObject(SOURCE).putArray("includes").add(field);
+        });
     }
 
     private static void applyTrendAggregations(HistogramQuery query, ObjectNode aggregationsNode) {
         var histogramAgg = applyFixedIntervalAggregations(query, aggregationsNode);
-        query
-            .aggregations()
-            .forEach(agg -> {
-                String field = agg.getField();
-                histogramAgg.putObject(TOTAL_PREFIX + field).putObject(SUM).put(FIELD, field);
-            });
+        query.aggregations().forEach(agg -> {
+            String field = agg.getField();
+            histogramAgg
+                .putObject(TOTAL_PREFIX + field)
+                .putObject(SUM)
+                .put(FIELD, field);
+        });
     }
 
     private static ObjectNode applyFixedIntervalAggregations(HistogramQuery query, ObjectNode aggregationsNode) {

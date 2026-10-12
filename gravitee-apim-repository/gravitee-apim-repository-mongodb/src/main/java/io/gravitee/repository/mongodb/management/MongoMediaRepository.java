@@ -261,12 +261,10 @@ public class MongoMediaRepository implements MediaRepository {
         try {
             GridFSBucket gridFs = getGridFs();
             List<String> deleted = new ArrayList<>();
-            gridFs
-                .find(query)
-                .forEach(file -> {
-                    deleted.add(file.getId().asString().getValue());
-                    gridFs.delete(file.getId());
-                });
+            gridFs.find(query).forEach(file -> {
+                deleted.add(file.getId().asString().getValue());
+                gridFs.delete(file.getId());
+            });
             return deleted;
         } catch (Exception e) {
             throw new TechnicalException(e);

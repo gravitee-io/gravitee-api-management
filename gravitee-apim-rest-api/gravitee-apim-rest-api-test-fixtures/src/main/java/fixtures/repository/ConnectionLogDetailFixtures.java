@@ -30,12 +30,25 @@ public class ConnectionLogDetailFixtures {
         .requestEnded(true)
         .timestamp("2020-02-01T20:00:00.00Z")
         .entrypointRequest(
-            ConnectionLogDetail.Request.builder().method("GET").uri("/uri").headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build()
+            ConnectionLogDetail.Request.builder()
+                .method("GET")
+                .uri("/uri")
+                .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                .build()
         )
         .endpointRequest(
-            ConnectionLogDetail.Request.builder().method("GET").uri("/uri").headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build()
+            ConnectionLogDetail.Request.builder()
+                .method("GET")
+                .uri("/uri")
+                .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                .build()
         )
-        .entrypointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of(X_HEADER, List.of(HEADER_VALUE))).build())
+        .entrypointResponse(
+            ConnectionLogDetail.Response.builder()
+                .status(200)
+                .headers(Map.of(X_HEADER, List.of(HEADER_VALUE)))
+                .build()
+        )
         .endpointResponse(ConnectionLogDetail.Response.builder().status(200).headers(Map.of()).build());
 
     public ConnectionLogDetailFixtures(String defaultApiId, String requestId) {

@@ -37,7 +37,7 @@ public class LegacyClassLoader extends ClassLoader {
         delegates = classLoaderDelegates;
 
         ClassLoader systemCL = getSystemClassLoader();
-        mParentLoader = (parent != null) ? parent : systemCL;
+        mParentLoader = parent != null ? parent : systemCL;
     }
 
     @Override

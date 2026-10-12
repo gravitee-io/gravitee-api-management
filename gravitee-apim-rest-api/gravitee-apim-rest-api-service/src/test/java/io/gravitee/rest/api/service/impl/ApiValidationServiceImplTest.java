@@ -298,7 +298,11 @@ public class ApiValidationServiceImplTest {
                     .apiDefinition(
                         io.gravitee.definition.model.Api.builder()
                             .id("conflicting-api-id")
-                            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build())
+                            .proxy(
+                                Proxy.builder()
+                                    .virtualHosts(List.of(new VirtualHost("/echo")))
+                                    .build()
+                            )
                             .definitionVersion(DefinitionVersion.V2)
                             .build()
                     )
@@ -352,7 +356,11 @@ public class ApiValidationServiceImplTest {
         crd.setDescription(API_NAME);
         crd.setDefinitionContext(new DefinitionContext(ORIGIN_KUBERNETES, MODE_FULLY_MANAGED, ORIGIN_KUBERNETES));
         crd.setState(STARTED);
-        crd.setProxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/echo"))).build());
+        crd.setProxy(
+            Proxy.builder()
+                .virtualHosts(List.of(new VirtualHost("/echo")))
+                .build()
+        );
 
         return crd;
     }

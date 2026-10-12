@@ -73,7 +73,7 @@ public class GetApiProductApisUseCase {
             }
         }
 
-        String query = (input.query() == null || input.query().isBlank()) ? null : input.query().trim();
+        String query = input.query() == null || input.query().isBlank() ? null : input.query().trim();
 
         Page<GenericApiEntity> apis = apiProductSearchQueryService.searchApis(
             input.executionContext(),

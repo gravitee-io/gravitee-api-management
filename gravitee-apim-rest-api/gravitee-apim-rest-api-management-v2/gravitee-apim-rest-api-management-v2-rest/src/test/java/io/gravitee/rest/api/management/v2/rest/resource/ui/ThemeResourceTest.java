@@ -103,7 +103,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
                     eq(RolePermissionAction.UPDATE)
                 )
             ).thenReturn(false);
-            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
+            final Response response = rootTarget()
+                .request()
+                .put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(FORBIDDEN_403)
@@ -114,7 +116,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_not_update_if_path_theme_id_does_not_match_body() {
-            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id("another-id")));
+            final Response response = rootTarget()
+                .request()
+                .put(Entity.json(new UpdateThemePortal().id("another-id")));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -125,7 +129,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_not_update_non_existing_theme() {
-            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
+            final Response response = rootTarget()
+                .request()
+                .put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
             MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()
@@ -138,7 +144,9 @@ public class ThemeResourceTest extends AbstractResourceTest {
             themeQueryService.initWith(List.of(aPortalTheme().toBuilder().referenceId("another-env").build()));
             themeCrudService.initWith(List.of(aPortalTheme().toBuilder().referenceId("another-env").build()));
 
-            final Response response = rootTarget().request().put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
+            final Response response = rootTarget()
+                .request()
+                .put(Entity.json(new UpdateThemePortal().id(THEME_ID)));
             MAPIAssertions.assertThat(response)
                 .hasStatus(NOT_FOUND_404)
                 .asError()

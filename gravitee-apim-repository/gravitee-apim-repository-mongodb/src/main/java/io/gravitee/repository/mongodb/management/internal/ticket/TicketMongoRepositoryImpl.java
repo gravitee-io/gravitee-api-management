@@ -87,6 +87,6 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
 
         List<TicketMongo> tickets = mongoTemplate.find(query, TicketMongo.class);
 
-        return new Page<>(tickets, (pageable != null) ? pageable.pageNumber() : 0, tickets.size(), total);
+        return new Page<>(tickets, pageable != null ? pageable.pageNumber() : 0, tickets.size(), total);
     }
 }

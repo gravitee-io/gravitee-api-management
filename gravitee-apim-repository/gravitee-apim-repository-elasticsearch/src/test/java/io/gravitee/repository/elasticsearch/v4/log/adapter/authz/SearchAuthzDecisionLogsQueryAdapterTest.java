@@ -218,7 +218,10 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
 
     @Test
     void rejects_a_page_larger_than_the_maximum() {
-        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).size(AuthzDecisionLogQuery.MAX_SIZE + 1).build();
+        var query = AuthzDecisionLogQuery.builder()
+            .apiIds(Set.of("api-1"))
+            .size(AuthzDecisionLogQuery.MAX_SIZE + 1)
+            .build();
 
         assertThatThrownBy(query::validate).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("size must be <= 1000");
     }

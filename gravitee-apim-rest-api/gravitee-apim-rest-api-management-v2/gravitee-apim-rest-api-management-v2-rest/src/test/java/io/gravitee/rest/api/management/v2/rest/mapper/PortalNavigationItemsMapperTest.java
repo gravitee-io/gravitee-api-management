@@ -183,7 +183,9 @@ class PortalNavigationItemsMapperTest {
                     .map(i -> (BasePortalNavigationItem) i.getActualInstance())
                     .map(BasePortalNavigationItem::getId)
             ).containsExactlyInAnyOrder(
-                PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream().map(UUID::fromString).toArray(UUID[]::new)
+                PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream()
+                    .map(UUID::fromString)
+                    .toArray(UUID[]::new)
             );
         }
 

@@ -102,18 +102,18 @@ public class UpdateNativeApiUseCase {
                 .apiDefinitionValue(
                     currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
                         ? nativeApi
-                            .toBuilder()
-                            .name(updateNativeApi.getName())
-                            .apiVersion(updateNativeApi.getApiVersion())
-                            .tags(updateNativeApi.getTags())
-                            .resources(updateNativeApi.getResources())
-                            .listeners(updateNativeApi.getListeners())
-                            .endpointGroups(updateNativeApi.getEndpointGroups())
-                            .flows(updateNativeApi.getFlows())
-                            .services(updateNativeApi.getServices())
-                            .properties(properties)
-                            .analytics(updateNativeApi.getAnalytics())
-                            .build()
+                              .toBuilder()
+                              .name(updateNativeApi.getName())
+                              .apiVersion(updateNativeApi.getApiVersion())
+                              .tags(updateNativeApi.getTags())
+                              .resources(updateNativeApi.getResources())
+                              .listeners(updateNativeApi.getListeners())
+                              .endpointGroups(updateNativeApi.getEndpointGroups())
+                              .flows(updateNativeApi.getFlows())
+                              .services(updateNativeApi.getServices())
+                              .properties(properties)
+                              .analytics(updateNativeApi.getAnalytics())
+                              .build()
                         : null
                 )
                 .build();

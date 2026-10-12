@@ -79,7 +79,9 @@ class ApiProductManagerImplTest {
     void setUp() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
         lenient().when(license.isFeatureEnabled("apim-api-products")).thenReturn(true);
-        lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("internal")));
+        lenient()
+            .when(gatewayConfiguration.shardingTags())
+            .thenReturn(Optional.of(List.of("internal")));
         lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
         manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
     }

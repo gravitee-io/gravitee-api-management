@@ -45,8 +45,7 @@ public class ApiQualityMetricTechnicalDocumentation implements ApiQualityMetric 
                     executionContext.getEnvironmentId(),
                     new PageQuery.Builder().api(api.getId()).published(true).type(PageType.SWAGGER).build()
                 )
-                .size() >
-            0L
+                .size() > 0L
         );
     }
 }

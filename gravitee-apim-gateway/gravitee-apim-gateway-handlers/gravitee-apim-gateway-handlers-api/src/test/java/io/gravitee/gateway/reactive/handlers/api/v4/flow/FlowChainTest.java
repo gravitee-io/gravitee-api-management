@@ -331,7 +331,9 @@ class FlowChainTest {
 
     private void buildPolicyChain(String id, Flow flow, ExecutionPhase phase, HttpPolicy... policies) {
         HttpPolicyChain httpPolicyChain = new HttpPolicyChain(id, List.of(policies), phase);
-        lenient().when(policyChainFactory.create(FLOW_CHAIN_ID, flow, phase)).thenReturn(httpPolicyChain);
+        lenient()
+            .when(policyChainFactory.create(FLOW_CHAIN_ID, flow, phase))
+            .thenReturn(httpPolicyChain);
     }
 
     private static class TestPolicy implements HttpPolicy {

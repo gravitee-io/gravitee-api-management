@@ -46,7 +46,9 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_keys_is_set_on_non_api_key_plan() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build())).build();
+        var spec = aSpec()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
+            .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("JWT"));
 
         var result = cut.validateAndSanitize(
@@ -59,7 +61,9 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_accept_api_keys_on_api_key_plan() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build())).build();
+        var spec = aSpec()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key(VALID_KEY).build()))
+            .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
         var result = cut.validateAndSanitize(
@@ -88,7 +92,9 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_keys_has_blank_key() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("").build())).build();
+        var spec = aSpec()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("").build()))
+            .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
         var result = cut.validateAndSanitize(
@@ -101,7 +107,9 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_key_is_too_short() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("short-key").build())).build();
+        var spec = aSpec()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("short-key").build()))
+            .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
         var result = cut.validateAndSanitize(
@@ -114,7 +122,9 @@ class ValidateSubscriptionCRDDomainServiceTest {
 
     @Test
     void should_return_severe_error_when_api_key_is_too_long() {
-        var spec = aSpec().apiKeys(List.of(ApiKeyCRDSpec.builder().key("k".repeat(257)).build())).build();
+        var spec = aSpec()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("k".repeat(257)).build()))
+            .build();
         when(planCrudService.getById(PLAN_ID)).thenReturn(v2PlanWith("API_KEY"));
 
         var result = cut.validateAndSanitize(

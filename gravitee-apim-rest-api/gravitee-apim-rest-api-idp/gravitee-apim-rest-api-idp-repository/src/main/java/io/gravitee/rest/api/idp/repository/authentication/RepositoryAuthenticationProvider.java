@@ -48,7 +48,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Import(RepositoryAuthenticationProviderConfiguration.class)
 public class RepositoryAuthenticationProvider
     extends AbstractUserDetailsAuthenticationProvider
-    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider> {
+    implements AuthenticationProvider<org.springframework.security.authentication.AuthenticationProvider>
+{
 
     @Autowired
     private UserService userService;

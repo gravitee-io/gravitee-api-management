@@ -68,9 +68,9 @@ public class ListMyAiWorkspacesUseCase {
         Map<String, ApiProduct> productsById = productIds.isEmpty()
             ? Map.of()
             : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), productIds)
-                .stream()
-                .collect(Collectors.toMap(ApiProduct::getId, product -> product, (left, right) -> left));
+                  .findByEnvironmentIdAndIdIn(input.executionContext().getEnvironmentId(), productIds)
+                  .stream()
+                  .collect(Collectors.toMap(ApiProduct::getId, product -> product, (left, right) -> left));
         Set<String> planIds = memberships
             .stream()
             .map(AiWorkspaceMembership::planId)

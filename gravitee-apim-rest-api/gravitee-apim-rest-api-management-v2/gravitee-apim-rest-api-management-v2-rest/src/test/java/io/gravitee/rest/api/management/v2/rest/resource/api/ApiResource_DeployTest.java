@@ -59,7 +59,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
         when(apiStateServiceV4.deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any())).thenReturn(apiEntity);
 
-        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+        final Response response = rootTarget(API + "/deployments")
+            .request()
+            .post(Entity.json(deployEntity));
 
         assertEquals(ACCEPTED_202, response.getStatus());
 
@@ -74,7 +76,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         ApiDeploymentEntity deployEntity = new ApiDeploymentEntity();
         deployEntity.setDeploymentLabel("label_too_long_because_more_than_32_chars");
 
-        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+        final Response response = rootTarget(API + "/deployments")
+            .request()
+            .post(Entity.json(deployEntity));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
 
@@ -87,7 +91,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         deployEntity.setDeploymentLabel("label");
         doThrow(new ForbiddenFeatureException("apim-en-endpoint-mqtt5")).when(apiLicenseService).checkLicense(any(), anyString());
 
-        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+        final Response response = rootTarget(API + "/deployments")
+            .request()
+            .post(Entity.json(deployEntity));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
 
@@ -105,7 +111,9 @@ public class ApiResource_DeployTest extends ApiResourceTest {
             permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
         ).thenReturn(false);
 
-        final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
+        final Response response = rootTarget(API + "/deployments")
+            .request()
+            .post(Entity.json(deployEntity));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
     }

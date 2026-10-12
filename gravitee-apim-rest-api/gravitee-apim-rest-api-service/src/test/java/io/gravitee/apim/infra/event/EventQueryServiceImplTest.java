@@ -135,27 +135,25 @@ public class EventQueryServiceImplTest {
             // Then
             assertSoftly(softly -> {
                 softly.assertThat(result.total()).isOne();
-                softly
-                    .assertThat(result.events())
-                    .containsExactly(
-                        Event.builder()
-                            .id("event-id")
-                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                            .environments(Set.of("environment-id"))
-                            .type(EventType.PUBLISH_API)
-                            .payload("event-payload")
-                            .parentId("parent-id")
-                            .properties(
-                                new EnumMap<>(
-                                    Map.ofEntries(
-                                        Map.entry(Event.EventProperties.API_ID, "api-id"),
-                                        Map.entry(Event.EventProperties.USER, "user-id")
-                                    )
+                softly.assertThat(result.events()).containsExactly(
+                    Event.builder()
+                        .id("event-id")
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .environments(Set.of("environment-id"))
+                        .type(EventType.PUBLISH_API)
+                        .payload("event-payload")
+                        .parentId("parent-id")
+                        .properties(
+                            new EnumMap<>(
+                                Map.ofEntries(
+                                    Map.entry(Event.EventProperties.API_ID, "api-id"),
+                                    Map.entry(Event.EventProperties.USER, "user-id")
                                 )
                             )
-                            .build()
-                    );
+                        )
+                        .build()
+                );
             });
         }
 

@@ -85,9 +85,9 @@ class SearchApiAuditUseCaseTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.total()).isOne();
             soft.assertThat(result.data()).containsExactly(expected);
-            soft
-                .assertThat(result.metadata())
-                .containsExactlyInAnyOrderEntriesOf(Map.of("USER:user-id:name", "user-id-name", "API:api-id:name", "api-id-name"));
+            soft.assertThat(result.metadata()).containsExactlyInAnyOrderEntriesOf(
+                Map.of("USER:user-id:name", "user-id-name", "API:api-id:name", "api-id-name")
+            );
         });
     }
 

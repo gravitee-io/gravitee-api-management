@@ -99,8 +99,7 @@ class SubscriptionEntityTest {
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(acceptedSubscription.getStatus()).isEqualTo(SubscriptionEntity.Status.ACCEPTED);
-                soft
-                    .assertThat(acceptedSubscription.getProcessedAt())
+                soft.assertThat(acceptedSubscription.getProcessedAt())
                     .isEqualTo(acceptedSubscription.getUpdatedAt())
                     .isEqualTo(acceptedSubscription.getStartingAt())
                     .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
@@ -119,8 +118,7 @@ class SubscriptionEntityTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(acceptedSubscription.getStartingAt()).isEqualTo(STARTING_AT);
                 soft.assertThat(acceptedSubscription.getEndingAt()).isEqualTo(ENDING_AT);
-                soft
-                    .assertThat(acceptedSubscription.getProcessedAt())
+                soft.assertThat(acceptedSubscription.getProcessedAt())
                     .isEqualTo(acceptedSubscription.getUpdatedAt())
                     .isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });

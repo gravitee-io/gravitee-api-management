@@ -39,12 +39,12 @@ public class ValidatePortalThemeUseCase {
     }
 
     private static Theme toTheme(ValidateThemeDomainService.Input sanitized) {
-        var id = sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
-            ? null
-            : HRIDToUUID.portalTheme().context(sanitized.auditInfo()).hrid(sanitized.themeHrid()).id();
-        var automationMetadata = sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
-            ? null
-            : new ThemeAutomationMetadata(sanitized.themeHrid());
+        var id =
+            sanitized.themeHrid() == null || sanitized.themeHrid().isBlank()
+                ? null
+                : HRIDToUUID.portalTheme().context(sanitized.auditInfo()).hrid(sanitized.themeHrid()).id();
+        var automationMetadata =
+            sanitized.themeHrid() == null || sanitized.themeHrid().isBlank() ? null : new ThemeAutomationMetadata(sanitized.themeHrid());
         return Theme.builder()
             .id(id)
             .name(sanitized.name())

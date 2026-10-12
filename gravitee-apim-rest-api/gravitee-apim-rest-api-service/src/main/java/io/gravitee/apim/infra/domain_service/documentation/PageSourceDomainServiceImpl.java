@@ -77,7 +77,7 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                     field.setAccessible(accessible);
                 }
             }
-            page.getSource().setConfiguration((new ObjectMapper().valueToTree(fetcherConfiguration).toString()));
+            page.getSource().setConfiguration(new ObjectMapper().valueToTree(fetcherConfiguration).toString());
         });
     }
 
@@ -128,7 +128,7 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                 }
             }
             if (updated) {
-                newPage.getSource().setConfiguration((new ObjectMapper().valueToTree(updatedFetcherConfiguration).toString()));
+                newPage.getSource().setConfiguration(new ObjectMapper().valueToTree(updatedFetcherConfiguration).toString());
             }
         }
     }

@@ -230,9 +230,8 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         MultivaluedStringMap form,
         Invocation.Builder request
     ) {
-        ClientAuthenticationMethod method = identityProvider.getTokenEndpointAuthMethod() != null
-            ? identityProvider.getTokenEndpointAuthMethod()
-            : endpointDefault;
+        ClientAuthenticationMethod method =
+            identityProvider.getTokenEndpointAuthMethod() != null ? identityProvider.getTokenEndpointAuthMethod() : endpointDefault;
 
         // The null label makes this an enhanced switch (JLS 14.11.2), so the compiler requires it to be exhaustive:
         // adding a token_endpoint_auth_method constant such as none or private_key_jwt fails the build here instead of

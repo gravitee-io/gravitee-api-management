@@ -170,7 +170,7 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
             deploy(api);
 
             // 1 first attempt + 3 retries
-            final int messageCount = (1 + 3);
+            final int messageCount = 1 + 3;
             final String callbackPath = WEBHOOK_URL_PATH + "/test";
             final Subscription subscription = webhookActions.createSubscription(API_ID, callbackPath);
 
@@ -941,7 +941,8 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     private void configureWebhookConcurrency(ReactableApi<?> api, int concurrency) {
-        ((Api) api).getDefinition()
+        ((Api) api)
+            .getDefinition()
             .getListeners()
             .get(0)
             .getEntrypoints()
@@ -950,7 +951,8 @@ class WebhookEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
     }
 
     private void configureMockEndpoint(ReactableApi<?> api, int messageInterval, int messageCount) {
-        ((Api) api).getDefinition()
+        ((Api) api)
+            .getDefinition()
             .getEndpointGroups()
             .get(0)
             .getEndpoints()

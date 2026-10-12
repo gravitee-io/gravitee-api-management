@@ -131,12 +131,12 @@ public interface PortalNavigationItemAdapter {
         return repoMeta == null
             ? null
             : new io.gravitee.apim.core.portal_page.model.AutomationMetadata(
-                io.gravitee.apim.core.portal_page.model.AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
-                repoMeta.getReferenceId(),
-                null,
-                java.util.Optional.ofNullable(repoMeta.getLocation()),
-                java.util.Optional.empty()
-            );
+                  io.gravitee.apim.core.portal_page.model.AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
+                  repoMeta.getReferenceId(),
+                  null,
+                  java.util.Optional.ofNullable(repoMeta.getLocation()),
+                  java.util.Optional.empty()
+              );
     }
 
     default io.gravitee.repository.management.model.AutomationMetadata automationMetadataToRepository(
@@ -145,10 +145,10 @@ public interface PortalNavigationItemAdapter {
         return meta == null
             ? null
             : io.gravitee.repository.management.model.AutomationMetadata.builder()
-                .referenceType(io.gravitee.repository.management.model.AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
-                .referenceId(meta.referenceId())
-                .location(meta.location().orElse(null))
-                .build();
+                  .referenceType(io.gravitee.repository.management.model.AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
+                  .referenceId(meta.referenceId())
+                  .location(meta.location().orElse(null))
+                  .build();
     }
 
     default io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationItem portalNavigationItem) {
@@ -233,8 +233,10 @@ public interface PortalNavigationItemAdapter {
                 }
                 case PortalNavigationLink link -> config.put(URL, link.getUrl());
                 case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
-                case PortalNavigationApi ignored -> {}
-                case PortalNavigationApiProduct ignored -> {}
+                case PortalNavigationApi ignored -> {
+                }
+                case PortalNavigationApiProduct ignored -> {
+                }
             }
             return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {

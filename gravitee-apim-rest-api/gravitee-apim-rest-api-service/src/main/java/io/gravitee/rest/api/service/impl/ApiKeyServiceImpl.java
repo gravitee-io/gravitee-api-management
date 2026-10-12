@@ -152,8 +152,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity renew(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
         if (
-            !(subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.ACCEPTED) ||
-                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.PAUSED))
+            !(
+                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.ACCEPTED) ||
+                subscription.getStatus().equals(io.gravitee.rest.api.model.SubscriptionStatus.PAUSED)
+            )
         ) {
             throw new SubscriptionNotActiveException(subscription);
         }
@@ -633,9 +635,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     private Optional<ApiKey> findReusableInactiveKey(String customApiKey, SubscriptionEntity subscription) throws TechnicalException {
         String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
-        String referenceType = subscription.getReferenceType() != null
-            ? subscription.getReferenceType()
-            : SubscriptionReferenceType.API.name();
+        String referenceType =
+            subscription.getReferenceType() != null ? subscription.getReferenceType() : SubscriptionReferenceType.API.name();
         return apiKeyRepository
             .findByKeyAndReferenceIdAndReferenceType(customApiKey, referenceId, referenceType)
             .filter(key -> subscription.getApplication().equals(key.getApplication()))
@@ -793,37 +794,35 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         ApiKey.AuditEvent event,
         Date eventDate
     ) {
-        key
-            .getSubscriptions()
-            .forEach(subscription -> {
-                boolean isApiProduct = isApiProductSubscription(subscription);
-                String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
-                String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
+        key.getSubscriptions().forEach(subscription -> {
+            boolean isApiProduct = isApiProductSubscription(subscription);
+            String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+            String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
 
-                Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-                // Audit records are readable by anyone holding the audit permission, so they identify the API key
-                // by its id: the key value itself is a credential that can be replayed against the gateway.
-                properties.put(API_KEY, key.getId());
-                properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
-                properties.put(APPLICATION, applicationId);
+            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+            // Audit records are readable by anyone holding the audit permission, so they identify the API key
+            // by its id: the key value itself is a credential that can be replayed against the gateway.
+            properties.put(API_KEY, key.getId());
+            properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
+            properties.put(APPLICATION, applicationId);
 
-                AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
-                    .properties(properties)
-                    .event(event)
-                    .createdAt(eventDate)
-                    .oldValue(previousApiKey == null ? null : previousApiKey.toBuilder().key(null).build())
-                    // hash is the MD5 of the key and doubles as a credential for Native Kafka
-                    // authentication, so it leaves the audit record along with the key itself. The
-                    // repository ApiKey used as the old value carries no such field.
-                    .newValue(key.toBuilder().key(null).hash(null).build())
-                    .build();
+            AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
+                .properties(properties)
+                .event(event)
+                .createdAt(eventDate)
+                .oldValue(previousApiKey == null ? null : previousApiKey.toBuilder().key(null).build())
+                // hash is the MD5 of the key and doubles as a credential for Native Kafka
+                // authentication, so it leaves the audit record along with the key itself. The
+                // repository ApiKey used as the old value carries no such field.
+                .newValue(key.toBuilder().key(null).hash(null).build())
+                .build();
 
-                if (isApiProduct) {
-                    auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
-                } else {
-                    auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
-                }
-            });
+            if (isApiProduct) {
+                auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+            } else {
+                auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
+            }
+        });
     }
 
     private void triggerNotifierService(

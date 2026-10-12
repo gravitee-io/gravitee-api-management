@@ -49,8 +49,11 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
     private final UserDomainService userDomainService;
     private final RoleQueryService roleQueryService;
 
-    public record Input(AuditInfo auditInfo, MembershipReferenceType referenceType, SequencedSet<MemberCRD> members) implements
-        Validator.Input {
+    public record Input(
+        AuditInfo auditInfo,
+        MembershipReferenceType referenceType,
+        SequencedSet<MemberCRD> members
+    ) implements Validator.Input {
         Input sanitized(SequencedSet<MemberCRD> sanitizedMembers) {
             return new Input(auditInfo, referenceType, sanitizedMembers);
         }
@@ -72,22 +75,20 @@ public class ValidateCRDMembersDomainService implements Validator<ValidateCRDMem
         var members = sanitized.iterator();
         while (members.hasNext()) {
             var member = members.next();
-            userDomainService
-                .findBySource(input.auditInfo.organizationId(), member.getSource(), member.getSourceId())
-                .ifPresentOrElse(
-                    user -> member.setId(user.getId()),
-                    () -> {
-                        errors.add(
-                            Error.warning(
-                                "member [%s] of source [%s] could not be found in organization [%s]",
-                                member.getSourceId(),
-                                member.getSource(),
-                                input.auditInfo.organizationId()
-                            )
-                        );
-                        members.remove();
-                    }
-                );
+            userDomainService.findBySource(input.auditInfo.organizationId(), member.getSource(), member.getSourceId()).ifPresentOrElse(
+                user -> member.setId(user.getId()),
+                () -> {
+                    errors.add(
+                        Error.warning(
+                            "member [%s] of source [%s] could not be found in organization [%s]",
+                            member.getSourceId(),
+                            member.getSource(),
+                            input.auditInfo.organizationId()
+                        )
+                    );
+                    members.remove();
+                }
+            );
         }
     }
 

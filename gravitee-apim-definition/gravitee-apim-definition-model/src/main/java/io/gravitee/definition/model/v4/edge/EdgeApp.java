@@ -30,5 +30,10 @@ import java.util.List;
  *               (e.g. {@code anthropic-messages}, {@code openai-chat}), decoupled from the vendor label
  * @param vendor vendor label reported upstream for accounting/attribution, independent of the decoder {@code format}
  */
-public record EdgeApp(String name, List<DnsDomain> domains, List<RouteMapping> routes, String format, String vendor) implements
-    Serializable {}
+public record EdgeApp(
+    String name,
+    List<DnsDomain> domains,
+    List<RouteMapping> routes,
+    String format,
+    String vendor
+) implements Serializable {}

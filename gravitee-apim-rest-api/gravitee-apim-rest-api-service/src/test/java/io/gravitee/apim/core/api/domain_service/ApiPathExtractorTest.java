@@ -36,7 +36,9 @@ class ApiPathExtractorTest {
 
         var paths = ApiPathExtractor.extractPaths(api);
 
-        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/http_proxy/", false));
+        assertThat(paths)
+            .extracting("host", "path", "overrideAccess")
+            .containsExactly(tuple(null, "/http_proxy/", false));
     }
 
     @Test
@@ -45,7 +47,9 @@ class ApiPathExtractorTest {
 
         var paths = ApiPathExtractor.extractPaths(api);
 
-        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/path/", false));
+        assertThat(paths)
+            .extracting("host", "path", "overrideAccess")
+            .containsExactly(tuple(null, "/path/", false));
     }
 
     @Test
@@ -172,6 +176,8 @@ class ApiPathExtractorTest {
 
         var paths = ApiPathExtractor.extractPathsFromV4Listeners(List.<Listener>of(tcpListener, httpListener));
 
-        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/x/", false), tuple("h", "/y/", false));
+        assertThat(paths)
+            .extracting("host", "path", "overrideAccess")
+            .containsExactly(tuple(null, "/x/", false), tuple("h", "/y/", false));
     }
 }

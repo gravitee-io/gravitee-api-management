@@ -54,7 +54,7 @@ public class FlowAppender {
                 if (consumers != null && !consumers.isEmpty()) {
                     Set<String> flowTags = consumers
                         .stream()
-                        .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
+                        .filter(consumer -> consumer.getConsumerType().equals(ConsumerType.TAG))
                         .map(Consumer::getConsumerId)
                         .collect(Collectors.toSet());
                     return gatewayConfiguration.hasMatchingTags(flowTags);

@@ -686,9 +686,9 @@ public class ApiManagerImplTest {
 
         @Override
         protected void setPlans(ReactableApi<?> api, List<Object> plans) {
-            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition().setPlans(
-                (List<io.gravitee.definition.model.v4.plan.Plan>) (List<?>) plans
-            );
+            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                .getDefinition()
+                .setPlans((List<io.gravitee.definition.model.v4.plan.Plan>) (List<?>) plans);
         }
 
         @Override
@@ -703,19 +703,22 @@ public class ApiManagerImplTest {
 
         @Override
         protected void setProperties(ReactableApi<?> api) {
-            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition().setProperties(
-                List.of(
-                    new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
-                    new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
-                    new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
-                )
-            );
+            ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                .getDefinition()
+                .setProperties(
+                    List.of(
+                        new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
+                        new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
+                        new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
+                    )
+                );
         }
 
         @Override
         protected void verifyPropertiesDecrypted(ReactableApi<?> api) {
             assertThat(
-                ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api).getDefinition()
+                ((io.gravitee.gateway.reactive.handlers.api.v4.Api) api)
+                    .getDefinition()
                     .getProperties()
                     .stream()
                     .collect(
@@ -917,19 +920,22 @@ public class ApiManagerImplTest {
 
         @Override
         protected void setProperties(ReactableApi<?> api) {
-            ((NativeApi) api).getDefinition().setProperties(
-                List.of(
-                    new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
-                    new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
-                    new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
-                )
-            );
+            ((NativeApi) api)
+                .getDefinition()
+                .setProperties(
+                    List.of(
+                        new io.gravitee.definition.model.v4.property.Property("key1", "plain value 1", false),
+                        new io.gravitee.definition.model.v4.property.Property("key2", "value2Base64encrypted", true),
+                        new io.gravitee.definition.model.v4.property.Property("key3", "value3Base64encrypted", true)
+                    )
+                );
         }
 
         @Override
         protected void verifyPropertiesDecrypted(ReactableApi<?> api) {
             assertThat(
-                ((NativeApi) api).getDefinition()
+                ((NativeApi) api)
+                    .getDefinition()
                     .getProperties()
                     .stream()
                     .collect(

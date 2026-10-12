@@ -77,7 +77,10 @@ public class SharedPolicyGroupHistoryQueryServiceImpl implements SharedPolicyGro
 
             var result = sharedPolicyGroupHistoryRepository.search(
                 criteria,
-                new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
+                new PageableBuilder()
+                    .pageNumber(pageable.getPageNumber() - 1)
+                    .pageSize(pageable.getPageSize())
+                    .build(),
                 new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build()
             );
 

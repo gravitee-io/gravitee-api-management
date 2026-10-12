@@ -158,7 +158,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_not_found_when_creating_invitation_for_unknown_application() {
-        var response = target(UNKNOWN_APPLICATION).path("invitations").request().post(Entity.json(createInput(false)));
+        var response = target(UNKNOWN_APPLICATION)
+            .path("invitations")
+            .request()
+            .post(Entity.json(createInput(false)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         verify(invitationCrudService, never()).create(any());
@@ -168,7 +171,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     void should_return_conflict_when_pending_invitation_already_exists() {
         when(invitationQueryService.findByReference(any())).thenReturn(List.of(anInvitation(INVITATION_ID_1, "alice@example.com")));
 
-        var response = target(APPLICATION).path("invitations").request().post(Entity.json(createInput(false)));
+        var response = target(APPLICATION)
+            .path("invitations")
+            .request()
+            .post(Entity.json(createInput(false)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CONFLICT_409);
         verify(invitationCrudService, never()).create(any());
@@ -179,7 +185,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         when(invitationQueryService.findByReference(any())).thenReturn(List.of());
         when(invitationCrudService.create(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var response = target(APPLICATION).path("invitations").request().post(Entity.json(createInput(true)));
+        var response = target(APPLICATION)
+            .path("invitations")
+            .request()
+            .post(Entity.json(createInput(true)));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
         verify(applicationInvitationNotificationDomainService).dispatchAsync(

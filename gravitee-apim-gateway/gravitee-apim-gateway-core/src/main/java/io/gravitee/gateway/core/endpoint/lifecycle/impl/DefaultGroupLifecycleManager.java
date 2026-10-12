@@ -79,7 +79,7 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
     @Override
     public LoadBalancedEndpointGroup get(String groupName) {
         EndpointGroupLifecycleManager group = groups.get(groupName);
-        return (group != null) ? group.getLBGroup() : null;
+        return group != null ? group.getLBGroup() : null;
     }
 
     @Override
@@ -96,8 +96,7 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
     protected void doStart() throws Exception {
         if (api.getProxy().getGroups() != null) {
             // Start all the groups
-            api
-                .getProxy()
+            api.getProxy()
                 .getGroups()
                 .stream()
                 .map(

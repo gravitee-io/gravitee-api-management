@@ -138,7 +138,7 @@ public class RoleService_CreateOrUpdateSystemRolesTest {
                 o ->
                     o.getScope().equals(RoleScope.ENVIRONMENT) &&
                     Arrays.stream(o.getPermissions()).reduce(Math::addExact).orElse(0) ==
-                    Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
+                        Arrays.stream(envtAdminPermissions).reduce(Math::addExact).orElse(0)
             )
         );
         verify(mockRoleRepository, times(6)).create(

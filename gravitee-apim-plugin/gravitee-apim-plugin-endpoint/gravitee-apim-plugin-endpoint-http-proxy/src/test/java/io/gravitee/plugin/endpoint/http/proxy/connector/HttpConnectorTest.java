@@ -1015,8 +1015,9 @@ class HttpConnectorTest {
     void should_throw_illegal_argument_exception_with_null_target() {
         configuration.setTarget(null);
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory())
         );
     }
 

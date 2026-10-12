@@ -106,7 +106,8 @@ public class MemberQueryServiceInMemory implements MemberQueryService, InMemoryA
 
     @Override
     public void addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
-        this.storage.stream()
+        this.storage
+            .stream()
             .filter(m -> m.getId().equals(member.getMemberId()))
             .findFirst()
             .ifPresent(m ->

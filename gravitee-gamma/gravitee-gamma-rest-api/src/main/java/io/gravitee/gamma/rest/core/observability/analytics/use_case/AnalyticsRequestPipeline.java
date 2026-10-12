@@ -127,7 +127,8 @@ public class AnalyticsRequestPipeline {
      */
     public Map<String, List<String>> conditionsNotApplied(List<FilterCondition> rawFilters, List<MetricConditions> metrics) {
         metrics.forEach(metric -> filterValidator.validate(metric.conditions(), Signal.ANALYTICS));
-        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of()).stream()
+        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of())
+            .stream()
             .filter(c -> RECORD_TYPE.equals(c.name()))
             .toList();
 

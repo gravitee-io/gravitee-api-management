@@ -69,7 +69,7 @@ public class ReporterProcessor extends AbstractProcessor<ExecutionContext> {
 
     private static Long getLongOrNull(ExecutionContext ctx, String key) {
         Object value = ctx.getAttribute(key);
-        return (value instanceof Number) ? ((Number) value).longValue() : null;
+        return value instanceof Number ? ((Number) value).longValue() : null;
     }
 
     /**

@@ -92,8 +92,7 @@ class SharedPolicyGroupMapperTest {
                     .build()
             )
         );
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableSharedPolicyGroup -> {
                 assertThat(reactableSharedPolicyGroup.getId()).isEqualTo("spg_id");

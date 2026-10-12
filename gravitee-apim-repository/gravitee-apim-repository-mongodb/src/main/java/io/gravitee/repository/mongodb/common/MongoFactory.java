@@ -384,7 +384,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
 
         while (found) {
             String serverHost = environment.getProperty(propertyPrefix + getServerWithIndex(idx++) + ".host");
-            found = (serverHost != null);
+            found = serverHost != null;
         }
 
         return --idx;
@@ -404,7 +404,7 @@ public class MongoFactory implements FactoryBean<MongoClient> {
     private TagSet buildTagSet(String readPreferenceTags) {
         List<Tag> tags = Pattern.compile(",")
             .splitAsStream(readPreferenceTags)
-            .map((String::trim))
+            .map(String::trim)
             .map(tag -> {
                 String[] tagString = tag.split(":");
                 return new Tag(tagString[0].trim(), tagString[1].trim());

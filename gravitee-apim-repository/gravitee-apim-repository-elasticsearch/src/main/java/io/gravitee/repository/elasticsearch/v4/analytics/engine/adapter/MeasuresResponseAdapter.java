@@ -63,6 +63,9 @@ public class MeasuresResponseAdapter extends AbstractResponseAdapter {
     }
 
     private Map<Measure, Number> emptyMeasures(MetricMeasuresQuery query) {
-        return query.measures().stream().collect(Collectors.toMap(measure -> measure, measure -> 0));
+        return query
+            .measures()
+            .stream()
+            .collect(Collectors.toMap(measure -> measure, measure -> 0));
     }
 }

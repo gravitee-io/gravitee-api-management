@@ -279,16 +279,14 @@ class CreateHttpApiUseCaseTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
             soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-            soft
-                .assertThat(indexer.storage())
-                .containsExactly(
-                    new IndexableApi(
-                        expectedApi,
-                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptySet()
-                    )
-                );
+            soft.assertThat(indexer.storage()).containsExactly(
+                new IndexableApi(
+                    expectedApi,
+                    new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                    Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                    Collections.emptySet()
+                )
+            );
         });
     }
 
@@ -327,16 +325,14 @@ class CreateHttpApiUseCaseTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
             soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-            soft
-                .assertThat(indexer.storage())
-                .containsExactly(
-                    new IndexableApi(
-                        expectedApi,
-                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptySet()
-                    )
-                );
+            soft.assertThat(indexer.storage()).containsExactly(
+                new IndexableApi(
+                    expectedApi,
+                    new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                    Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                    Collections.emptySet()
+                )
+            );
         });
     }
 
@@ -410,16 +406,14 @@ class CreateHttpApiUseCaseTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, expectedFlows));
             soft.assertThat(apiCrudService.storage()).contains(expectedApi);
-            soft
-                .assertThat(indexer.storage())
-                .containsExactly(
-                    new IndexableApi(
-                        expectedApi,
-                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptySet()
-                    )
-                );
+            soft.assertThat(indexer.storage()).containsExactly(
+                new IndexableApi(
+                    expectedApi,
+                    new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                    Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                    Collections.emptySet()
+                )
+            );
         });
     }
 

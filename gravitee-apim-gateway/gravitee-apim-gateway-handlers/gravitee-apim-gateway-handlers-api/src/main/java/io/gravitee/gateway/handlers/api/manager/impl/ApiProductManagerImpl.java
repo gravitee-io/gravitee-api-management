@@ -148,9 +148,8 @@ public class ApiProductManagerImpl implements ApiProductManager {
         log.debug("Updating API Product [{}]", apiProduct.getId());
 
         ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
-        Set<String> previousApiIds = previousProduct != null && previousProduct.getApiIds() != null
-            ? previousProduct.getApiIds()
-            : Set.of();
+        Set<String> previousApiIds =
+            previousProduct != null && previousProduct.getApiIds() != null ? previousProduct.getApiIds() : Set.of();
 
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);

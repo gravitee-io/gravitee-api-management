@@ -176,49 +176,32 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiService_UpdateTest {
 
     public static final String API_DEFINITION = """
-        {
-          "id" : "id-api",
-          "name" : "myAPI",
-          "description" : "Gravitee.io",
-          "paths" : { },
-          "path_mappings":[],
-          "proxy": {
-            "virtual_hosts": [{
-              "path": "/test"
-            }],
-            "strip_context_path": false,
-            "preserve_host":false,
-            "logging": {
-              "mode":"CLIENT_PROXY",
-              "condition":"condition"
-            },
-            "groups": [
+    {
+      "id" : "id-api",
+      "name" : "myAPI",
+      "description" : "Gravitee.io",
+      "paths" : { },
+      "path_mappings":[],
+      "proxy": {
+        "virtual_hosts": [{
+          "path": "/test"
+        }],
+        "strip_context_path": false,
+        "preserve_host":false,
+        "logging": {
+          "mode":"CLIENT_PROXY",
+          "condition":"condition"
+        },
+        "groups": [
+          {
+            "name": "default-group",
+            "endpoints": [
               {
-                "name": "default-group",
-                "endpoints": [
-                  {
-                    "name": "default",
-                    "target": "http://test",
-                    "weight": 1,
-                    "backup": false,
-                    "type": "HTTP",
-                    "http": {
-                      "connectTimeout": 5000,
-                      "idleTimeout": 60000,
-                      "keepAliveTimeout": 30000,
-                      "keepAlive": true,
-                      "readTimeout": 10000,
-                      "pipelining": false,
-                      "maxConcurrentConnections": 100,
-                      "useCompression": true,
-                      "followRedirects": false,
-                      "encodeURI":false
-                    }
-                  }
-                ],
-                "load_balancing": {
-                  "type": "ROUND_ROBIN"
-                },
+                "name": "default",
+                "target": "http://test",
+                "weight": 1,
+                "backup": false,
+                "type": "HTTP",
                 "http": {
                   "connectTimeout": 5000,
                   "idleTimeout": 60000,
@@ -232,10 +215,27 @@ public class ApiService_UpdateTest {
                   "encodeURI":false
                 }
               }
-            ]
+            ],
+            "load_balancing": {
+              "type": "ROUND_ROBIN"
+            },
+            "http": {
+              "connectTimeout": 5000,
+              "idleTimeout": 60000,
+              "keepAliveTimeout": 30000,
+              "keepAlive": true,
+              "readTimeout": 10000,
+              "pipelining": false,
+              "maxConcurrentConnections": 100,
+              "useCompression": true,
+              "followRedirects": false,
+              "encodeURI":false
+            }
           }
-        }
-        """;
+        ]
+      }
+    }
+    """;
     private static final String API_ID = "id-api";
     private static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
     private static final String API_NAME = "myAPI";
@@ -556,7 +556,10 @@ public class ApiService_UpdateTest {
 
             Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
             EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-            Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+            Proxy proxy = Proxy.builder()
+                .groups(singleton(endpointGroup))
+                .virtualHosts(singletonList(new VirtualHost("/context")))
+                .build();
 
             UpdateApiEntity api = new UpdateApiEntity();
             api.setProxy(proxy);

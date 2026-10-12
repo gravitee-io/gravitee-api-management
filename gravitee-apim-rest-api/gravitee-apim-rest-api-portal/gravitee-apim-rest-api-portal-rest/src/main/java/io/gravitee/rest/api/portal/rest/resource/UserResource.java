@@ -76,8 +76,8 @@ public class UserResource extends AbstractResource {
         try {
             UserEntity userEntity = userService.findByIdWithRoles(executionContext, authenticatedUser);
             User currentUser = userMapper.convertForEnvironment(userEntity, executionContext.getEnvironmentId());
-            boolean withManagement = (authenticatedUser != null &&
-                permissionService.hasManagementRights(executionContext, authenticatedUser));
+            boolean withManagement =
+                authenticatedUser != null && permissionService.hasManagementRights(executionContext, authenticatedUser);
             if (withManagement) {
                 Management managementConfig = this.configService.getConsoleSettings(executionContext).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {

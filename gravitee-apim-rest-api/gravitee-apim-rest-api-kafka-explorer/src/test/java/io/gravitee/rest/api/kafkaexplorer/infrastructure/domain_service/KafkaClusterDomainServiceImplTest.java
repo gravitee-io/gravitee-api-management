@@ -64,12 +64,9 @@ class KafkaClusterDomainServiceImplTest {
 
     @Test
     void should_throw_connection_failed_when_admin_client_creation_fails() {
-        var service = serviceWithAdminClient(
-            () -> {
-                throw new RuntimeException("Cannot create admin client");
-            },
-            5
-        );
+        var service = serviceWithAdminClient(() -> {
+            throw new RuntimeException("Cannot create admin client");
+        }, 5);
 
         assertThatThrownBy(() -> service.describeCluster(CONFIG))
             .hasMessageContaining("Failed to connect to Kafka cluster")

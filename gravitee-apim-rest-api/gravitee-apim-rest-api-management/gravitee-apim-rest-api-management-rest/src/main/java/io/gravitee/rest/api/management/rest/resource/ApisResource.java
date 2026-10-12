@@ -299,12 +299,10 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinition(
         @RequestBody(required = true) @Valid @NotNull JsonNode apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
@@ -326,12 +324,10 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinitionUrl(
         @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
         @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
@@ -353,12 +349,10 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response importApiDefinitionCrd(
         @RequestBody(required = true) @Valid @NotNull ApiCRDEntity api,
         @QueryParam("dryRun") boolean dryRun
@@ -408,12 +402,10 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.UPDATE),
+    })
     public Response deprecatedImportApiDefinitionUrl(
         @RequestBody(required = true) @Valid @NotNull String apiDefinitionOrUrl,
         @QueryParam("definitionVersion") @DefaultValue("2.0.0") String definitionVersion
@@ -465,9 +457,9 @@ public class ApisResource extends AbstractResource {
         content = @Content(mediaType = "text/plain", schema = @Schema(type = "string"))
     )
     @ApiResponse(responseCode = "400", description = "API already exist with the following criteria")
-    @Permissions(
-        { @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }),
+    })
     @Deprecated
     public Response verifyApi(@Valid VerifyApiParam verifyApiParam) {
         try {
@@ -508,7 +500,9 @@ public class ApisResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response searchApis(@Parameter(name = "q", required = true) @NotNull @QueryParam("q") String query) {
         try {
-            return Response.ok().entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null).getData()).build();
+            return Response.ok()
+                .entity(this.searchPagedApis(query, new ApisOrderParam("name"), true, null).getData())
+                .build();
         } catch (TechnicalManagementException te) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(te).build();
         }

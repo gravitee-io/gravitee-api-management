@@ -64,8 +64,8 @@ class OAIToImportApiUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String SHARED_CONFIGURATION = """
-            { "description": "this is a dumb shared configuration" }
-        """;
+        { "description": "this is a dumb shared configuration" }
+    """;
     private static final String USER_ID = "user-id";
     private static final String USER_EMAIL = "jane.doe@gravitee.io";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);

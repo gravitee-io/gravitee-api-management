@@ -76,22 +76,20 @@ public final class UnexpectedErrorReporter {
         // is what one needs to decide whether the answered status is the real outcome or an overwrite: the status it
         // replaces, the error already attributed, where the request had got to, and the cause spelled out for the
         // cases where the stack trace is truncated by whatever collects these logs.
-        ctx
-            .withLogger(log)
-            .error(
-                "Unexpected error while handling request, answering {} [requestId={}, transactionId={}, " +
-                    "statusBeingReplaced={}, attributedErrorKey={}, attributedFailure={}, endpoint={}, elapsed={}ms]: {}",
-                statusCode,
-                metrics != null ? metrics.getRequestId() : null,
-                metrics != null ? metrics.getTransactionId() : null,
-                replacedStatus,
-                attributedKey,
-                failure != null,
-                metrics != null ? metrics.getEndpoint() : null,
-                elapsedMillis(metrics),
-                mostSpecificCause(throwable),
-                throwable
-            );
+        ctx.withLogger(log).error(
+            "Unexpected error while handling request, answering {} [requestId={}, transactionId={}, " +
+                "statusBeingReplaced={}, attributedErrorKey={}, attributedFailure={}, endpoint={}, elapsed={}ms]: {}",
+            statusCode,
+            metrics != null ? metrics.getRequestId() : null,
+            metrics != null ? metrics.getTransactionId() : null,
+            replacedStatus,
+            attributedKey,
+            failure != null,
+            metrics != null ? metrics.getEndpoint() : null,
+            elapsedMillis(metrics),
+            mostSpecificCause(throwable),
+            throwable
+        );
 
         if (metrics != null) {
             if (attributedKey == null) {

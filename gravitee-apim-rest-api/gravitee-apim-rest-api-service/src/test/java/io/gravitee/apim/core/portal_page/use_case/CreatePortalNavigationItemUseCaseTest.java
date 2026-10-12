@@ -827,14 +827,12 @@ class CreatePortalNavigationItemUseCaseTest {
     class UpdateSiblingsOrder {
 
         @ParameterizedTest(name = "Order = {1} ({0})")
-        @CsvSource(
-            {
-                "New item at the beginning -> update all siblings, 0",
-                "New item in the middle -> update some siblings, 1",
-                "New item at the end -> update no siblings, 2",
-                "New item at the end -> update no siblings and limit order to max possible, 99999999",
-            }
-        )
+        @CsvSource({
+            "New item at the beginning -> update all siblings, 0",
+            "New item in the middle -> update some siblings, 1",
+            "New item at the end -> update no siblings, 2",
+            "New item at the end -> update no siblings and limit order to max possible, 99999999",
+        })
         void should_update_order_of_siblings_top_level(String label, Integer order) {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
@@ -879,14 +877,12 @@ class CreatePortalNavigationItemUseCaseTest {
         }
 
         @ParameterizedTest(name = "Order = {1} ({0})")
-        @CsvSource(
-            {
-                "New item at the beginning -> update all siblings, 0",
-                "New item in the middle -> update some siblings, 1",
-                "New item at the end -> update no siblings, 2",
-                "New item at the end -> update no siblings and limit order to max possible, 99999999",
-            }
-        )
+        @CsvSource({
+            "New item at the beginning -> update all siblings, 0",
+            "New item in the middle -> update some siblings, 1",
+            "New item at the end -> update no siblings, 2",
+            "New item at the end -> update no siblings and limit order to max possible, 99999999",
+        })
         void should_update_order_of_siblings_mid_level(String label, Integer order) {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()

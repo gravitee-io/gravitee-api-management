@@ -98,6 +98,9 @@ public class PageUtils {
     }
 
     private static Pageable nextPageable(Page currentPage, Pageable pageable) {
-        return new PageableBuilder().pageSize(pageable.pageSize()).pageNumber(currentPage.getPageNumber() + 1).build();
+        return new PageableBuilder()
+            .pageSize(pageable.pageSize())
+            .pageNumber(currentPage.getPageNumber() + 1)
+            .build();
     }
 }

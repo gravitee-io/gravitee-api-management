@@ -57,34 +57,33 @@ public class LogNamesPostProcessorImpl implements LogNamesPostProcessor {
             .map(m -> m.get(log.apiId()))
             .orElse(null);
 
-        var plan = log.plan() == null
-            ? null
-            : log
-                .plan()
-                .withName(
-                    context
-                        .planNameById()
-                        .map(m -> m.get(log.plan().id()))
-                        .orElse(null)
-                );
+        var plan =
+            log.plan() == null
+                ? null
+                : log.plan().withName(
+                      context
+                          .planNameById()
+                          .map(m -> m.get(log.plan().id()))
+                          .orElse(null)
+                  );
 
-        var application = log.application() == null
-            ? null
-            : log
-                .application()
-                .withName(
-                    context
-                        .applicationNameById()
-                        .map(m -> m.get(log.application().id()))
-                        .orElse(UNKNOWN_APPLICATION)
-                );
+        var application =
+            log.application() == null
+                ? null
+                : log.application().withName(
+                      context
+                          .applicationNameById()
+                          .map(m -> m.get(log.application().id()))
+                          .orElse(UNKNOWN_APPLICATION)
+                  );
 
-        var gateway = log.gateway() == null
-            ? null
-            : context
-                .gatewayHostnameById()
-                .map(m -> m.get(log.gateway()))
-                .orElse(log.gateway());
+        var gateway =
+            log.gateway() == null
+                ? null
+                : context
+                      .gatewayHostnameById()
+                      .map(m -> m.get(log.gateway()))
+                      .orElse(log.gateway());
 
         var apiType = apiTypeById.get(log.apiId());
 

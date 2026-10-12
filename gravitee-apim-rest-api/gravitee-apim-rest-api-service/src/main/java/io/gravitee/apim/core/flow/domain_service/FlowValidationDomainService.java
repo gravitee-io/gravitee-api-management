@@ -169,8 +169,7 @@ public class FlowValidationDomainService {
 
     private void checkHttpSelectorsInvalidWildcardPath(final Flow flow) {
         if (flow.getSelectors() != null) {
-            flow
-                .getSelectors()
+            flow.getSelectors()
                 .stream()
                 .filter(HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
                 .map(HttpSelector.class::cast)

@@ -134,11 +134,17 @@ public class GetTraceDetailUseCase {
             .filter(s -> s.parentSpanId() == null || s.parentSpanId().isEmpty())
             .findFirst()
             .orElseGet(() ->
-                spans.stream().min(Comparator.comparing(Span::startTime, Comparator.nullsLast(Comparator.naturalOrder()))).orElse(null)
+                spans
+                    .stream()
+                    .min(Comparator.comparing(Span::startTime, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .orElse(null)
             );
     }
 
     private static <T> List<T> sortByTimestamp(List<T> items, java.util.function.Function<T, java.time.Instant> timestampOf) {
-        return items.stream().sorted(Comparator.comparing(timestampOf, Comparator.nullsLast(Comparator.naturalOrder()))).toList();
+        return items
+            .stream()
+            .sorted(Comparator.comparing(timestampOf, Comparator.nullsLast(Comparator.naturalOrder())))
+            .toList();
     }
 }

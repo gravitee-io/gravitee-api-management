@@ -52,14 +52,12 @@ public class ApiProductRolesUpgrader implements Upgrader {
     @Override
     public boolean upgrade() throws UpgraderException {
         return this.wrapException(() -> {
-            organizationRepository
-                .findAll()
-                .forEach(organization -> {
-                    ExecutionContext executionContext = new ExecutionContext(organization);
-                    initializeApiProductRoles(executionContext);
-                    ensureApiProductRolesHaveNotificationPermission(executionContext);
-                    ensureApiProductPrimaryOwner(executionContext, organization.getId());
-                });
+            organizationRepository.findAll().forEach(organization -> {
+                ExecutionContext executionContext = new ExecutionContext(organization);
+                initializeApiProductRoles(executionContext);
+                ensureApiProductRolesHaveNotificationPermission(executionContext);
+                ensureApiProductPrimaryOwner(executionContext, organization.getId());
+            });
             return true;
         });
     }

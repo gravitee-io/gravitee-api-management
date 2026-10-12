@@ -407,6 +407,11 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     }
 
     private SubscriptionEntity aSubscription(String appId, String apiId, SubscriptionEntity.Status status) {
-        return SubscriptionEntity.builder().id("sub-" + appId + "-" + apiId).applicationId(appId).apiId(apiId).status(status).build();
+        return SubscriptionEntity.builder()
+            .id("sub-" + appId + "-" + apiId)
+            .applicationId(appId)
+            .apiId(apiId)
+            .status(status)
+            .build();
     }
 }

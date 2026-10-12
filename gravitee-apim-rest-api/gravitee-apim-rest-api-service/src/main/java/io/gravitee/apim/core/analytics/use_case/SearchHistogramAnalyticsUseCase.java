@@ -121,7 +121,7 @@ public class SearchHistogramAnalyticsUseCase {
             Duration.ofMillis(input.interval()),
             input.aggregations(),
             input.query(),
-            (input.terms() != null && input.terms().isPresent()) ? input.terms().get() : List.of()
+            input.terms() != null && input.terms().isPresent() ? input.terms().get() : List.of()
         );
 
         Optional<EventAnalytics> eventAnalytics = analyticsQueryService.searchEventAnalytics(executionContext, histogramQuery);
@@ -129,14 +129,11 @@ public class SearchHistogramAnalyticsUseCase {
         List<HistogramAnalytics.Bucket> buckets = new ArrayList<>();
         Timestamp timestamp = new Timestamp(from, to, Duration.ofMillis(input.interval()));
 
-        eventAnalytics.ifPresent(
-            (analytics ->
-                    analytics
-                        .values()
-                        .forEach((key, values) -> {
-                            HistogramAnalytics.MetricBucket bucket = new HistogramAnalytics.MetricBucket(key, key, values);
-                            buckets.add(bucket);
-                        }))
+        eventAnalytics.ifPresent(analytics ->
+            analytics.values().forEach((key, values) -> {
+                HistogramAnalytics.MetricBucket bucket = new HistogramAnalytics.MetricBucket(key, key, values);
+                buckets.add(bucket);
+            })
         );
 
         return new Output(timestamp, buckets, Collections.emptyMap());

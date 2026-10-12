@@ -209,7 +209,11 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
     @ParameterizedTest(name = "response status ''{0}''")
     @ValueSource(
         ints = {
-            0, HttpStatusCode.CONTINUE_100, HttpStatusCode.NO_CONTENT_204, HttpStatusCode.NOT_MODIFIED_304, HttpStatusCode.BAD_GATEWAY_502,
+            0,
+            HttpStatusCode.CONTINUE_100,
+            HttpStatusCode.NO_CONTENT_204,
+            HttpStatusCode.NOT_MODIFIED_304,
+            HttpStatusCode.BAD_GATEWAY_502,
         }
     )
     void should_add_connection_close_header_when_error_status_is_not_a_client_error_family(Integer responseStatus) {

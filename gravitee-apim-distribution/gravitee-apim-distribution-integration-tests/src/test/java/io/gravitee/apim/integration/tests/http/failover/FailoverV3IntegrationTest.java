@@ -444,8 +444,7 @@ public class FailoverV3IntegrationTest {
 
         @Override
         public void configureApi(Api api) {
-            api
-                .getProxy()
+            api.getProxy()
                 .getGroups()
                 .stream()
                 .filter(group -> group.getName().equals("second-group"))
@@ -573,8 +572,7 @@ public class FailoverV3IntegrationTest {
 
         @Override
         public void configureApi(Api api) {
-            api
-                .getProxy()
+            api.getProxy()
                 .getGroups()
                 .stream()
                 .filter(group -> group.getName().equals("second-group"))

@@ -201,7 +201,13 @@ class ApiProductSubscriptionRefresherTest {
                 .toList();
             when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubs);
             var gatewaySubs = IntStream.range(0, 5)
-                .mapToObj(i -> Subscription.builder().id("sub" + i).api(API_1).plan(PLAN_1).build())
+                .mapToObj(i ->
+                    Subscription.builder()
+                        .id("sub" + i)
+                        .api(API_1)
+                        .plan(PLAN_1)
+                        .build()
+                )
                 .toList();
             for (int i = 0; i < 5; i++) {
                 when(subscriptionMapper.to(repoSubs.get(i))).thenReturn(List.of(gatewaySubs.get(i)));

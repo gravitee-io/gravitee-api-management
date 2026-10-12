@@ -54,7 +54,7 @@ public class UrlSanitizerUtils {
                     .noneMatch(whitelistUrl ->
                         whitelistUrl.endsWith("/")
                             ? url.startsWith(whitelistUrl)
-                            : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
+                            : url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')
                     )
             ) {
                 throw new UrlForbiddenException();

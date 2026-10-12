@@ -104,7 +104,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
         var first = plan("plan-1", "First", 1);
         givenPlans(second, first);
 
-        var response = target(API_PRODUCT_ID + "/plans").request().get();
+        var response = target(API_PRODUCT_ID + "/plans")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         var result = response.readEntity(ApiProductPlansResponse.class);
@@ -117,7 +119,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
         var restricted = plan("restricted", "Restricted", 2).toBuilder().excludedGroups(List.of("excluded-group")).build();
         givenPlans(available, restricted);
 
-        var response = target(API_PRODUCT_ID + "/plans").request().get();
+        var response = target(API_PRODUCT_ID + "/plans")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(response.readEntity(ApiProductPlansResponse.class).getData())
@@ -129,7 +133,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
     void should_return_empty_list_when_no_plan_is_available() {
         givenPlans();
 
-        var response = target(API_PRODUCT_ID + "/plans").request().get();
+        var response = target(API_PRODUCT_ID + "/plans")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
         assertThat(response.readEntity(ApiProductPlansResponse.class).getData()).isEmpty();
@@ -140,7 +146,9 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
         navigationItemsQueryService.reset();
         givenPlans(plan("plan-id", "Plan", 1));
 
-        var response = target(API_PRODUCT_ID + "/plans").request().get();
+        var response = target(API_PRODUCT_ID + "/plans")
+            .request()
+            .get();
 
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }

@@ -86,9 +86,10 @@ public class AmSdkClientFactory {
         // domain payload (returned by findDomain/listDomains) deserialises cleanly.
         apiClient.getObjectMapper().addMixIn(ClientRegistrationSettings.class, ClientRegistrationSettingsMixin.class);
 
-        String amOrganizationId = connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()
-            ? AM_DEFAULT_ORGANIZATION
-            : connection.amOrganizationId();
+        String amOrganizationId =
+            connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()
+                ? AM_DEFAULT_ORGANIZATION
+                : connection.amOrganizationId();
 
         return new AmApis(apiClient, amOrganizationId, new DefaultApiImpl(apiClient), new DomainApiImpl(apiClient));
     }

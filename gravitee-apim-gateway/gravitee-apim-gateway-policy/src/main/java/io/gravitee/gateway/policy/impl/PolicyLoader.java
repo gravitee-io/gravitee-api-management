@@ -169,20 +169,18 @@ public class PolicyLoader {
             });
 
         // Close policy classloaders
-        policies
-            .values()
-            .forEach(policy -> {
-                // Cleanup everything possible in PolicyFactory.
-                cleanSupplier.accept(policy);
+        policies.values().forEach(policy -> {
+            // Cleanup everything possible in PolicyFactory.
+            cleanSupplier.accept(policy);
 
-                ClassLoader policyClassLoader = policy.classloader();
-                if (policyClassLoader instanceof PluginClassLoader) {
-                    try {
-                        ((PluginClassLoader) policyClassLoader).close();
-                    } catch (IOException e) {
-                        log.error("Unable to close policy classloader for policy {}", policy.id());
-                    }
+            ClassLoader policyClassLoader = policy.classloader();
+            if (policyClassLoader instanceof PluginClassLoader) {
+                try {
+                    ((PluginClassLoader) policyClassLoader).close();
+                } catch (IOException e) {
+                    log.error("Unable to close policy classloader for policy {}", policy.id());
                 }
-            });
+            }
+        });
     }
 }

@@ -151,7 +151,7 @@ public abstract class AbstractResource<T, K> {
         String referenceId,
         RolePermissionAction... acls
     ) {
-        return isAuthenticated() && (permissionService.hasPermission(executionContext, permission, referenceId, acls));
+        return isAuthenticated() && permissionService.hasPermission(executionContext, permission, referenceId, acls);
     }
 
     protected String checkAndScaleImage(final String encodedPicture) {

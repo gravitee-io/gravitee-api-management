@@ -41,19 +41,17 @@ public class TagKeyUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            tagRepository
-                .findAll()
-                .forEach(tag -> {
-                    log.info("Migrating sharding tag {}", tag.getName());
+            tagRepository.findAll().forEach(tag -> {
+                log.info("Migrating sharding tag {}", tag.getName());
 
-                    tag.setKey(tag.getId());
+                tag.setKey(tag.getId());
 
-                    try {
-                        tagRepository.update(tag);
-                    } catch (TechnicalException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                try {
+                    tagRepository.update(tag);
+                } catch (TechnicalException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             return true;
         } catch (Exception ex) {
             log.error("TagKeyUpgrader failed. Fail to upgrade tag key");

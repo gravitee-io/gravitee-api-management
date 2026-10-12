@@ -67,8 +67,7 @@ class OrganizationMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(organizationDeployable -> {
                 assertThat(organizationDeployable).isEqualTo(this.organizationDeployable);
@@ -83,8 +82,7 @@ class OrganizationMapperTest {
 
     @Test
     void should_map_organization_deployable() {
-        cut
-            .to(organizationDeployable)
+        cut.to(organizationDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

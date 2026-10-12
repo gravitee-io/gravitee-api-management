@@ -154,12 +154,10 @@ public class SubscriptionTrustStoreLoaderManager {
             subscriptionCertificate.subscription().getId(),
             subscriptionCertificate.fingerprint()
         );
-        truststoreLoaders
-            .removeAll(new CacheKey(subscriptionCertificate))
-            .forEach(loader -> {
-                loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
-                loader.stop();
-            });
+        truststoreLoaders.removeAll(new CacheKey(subscriptionCertificate)).forEach(loader -> {
+            loader.onEvent(new KeyStoreEvent.UnloadEvent(loader.id()));
+            loader.stop();
+        });
         subscriptions.remove(new CacheKey(subscriptionCertificate));
     }
 

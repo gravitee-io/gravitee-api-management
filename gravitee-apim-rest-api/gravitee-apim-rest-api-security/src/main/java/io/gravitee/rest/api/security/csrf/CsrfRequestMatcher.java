@@ -46,8 +46,10 @@ public class CsrfRequestMatcher implements RequestMatcher {
     public boolean matches(HttpServletRequest request) {
         return (
             !allowedMethods.contains(request.getMethod()) &&
-            !(request.getPathInfo() != null &&
-                allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())) &&
+            !(
+                request.getPathInfo() != null &&
+                allowedPaths.stream().anyMatch(pattern -> pattern.matcher(request.getPathInfo()).matches())
+            ) &&
             (request.getHeader(HttpHeaders.REFERER) != null ||
                 request.getHeader(HttpHeaders.ORIGIN) != null ||
                 (request.getCookies() != null &&

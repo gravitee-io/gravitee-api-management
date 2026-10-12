@@ -232,7 +232,9 @@ class DefaultResourceManagerTest {
         final Object r = cut.getResource(resource.getName());
         assertThat(r).isExactlyInstanceOf(FakeWithDeploymentContext.class);
 
-        assertThat(((FakeWithDeploymentContext) r).getDeploymentContext()).isNotNull().isSameAs(deploymentContext);
+        assertThat(((FakeWithDeploymentContext) r).getDeploymentContext())
+            .isNotNull()
+            .isSameAs(deploymentContext);
     }
 
     private Resource buildResource() {

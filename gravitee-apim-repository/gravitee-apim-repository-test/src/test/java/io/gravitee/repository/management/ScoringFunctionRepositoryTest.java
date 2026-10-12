@@ -75,7 +75,9 @@ public class ScoringFunctionRepositoryTest extends AbstractManagementRepositoryT
     public void findAllByReferenceId_should_return_found_functions() throws TechnicalException {
         var found = scoringFunctionRepository.findAllByReferenceId("my-env", "ENVIRONMENT");
 
-        assertThat(found).hasSize(2).are(anyOf(haveId("function1"), haveId("function2")));
+        assertThat(found)
+            .hasSize(2)
+            .are(anyOf(haveId("function1"), haveId("function2")));
     }
 
     @Test

@@ -57,23 +57,21 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                 )
                 .collect(toMap(ApiMetadata::getKey, Function.identity()));
 
-            metadataRepository
-                .findByReferenceTypeAndReferenceId(MetadataReferenceType.API, apiId)
-                .forEach(m ->
-                    apiMetadata.compute(m.getKey(), (key, existing) ->
-                        Optional.ofNullable(existing)
-                            .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
-                            .orElse(
-                                ApiMetadata.builder()
-                                    .apiId(m.getReferenceId())
-                                    .key(m.getKey())
-                                    .value(m.getValue())
-                                    .name(m.getName())
-                                    .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
-                                    .build()
-                            )
-                    )
-                );
+            metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, apiId).forEach(m ->
+                apiMetadata.compute(m.getKey(), (key, existing) ->
+                    Optional.ofNullable(existing)
+                        .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                        .orElse(
+                            ApiMetadata.builder()
+                                .apiId(m.getReferenceId())
+                                .key(m.getKey())
+                                .value(m.getValue())
+                                .name(m.getName())
+                                .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                                .build()
+                        )
+                )
+            );
 
             return apiMetadata;
         } catch (TechnicalException e) {
@@ -105,26 +103,22 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                 .collect(Collectors.toMap(Function.identity(), id -> new HashMap<>(envDefaults)));
 
             // Apply API-level overrides, single $in query for all APIs
-            metadataRepository
-                .findByReferenceTypeAndReferenceIdIn(MetadataReferenceType.API, apiIds)
-                .forEach(m -> {
-                    String apiId = m.getReferenceId();
-                    result
-                        .get(apiId)
-                        .compute(m.getKey(), (key, existing) ->
-                            Optional.ofNullable(existing)
-                                .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
-                                .orElse(
-                                    ApiMetadata.builder()
-                                        .apiId(apiId)
-                                        .key(m.getKey())
-                                        .value(m.getValue())
-                                        .name(m.getName())
-                                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
-                                        .build()
-                                )
-                        );
-                });
+            metadataRepository.findByReferenceTypeAndReferenceIdIn(MetadataReferenceType.API, apiIds).forEach(m -> {
+                String apiId = m.getReferenceId();
+                result.get(apiId).compute(m.getKey(), (key, existing) ->
+                    Optional.ofNullable(existing)
+                        .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                        .orElse(
+                            ApiMetadata.builder()
+                                .apiId(apiId)
+                                .key(m.getKey())
+                                .value(m.getValue())
+                                .name(m.getName())
+                                .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
+                                .build()
+                        )
+                );
+            });
 
             return result;
         } catch (TechnicalException e) {

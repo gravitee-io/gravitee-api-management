@@ -1458,7 +1458,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         if (results.hasResults()) {
             List<String> orderedIds = new ArrayList<>(results.getDocuments());
-            List<UserEntity> users = new ArrayList<>((findByIds(executionContext, orderedIds)));
+            List<UserEntity> users = new ArrayList<>(findByIds(executionContext, orderedIds));
             users.sort(Comparator.comparingInt(user -> orderedIds.indexOf(user.getId())));
 
             populateUserFlags(executionContext.getOrganizationId(), users);
@@ -1923,9 +1923,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             executionContext
         );
 
-        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
-            ? emptyList()
-            : socialProvider.getRoleMappings();
+        List<RoleMappingEntity> rolesMapping =
+            socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
+                ? emptyList()
+                : socialProvider.getRoleMappings();
 
         Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(
             executionContext,
@@ -2040,9 +2041,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     ) {
         // Null, not an empty map: User.setIdpClaims treats null as "no claims stored" and an empty map as a stored
         // empty value, and only the former clears the column.
-        Map<String, String> idpClaims = whitelist == null || whitelist.isEmpty()
-            ? null
-            : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
+        Map<String, String> idpClaims =
+            whitelist == null || whitelist.isEmpty()
+                ? null
+                : extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
         try {
             Optional<User> optionalUser = userRepository.findById(userId);
             if (optionalUser.isEmpty()) {
@@ -2263,16 +2265,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
             // Get roles
             if (match) {
-                mapping
-                    .getEnvironments()
-                    .forEach((environmentName, roles) -> {
-                        Set<RoleEntity> envRoles = environmentRoles.computeIfAbsent(environmentName, k -> new HashSet<>());
-                        for (String environmentRoleName : roles) {
-                            roleService
-                                .findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName, executionContext.getOrganizationId())
-                                .ifPresent(envRoles::add);
-                        }
-                    });
+                mapping.getEnvironments().forEach((environmentName, roles) -> {
+                    Set<RoleEntity> envRoles = environmentRoles.computeIfAbsent(environmentName, k -> new HashSet<>());
+                    for (String environmentRoleName : roles) {
+                        roleService
+                            .findByScopeAndName(RoleScope.ENVIRONMENT, environmentRoleName, executionContext.getOrganizationId())
+                            .ifPresent(envRoles::add);
+                    }
+                });
             }
         }
 
@@ -2567,18 +2567,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private boolean containsMembership(List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
-        return overrideUserMemberships
-            .stream()
-            .anyMatch(membership1 -> {
-                if (membership1.getReferenceId().equals(membership.getReference().getId())) {
-                    try {
-                        return membership.getRole().getScope().equals(roleService.findById(membership1.getRoleId()).getScope());
-                    } catch (RoleNotFoundException e) {
-                        return false;
-                    }
+        return overrideUserMemberships.stream().anyMatch(membership1 -> {
+            if (membership1.getReferenceId().equals(membership.getReference().getId())) {
+                try {
+                    return membership.getRole().getScope().equals(roleService.findById(membership1.getRoleId()).getScope());
+                } catch (RoleNotFoundException e) {
+                    return false;
                 }
-                return false;
-            });
+            }
+            return false;
+        });
     }
 
     private Optional<RoleScope> resolveRoleScope(String roleId, Map<String, Optional<RoleScope>> roleScopeByRoleId) {
@@ -2604,15 +2602,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         this.findById(executionContext, userId);
         MemberEntity userMember = membershipService.getUserMember(executionContext, referenceType, referenceId, userId);
         if (userMember != null) {
-            userMember
-                .getRoles()
-                .forEach(role -> {
-                    if (!roleIds.contains(role.getId())) {
-                        membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
-                    } else {
-                        roleIds.remove(role.getId());
-                    }
-                });
+            userMember.getRoles().forEach(role -> {
+                if (!roleIds.contains(role.getId())) {
+                    membershipService.removeRole(referenceType, referenceId, MembershipMemberType.USER, userId, role.getId());
+                } else {
+                    roleIds.remove(role.getId());
+                }
+            });
         }
         if (!roleIds.isEmpty()) {
             this.addRolesToUser(

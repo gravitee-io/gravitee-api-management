@@ -53,7 +53,7 @@ public class ReflectionExecutablePolicy implements Policy {
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         Object stream = invoke(streamMethod, chain, context, context.request(), context.response());
-        return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
+        return stream != null ? (ReadWriteStream<Buffer>) stream : null;
     }
 
     @Override

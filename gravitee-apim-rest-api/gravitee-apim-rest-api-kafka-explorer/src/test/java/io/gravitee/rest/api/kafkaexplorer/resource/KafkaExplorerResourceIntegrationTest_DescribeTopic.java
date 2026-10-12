@@ -42,7 +42,10 @@ class KafkaExplorerResourceIntegrationTest_DescribeTopic extends AbstractKafkaEx
         var props = new Properties();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, plaintextBootstrapServers());
         try (var admin = AdminClient.create(props)) {
-            admin.createTopics(List.of(new NewTopic(DESCRIBE_TOPIC, 2, (short) 1))).all().get(10, TimeUnit.SECONDS);
+            admin
+                .createTopics(List.of(new NewTopic(DESCRIBE_TOPIC, 2, (short) 1)))
+                .all()
+                .get(10, TimeUnit.SECONDS);
         }
     }
 

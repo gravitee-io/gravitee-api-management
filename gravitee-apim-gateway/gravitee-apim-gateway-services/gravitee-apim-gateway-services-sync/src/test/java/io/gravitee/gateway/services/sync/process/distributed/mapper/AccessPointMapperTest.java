@@ -67,8 +67,7 @@ public class AccessPointMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(deployable -> {
                 assertThat(deployable).isEqualTo(accessPointDeployable);
@@ -83,8 +82,7 @@ public class AccessPointMapperTest {
 
     @Test
     void should_map_accesspoint_deployable() {
-        cut
-            .to(accessPointDeployable)
+        cut.to(accessPointDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

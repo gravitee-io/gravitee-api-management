@@ -192,7 +192,7 @@ class AuditServiceImplTest {
 
         private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
         private static final String PATCH = """
-            [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}}]""";
+        [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}}]""";
 
         @Test
         void should_store_a_given_patch_instead_of_a_diff() throws Exception {
@@ -298,27 +298,27 @@ class AuditServiceImplTest {
         @Test
         void no_path_to_anonymize() throws JsonProcessingException {
             String data = """
-                [
-                    {
-                        "op": "remove",
-                        "path": "/clientId"
-                    },
-                    {
-                        "op": "remove",
-                        "path": "/clientSecret"
-                    },
-                    {
-                        "op": "add",
-                        "path": "/initialAccessToken",
-                        "value": "123456"
-                    },
-                    {
-                        "op": "replace",
-                        "path": "/initialAccessTokenType",
-                        "value": "INITIAL_ACCESS_TOKEN"
-                    }
-                ]
-                """;
+            [
+                {
+                    "op": "remove",
+                    "path": "/clientId"
+                },
+                {
+                    "op": "remove",
+                    "path": "/clientSecret"
+                },
+                {
+                    "op": "add",
+                    "path": "/initialAccessToken",
+                    "value": "123456"
+                },
+                {
+                    "op": "replace",
+                    "path": "/initialAccessTokenType",
+                    "value": "INITIAL_ACCESS_TOKEN"
+                }
+            ]
+            """;
             JsonNode diff = mapper.readTree(data);
 
             auditService.anonymizeData(diff, List.of("/otherPath"));
@@ -329,53 +329,53 @@ class AuditServiceImplTest {
         @Test
         void one_path_to_anonymize() throws JsonProcessingException {
             String data = """
-                [
-                    {
-                        "op": "remove",
-                        "path": "/clientId"
-                    },
-                    {
-                        "op": "remove",
-                        "path": "/clientSecret"
-                    },
-                    {
-                        "op": "add",
-                        "path": "/initialAccessToken",
-                        "value": "123456"
-                    },
-                    {
-                        "op": "replace",
-                        "path": "/initialAccessTokenType",
-                        "value": "INITIAL_ACCESS_TOKEN"
-                    }
-                ]
-                """;
+            [
+                {
+                    "op": "remove",
+                    "path": "/clientId"
+                },
+                {
+                    "op": "remove",
+                    "path": "/clientSecret"
+                },
+                {
+                    "op": "add",
+                    "path": "/initialAccessToken",
+                    "value": "123456"
+                },
+                {
+                    "op": "replace",
+                    "path": "/initialAccessTokenType",
+                    "value": "INITIAL_ACCESS_TOKEN"
+                }
+            ]
+            """;
             JsonNode diff = mapper.readTree(data);
 
             auditService.anonymizeData(diff, List.of("/initialAccessToken"));
 
             String anonymizedData = """
-                [
-                    {
-                        "op": "remove",
-                        "path": "/clientId"
-                    },
-                    {
-                        "op": "remove",
-                        "path": "/clientSecret"
-                    },
-                    {
-                        "op": "add",
-                        "path": "/initialAccessToken",
-                        "value": "*****"
-                    },
-                    {
-                        "op": "replace",
-                        "path": "/initialAccessTokenType",
-                        "value": "INITIAL_ACCESS_TOKEN"
-                    }
-                ]
-                """;
+            [
+                {
+                    "op": "remove",
+                    "path": "/clientId"
+                },
+                {
+                    "op": "remove",
+                    "path": "/clientSecret"
+                },
+                {
+                    "op": "add",
+                    "path": "/initialAccessToken",
+                    "value": "*****"
+                },
+                {
+                    "op": "replace",
+                    "path": "/initialAccessTokenType",
+                    "value": "INITIAL_ACCESS_TOKEN"
+                }
+            ]
+            """;
 
             assertThat(diff).isEqualTo(mapper.readTree(anonymizedData));
         }
@@ -383,27 +383,27 @@ class AuditServiceImplTest {
         @Test
         void one_path_to_anonymize_present_without_value_field() throws JsonProcessingException {
             String data = """
-                [
-                    {
-                        "op": "remove",
-                        "path": "/clientId"
-                    },
-                    {
-                        "op": "remove",
-                        "path": "/clientSecret"
-                    },
-                    {
-                        "op": "add",
-                        "path": "/initialAccessToken",
-                        "value": "123456"
-                    },
-                    {
-                        "op": "replace",
-                        "path": "/initialAccessTokenType",
-                        "value": "INITIAL_ACCESS_TOKEN"
-                    }
-                ]
-                """;
+            [
+                {
+                    "op": "remove",
+                    "path": "/clientId"
+                },
+                {
+                    "op": "remove",
+                    "path": "/clientSecret"
+                },
+                {
+                    "op": "add",
+                    "path": "/initialAccessToken",
+                    "value": "123456"
+                },
+                {
+                    "op": "replace",
+                    "path": "/initialAccessTokenType",
+                    "value": "INITIAL_ACCESS_TOKEN"
+                }
+            ]
+            """;
             JsonNode diff = mapper.readTree(data);
 
             auditService.anonymizeData(diff, List.of("/clientId"));

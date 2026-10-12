@@ -65,13 +65,14 @@ class ApiModelFactoryTest {
 
     @Test
     void fromApiExport_should_leave_allowedInApiProducts_null_for_v4_http_proxy_export_when_flag_missing() {
-        ApiExport apiExport = ApiExport.builder()
-            .name("my-api")
-            .apiVersion("1.0.0")
-            .definitionVersion(DefinitionVersion.V4)
-            .type(ApiType.PROXY)
-            // no allowedInApiProducts explicitly set
-            .build();
+        ApiExport apiExport =
+            ApiExport.builder()
+                .name("my-api")
+                .apiVersion("1.0.0")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.PROXY)
+                // no allowedInApiProducts explicitly set
+                .build();
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 

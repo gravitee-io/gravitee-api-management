@@ -100,7 +100,7 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
                     .order(0)
                     .createdAt(new Date(1506964899000L))
                     .characteristics(List.of("charac_v4"))
-                    .excludedGroups(List.of(("grp_v4")))
+                    .excludedGroups(List.of("grp_v4"))
                     .tags(Set.of("tag_v4"))
                     .build()
             );

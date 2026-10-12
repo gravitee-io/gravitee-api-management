@@ -92,14 +92,15 @@ public interface FlowMapper {
     default List<io.gravitee.definition.model.v4.flow.selector.Selector> mapToSelectorEntityList(List<Selector> selectors) {
         return stream(selectors)
             .filter(Objects::nonNull)
-            .flatMap(selector ->
-                switch (selector.getActualInstance()) {
-                    case HttpSelector ignored -> Stream.ofNullable(mapSelector(selector.getHttpSelector()));
-                    case ConditionSelector ignored -> Stream.ofNullable(mapSelector(selector.getConditionSelector()));
-                    case ChannelSelector ignored -> Stream.ofNullable(mapSelector(selector.getChannelSelector()));
-                    case McpSelector ignored -> Stream.ofNullable(mapSelector(selector.getMcpSelector()));
-                    default -> Stream.empty();
-                }
+            .flatMap(
+                selector ->
+                    switch (selector.getActualInstance()) {
+                        case HttpSelector ignored -> Stream.ofNullable(mapSelector(selector.getHttpSelector()));
+                        case ConditionSelector ignored -> Stream.ofNullable(mapSelector(selector.getConditionSelector()));
+                        case ChannelSelector ignored -> Stream.ofNullable(mapSelector(selector.getChannelSelector()));
+                        case McpSelector ignored -> Stream.ofNullable(mapSelector(selector.getMcpSelector()));
+                        default -> Stream.empty();
+                    }
             )
             .toList();
     }
@@ -107,20 +108,23 @@ public interface FlowMapper {
     @Named("mapToSelectorApiModelList")
     default List<Selector> mapToSelectorApiModelList(List<io.gravitee.definition.model.v4.flow.selector.Selector> selectors) {
         return stream(selectors)
-            .flatMap(selector ->
-                switch (selector) {
-                    case io.gravitee.definition.model.v4.flow.selector.HttpSelector http -> Stream.ofNullable(
-                        new Selector(mapSelector(http))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition -> Stream.ofNullable(
-                        new Selector(mapSelector(condition))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel -> Stream.ofNullable(
-                        new Selector(mapSelector(channel))
-                    );
-                    case io.gravitee.definition.model.v4.flow.selector.McpSelector mcp -> Stream.ofNullable(new Selector(mapSelector(mcp)));
-                    case null, default -> Stream.empty();
-                }
+            .flatMap(
+                selector ->
+                    switch (selector) {
+                        case io.gravitee.definition.model.v4.flow.selector.HttpSelector http -> Stream.ofNullable(
+                            new Selector(mapSelector(http))
+                        );
+                        case io.gravitee.definition.model.v4.flow.selector.ConditionSelector condition -> Stream.ofNullable(
+                            new Selector(mapSelector(condition))
+                        );
+                        case io.gravitee.definition.model.v4.flow.selector.ChannelSelector channel -> Stream.ofNullable(
+                            new Selector(mapSelector(channel))
+                        );
+                        case io.gravitee.definition.model.v4.flow.selector.McpSelector mcp -> Stream.ofNullable(
+                            new Selector(mapSelector(mcp))
+                        );
+                        case null, default -> Stream.empty();
+                    }
             )
             .toList();
     }

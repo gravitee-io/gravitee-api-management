@@ -229,7 +229,7 @@ public class DynamicPropertiesServiceTest {
         final Api api = createApi(providerConfiguration);
         cut.onEvent(new SimpleEvent<>(ApiEvent.UPDATE, api));
 
-        assertThat(cut.schedulers).anySatisfy(((apiEntity, scheduler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId())));
+        assertThat(cut.schedulers).anySatisfy((apiEntity, scheduler) -> assertThat(apiEntity.getId()).isEqualTo(api.getId()));
     }
 
     @Test

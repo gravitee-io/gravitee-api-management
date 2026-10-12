@@ -537,16 +537,19 @@ public interface ApiMapper {
     }
 
     default PatchApiUseCase.ApiV4Fields mapToCoreApi(ApiV4 apiV4) {
-        List<Listener> listeners = apiV4.getListeners() == null
-            ? null
-            : rejectNulls(ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()), "listeners");
-        List<EndpointGroup> endpointGroups = apiV4.getEndpointGroups() == null
-            ? null
-            : rejectNulls(EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()), "endpointGroups");
+        List<Listener> listeners =
+            apiV4.getListeners() == null
+                ? null
+                : rejectNulls(ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()), "listeners");
+        List<EndpointGroup> endpointGroups =
+            apiV4.getEndpointGroups() == null
+                ? null
+                : rejectNulls(EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()), "endpointGroups");
         List<Flow> flows = apiV4.getFlows() == null ? null : rejectNulls(FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()), "flows");
-        List<Resource> resources = apiV4.getResources() == null
-            ? null
-            : rejectNulls(apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).toList(), "resources");
+        List<Resource> resources =
+            apiV4.getResources() == null
+                ? null
+                : rejectNulls(apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).toList(), "resources");
         return new PatchApiUseCase.ApiV4Fields(listeners, endpointGroups, flows, resources);
     }
 

@@ -150,9 +150,11 @@ public abstract class AbstractSecurityChain<
         return securityPlan
             .canExecute(ctx)
             .onErrorResumeNext(throwable -> {
-                ctx
-                    .withLogger(log)
-                    .error("An error occurred while checking if security plan {} can be executed", securityPlan.id(), throwable);
+                ctx.withLogger(log).error(
+                    "An error occurred while checking if security plan {} can be executed",
+                    securityPlan.id(),
+                    throwable
+                );
                 ctx.setInternalAttribute(ATTR_INTERNAL_PLAN_RESOLUTION_FAILURE, throwable);
                 return FALSE;
             })

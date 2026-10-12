@@ -79,9 +79,9 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class)).contains(
+                "Invalid image format : Image mime-type image/svg+xml is not allowed"
+            );
         });
     }
 
@@ -96,9 +96,9 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(entity));
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
-            soft
-                .assertThat(response.readEntity(String.class))
-                .contains("Invalid image format : Image mime-type image/svg+xml is not allowed");
+            soft.assertThat(response.readEntity(String.class)).contains(
+                "Invalid image format : Image mime-type image/svg+xml is not allowed"
+            );
         });
     }
 

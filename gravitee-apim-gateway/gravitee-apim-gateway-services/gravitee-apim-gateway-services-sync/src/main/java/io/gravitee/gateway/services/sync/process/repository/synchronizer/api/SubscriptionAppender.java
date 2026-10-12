@@ -132,12 +132,10 @@ public class SubscriptionAppender {
                     return grouped;
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
-                    subscriptionMapper
-                        .to(record)
-                        .forEach(converted -> {
-                            converted.setForceDispatch(true);
-                            grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
-                        });
+                    subscriptionMapper.to(record).forEach(converted -> {
+                        converted.setForceDispatch(true);
+                        grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
+                    });
                 }
                 if (page.size() < bulkItems) {
                     return grouped;

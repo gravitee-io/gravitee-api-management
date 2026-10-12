@@ -116,8 +116,7 @@ public class DebugApiV4 extends Api implements ReactableDebugApi<io.gravitee.def
                 .map(Path::getPath)
                 .findFirst()
                 .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
-                .orElse("") +
-            request.getPath()
+                .orElse("") + request.getPath()
         );
     }
 }

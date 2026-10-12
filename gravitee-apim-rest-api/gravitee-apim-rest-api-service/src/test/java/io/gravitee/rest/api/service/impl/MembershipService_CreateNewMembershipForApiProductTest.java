@@ -160,7 +160,9 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             .environmentId(GraviteeContext.getDefaultEnvironment())
             .disableMembershipNotifications(false)
             .build();
-        lenient().when(apiProductQueryService.findById(any(), eq(API_PRODUCT_ID))).thenReturn(coreApiProduct);
+        lenient()
+            .when(apiProductQueryService.findById(any(), eq(API_PRODUCT_ID)))
+            .thenReturn(coreApiProduct);
     }
 
     @Test

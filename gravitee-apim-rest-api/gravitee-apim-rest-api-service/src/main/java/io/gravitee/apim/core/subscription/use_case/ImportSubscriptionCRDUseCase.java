@@ -46,16 +46,14 @@ public class ImportSubscriptionCRDUseCase {
             .validateAndSanitize(new ValidateSubscriptionCRDDomainService.Input(input.auditInfo(), input.spec()))
             .map(sanitized -> new Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                )
+            );
+        });
 
         var warnings = validationResult.warning().orElseGet(List::of);
         var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));

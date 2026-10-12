@@ -253,13 +253,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             RoleEntity apiPORole = roleService
                 .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
                 .orElse(null);
-            Set<String> poGroupIds = apiPORole == null
-                ? Set.of()
-                : apiMemberships
-                    .stream()
-                    .filter(m -> apiPORole.getId().equals(m.getRoleId()))
-                    .map(MembershipEntity::getMemberId)
-                    .collect(Collectors.toSet());
+            Set<String> poGroupIds =
+                apiPORole == null
+                    ? Set.of()
+                    : apiMemberships
+                          .stream()
+                          .filter(m -> apiPORole.getId().equals(m.getRoleId()))
+                          .map(MembershipEntity::getMemberId)
+                          .collect(Collectors.toSet());
 
             final List<GroupEntity> groups = all
                 .stream()
@@ -735,9 +736,8 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("findByIds {}", groupIds);
             Set<Group> groups = groupRepository.findByIds(groupIds);
             if (groups == null || groups.size() != groupIds.size()) {
-                List<String> groupsFound = groups == null
-                    ? Collections.emptyList()
-                    : groups.stream().map(Group::getId).collect(Collectors.toList());
+                List<String> groupsFound =
+                    groups == null ? Collections.emptyList() : groups.stream().map(Group::getId).collect(Collectors.toList());
                 Set<String> groupIdsNotFound = new HashSet<>(groupIds);
                 groupIdsNotFound.removeAll(groupsFound);
                 throw new GroupsNotFoundException(groupIdsNotFound);
@@ -862,18 +862,16 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             removeGroupFromPages(groupId, updatedDate, apiPagesWithGroupCriteria);
 
             Set<String> applicationIds = new HashSet<>();
-            applicationRepository
-                .findByGroups(Collections.singletonList(groupId))
-                .forEach(application -> {
-                    application.removeGroup(groupId);
-                    application.setUpdatedAt(updatedDate);
-                    try {
-                        applicationRepository.update(application);
-                        applicationIds.add(application.getId());
-                    } catch (TechnicalException ex) {
-                        throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
-                    }
-                });
+            applicationRepository.findByGroups(Collections.singletonList(groupId)).forEach(application -> {
+                application.removeGroup(groupId);
+                application.setUpdatedAt(updatedDate);
+                try {
+                    applicationRepository.update(application);
+                    applicationIds.add(application.getId());
+                } catch (TechnicalException ex) {
+                    throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
+                }
+            });
 
             eventManager.publishEvent(
                 ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
@@ -974,9 +972,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     Set<AccessControl> accessControlsToRemove = page
                         .getAccessControls()
                         .stream()
-                        .filter(accessControl ->
-                            (AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
-                                accessControl.getReferenceId().equals(groupId))
+                        .filter(
+                            accessControl ->
+                                AccessControlReferenceType.GROUP.name().equals(accessControl.getReferenceType()) &&
+                                accessControl.getReferenceId().equals(groupId)
                         )
                         .collect(Collectors.toSet());
 
@@ -997,7 +996,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         // in anonymous mode
         if (username == null) {
             // only public API without restrictions are authorized
-            return (excludedGroups == null || excludedGroups.isEmpty()) && (Visibility.PUBLIC.equals(api.getVisibility()));
+            return (excludedGroups == null || excludedGroups.isEmpty()) && Visibility.PUBLIC.equals(api.getVisibility());
         }
 
         // in connected mode,
@@ -1016,13 +1015,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         // user must not be a member of any exclusion group.
         // That is user must not have no API role on each of the exclusion groups
         if (Visibility.PUBLIC.equals(api.getVisibility())) {
-            return excludedGroups
-                .stream()
-                .allMatch(group ->
-                    this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
-                        .stream()
-                        .noneMatch(role -> role.getScope() == RoleScope.API)
-                );
+            return excludedGroups.stream().allMatch(group ->
+                this.membershipService
+                    .getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
+                    .stream()
+                    .noneMatch(role -> role.getScope() == RoleScope.API)
+            );
         }
 
         // for private apis
@@ -1031,13 +1029,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             Set<String> authorizedGroups = new HashSet<>(api.getGroups());
             authorizedGroups.removeAll(excludedGroups);
 
-            return authorizedGroups
-                .stream()
-                .anyMatch(group ->
-                    this.membershipService.getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
-                        .stream()
-                        .anyMatch(role -> role.getScope() == RoleScope.API)
-                );
+            return authorizedGroups.stream().anyMatch(group ->
+                this.membershipService
+                    .getRoles(MembershipReferenceType.GROUP, group, MembershipMemberType.USER, username)
+                    .stream()
+                    .anyMatch(role -> role.getScope() == RoleScope.API)
+            );
         }
 
         return false;

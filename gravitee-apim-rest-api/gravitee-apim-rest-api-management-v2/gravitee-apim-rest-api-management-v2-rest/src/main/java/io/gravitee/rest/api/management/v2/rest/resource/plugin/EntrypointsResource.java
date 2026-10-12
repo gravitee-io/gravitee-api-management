@@ -47,9 +47,10 @@ public class EntrypointsResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEntrypoints() {
-        String organizationId = GraviteeContext.getCurrentOrganization() != null
-            ? GraviteeContext.getCurrentOrganization()
-            : GraviteeContext.getDefaultOrganization();
+        String organizationId =
+            GraviteeContext.getCurrentOrganization() != null
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization();
         return ConnectorPluginMapper.INSTANCE.mapCorePlugin(
             getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input(organizationId)).plugins()
         );

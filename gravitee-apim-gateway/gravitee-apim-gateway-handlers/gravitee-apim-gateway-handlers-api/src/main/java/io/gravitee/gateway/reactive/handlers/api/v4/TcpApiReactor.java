@@ -165,7 +165,7 @@ public class TcpApiReactor extends AbstractApiReactor {
 
         lifecycleState = Lifecycle.State.STARTED;
         long endTime = System.currentTimeMillis(); // Get the end Time
-        log.debug("TCP API reactor started in {} ms", (endTime - startTime));
+        log.debug("TCP API reactor started in {} ms", endTime - startTime);
         dumpAcceptors();
     }
 

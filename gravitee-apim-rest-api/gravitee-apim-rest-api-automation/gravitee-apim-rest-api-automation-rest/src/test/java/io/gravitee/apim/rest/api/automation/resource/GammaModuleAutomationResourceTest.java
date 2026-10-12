@@ -113,7 +113,10 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         if (dryRun) {
             target = target.queryParam("dryRun", true);
         }
-        return target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(fixture)));
+        return target
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .put(Entity.json(readJSON(fixture)));
     }
 
     private JsonNode body(Response response) {
@@ -143,7 +146,11 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_when_module_serves_nothing_at_the_path() {
             when(port.kind("catalog/unknown")).thenReturn(Optional.empty());
 
-            try (var response = rootTarget(MODULE + "/catalog/unknown/x").request().get()) {
+            try (
+                var response = rootTarget(MODULE + "/catalog/unknown/x")
+                    .request()
+                    .get()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("gamma.resource.kind.notFound");
             }
@@ -237,9 +244,9 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(context.getValue().organizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(context.getValue().environmentId()).isEqualTo(ENVIRONMENT);
-                soft
-                    .assertThat(context.getValue().hrids().idOf("catalog/sources", "smithery"))
-                    .isEqualTo(derivedId("catalog/sources", "smithery"));
+                soft.assertThat(context.getValue().hrids().idOf("catalog/sources", "smithery")).isEqualTo(
+                    derivedId("catalog/sources", "smithery")
+                );
             });
         }
     }
@@ -333,10 +340,18 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             when(port.findById(any(), any(), any())).thenReturn(Optional.of(view("github-mcp")));
             when(port.deleteById(any(), any(), any())).thenReturn(true);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().get()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .get()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().delete()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .delete()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
 
@@ -365,7 +380,11 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
             viewWithoutHrid.remove("hrid");
             when(port.findById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")))).thenReturn(Optional.of(viewWithoutHrid));
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().get()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .get()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = body(response);
                 SoftAssertions.assertSoftly(soft -> {
@@ -382,7 +401,11 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_hrid_not_found_when_absent() {
             when(port.findById(any(), any(), any())).thenReturn(Optional.empty());
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().get()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown")
+                    .request()
+                    .get()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("hrid.notFound");
             }
@@ -396,7 +419,11 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_204_when_deleted() {
             when(port.deleteById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")))).thenReturn(true);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp").request().delete()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/github-mcp")
+                    .request()
+                    .delete()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(204);
             }
         }
@@ -405,7 +432,11 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
         void should_return_404_when_absent() {
             when(port.deleteById(any(), any(), any())).thenReturn(false);
 
-            try (var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown").request().delete()) {
+            try (
+                var response = rootTarget(MODULE + "/" + KIND_PATH + "/unknown")
+                    .request()
+                    .delete()
+            ) {
                 assertThat(response.getStatus()).isEqualTo(404);
                 assertThat(body(response).get("technicalCode").asText()).isEqualTo("hrid.notFound");
             }

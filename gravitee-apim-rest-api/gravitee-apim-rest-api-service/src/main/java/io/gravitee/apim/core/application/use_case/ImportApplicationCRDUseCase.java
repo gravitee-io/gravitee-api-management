@@ -165,16 +165,14 @@ public class ImportApplicationCRDUseCase {
             .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(input.auditInfo(), input.crd()))
             .map(sanitized -> new ImportApplicationCRDUseCase.Input(sanitized.auditInfo(), sanitized.spec()));
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(
-                    String.format(
-                        "Unable to import because of errors [%s]",
-                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
-                    )
-                );
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(
+                String.format(
+                    "Unable to import because of errors [%s]",
+                    String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                )
+            );
+        });
 
         return validationResult;
     }

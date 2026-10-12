@@ -74,58 +74,56 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getApiDefinition()).isNull();
-                soft
-                    .assertThat(api.getApiDefinitionHttpV4())
-                    .isEqualTo(
-                        io.gravitee.definition.model.v4.Api.builder()
-                            .id("my-id")
-                            .name("api-name")
-                            .apiVersion("1.0.0")
-                            .definitionVersion(DefinitionVersion.V4)
-                            .flowExecution(new FlowExecution())
-                            .analytics(Analytics.builder().enabled(false).build())
-                            .failover(
-                                Failover.builder()
-                                    .enabled(true)
-                                    .maxRetries(7)
-                                    .slowCallDuration(500)
-                                    .openStateDuration(11000)
-                                    .maxFailures(3)
-                                    .perSubscription(false)
+                soft.assertThat(api.getApiDefinitionHttpV4()).isEqualTo(
+                    io.gravitee.definition.model.v4.Api.builder()
+                        .id("my-id")
+                        .name("api-name")
+                        .apiVersion("1.0.0")
+                        .definitionVersion(DefinitionVersion.V4)
+                        .flowExecution(new FlowExecution())
+                        .analytics(Analytics.builder().enabled(false).build())
+                        .failover(
+                            Failover.builder()
+                                .enabled(true)
+                                .maxRetries(7)
+                                .slowCallDuration(500)
+                                .openStateDuration(11000)
+                                .maxFailures(3)
+                                .perSubscription(false)
+                                .build()
+                        )
+                        .type(ApiType.PROXY)
+                        .tags(Set.of("tag1"))
+                        .listeners(
+                            List.of(
+                                HttpListener.builder()
+                                    .paths(List.of(Path.builder().path("/http_proxy").build()))
+                                    .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                                     .build()
                             )
-                            .type(ApiType.PROXY)
-                            .tags(Set.of("tag1"))
-                            .listeners(
-                                List.of(
-                                    HttpListener.builder()
-                                        .paths(List.of(Path.builder().path("/http_proxy").build()))
-                                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                                        .build()
-                                )
-                            )
-                            .endpointGroups(
-                                List.of(
-                                    EndpointGroup.builder()
-                                        .name("default-group")
-                                        .type("http-proxy")
-                                        .sharedConfiguration("{}")
-                                        .endpoints(
-                                            List.of(
-                                                Endpoint.builder()
-                                                    .name("default-endpoint")
-                                                    .type("http-proxy")
-                                                    .inheritConfiguration(true)
-                                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
-                                                    .build()
-                                            )
+                        )
+                        .endpointGroups(
+                            List.of(
+                                EndpointGroup.builder()
+                                    .name("default-group")
+                                    .type("http-proxy")
+                                    .sharedConfiguration("{}")
+                                    .endpoints(
+                                        List.of(
+                                            Endpoint.builder()
+                                                .name("default-endpoint")
+                                                .type("http-proxy")
+                                                .inheritConfiguration(true)
+                                                .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                                .build()
                                         )
-                                        .build()
-                                )
+                                    )
+                                    .build()
                             )
-                            .flows(List.of())
-                            .build()
-                    );
+                        )
+                        .flows(List.of())
+                        .build()
+                );
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -189,8 +187,7 @@ class ApiAdapterTest {
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
-                soft
-                    .assertThat(api.getApiDefinition())
+                soft.assertThat(api.getApiDefinition())
                     // V2 Api definition is defining a equals/hashcode checking only the id
                     .isEqualTo(io.gravitee.definition.model.Api.builder().id("my-id").name("api-name").version("1.0.0").build());
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
@@ -275,7 +272,9 @@ class ApiAdapterTest {
 
         @Test
         void should_map_only_enabled_capabilities_when_converting_to_federated_agent_entity() {
-            var agent = anAgent().capabilities(Map.of(FederatedAgent.STREAMING, true, FederatedAgent.PUSH_NOTIFICATIONS, false)).build();
+            var agent = anAgent()
+                .capabilities(Map.of(FederatedAgent.STREAMING, true, FederatedAgent.PUSH_NOTIFICATIONS, false))
+                .build();
 
             var entity = toFederatedAgentEntity(agent);
 
@@ -354,9 +353,9 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
                 try {
-                    soft
-                        .assertThat(api.getDefinition())
-                        .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionHttpV4()));
+                    soft.assertThat(api.getDefinition()).isEqualTo(
+                        GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionHttpV4())
+                    );
                 } catch (JsonProcessingException e) {
                     soft.fail(e.getMessage());
                 }
@@ -391,11 +390,9 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCategories()).containsExactly("category-1");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
                 soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
-                soft
-                    .assertThat(api.getDefinition())
-                    .isEqualTo(
-                        "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"virtual_hosts\":[{\"path\":\"/path\"}],\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false,\"maxHeaderSize\":8192,\"maxChunkSize\":8192}}]},\"properties\":[],\"tags\":[\"tag1\"]}"
-                    );
+                soft.assertThat(api.getDefinition()).isEqualTo(
+                    "{\"id\":\"my-api\",\"name\":\"api-name\",\"version\":\"1.0.0\",\"gravitee\":\"2.0.0\",\"execution_mode\":\"v3\",\"flow_mode\":\"DEFAULT\",\"proxy\":{\"virtual_hosts\":[{\"path\":\"/path\"}],\"strip_context_path\":false,\"preserve_host\":false,\"groups\":[{\"name\":\"default-group\",\"endpoints\":[{\"name\":\"default\",\"target\":\"https://api.gravitee.io/echo\",\"weight\":1,\"backup\":false,\"type\":\"http1\"}],\"load_balancing\":{\"type\":\"ROUND_ROBIN\"},\"http\":{\"connectTimeout\":5000,\"idleTimeout\":60000,\"keepAliveTimeout\":30000,\"keepAlive\":true,\"readTimeout\":10000,\"pipelining\":false,\"maxConcurrentConnections\":100,\"useCompression\":true,\"followRedirects\":false,\"maxHeaderSize\":8192,\"maxChunkSize\":8192}}]},\"properties\":[],\"tags\":[\"tag1\"]}"
+                );
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
@@ -457,7 +454,8 @@ class ApiAdapterTest {
         void should_convert_federated_agent_to_repository() throws JsonProcessingException {
             var fixture = ApiFixtures.aFederatedAgent();
             var skill = new FederatedAgent.Skill("skill-id", "skill-name", "skill-description", List.of("tag"), null, null, null);
-            var agent = ((FederatedAgent) fixture.getApiDefinitionValue()).toBuilder()
+            var agent = ((FederatedAgent) fixture.getApiDefinitionValue())
+                .toBuilder()
                 .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
                 .skills(List.of(skill))
                 .build();
@@ -506,13 +504,13 @@ class ApiAdapterTest {
                 soft.assertThat(updateApiEntity.isDisableMembershipNotifications()).isTrue();
                 soft.assertThat(updateApiEntity.getBackground()).isEqualTo("api-background");
                 soft.assertThat(updateApiEntity.getEndpointGroups()).hasSize(1);
-                soft
-                    .assertThat(updateApiEntity.getEndpointGroups().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getEndpointGroups().getFirst());
+                soft.assertThat(updateApiEntity.getEndpointGroups().getFirst()).isEqualTo(
+                    model.getApiDefinitionHttpV4().getEndpointGroups().getFirst()
+                );
                 soft.assertThat(updateApiEntity.getListeners()).hasSize(1);
-                soft
-                    .assertThat(updateApiEntity.getListeners().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
+                soft.assertThat(updateApiEntity.getListeners().getFirst()).isEqualTo(
+                    model.getApiDefinitionHttpV4().getListeners().getFirst()
+                );
             });
         }
 

@@ -92,14 +92,12 @@ public class ApiPagesResource extends AbstractResource {
                 pages = new ArrayList<>();
 
                 Map<String, Page> pagesMap = pageStream.collect(Collectors.toMap(Page::getId, page -> page));
-                pagesMap
-                    .values()
-                    .forEach(page -> {
-                        List<String> ancestors = this.getAncestors(pagesMap, page);
-                        if (ancestors.contains(parent)) {
-                            pages.add(page);
-                        }
-                    });
+                pagesMap.values().forEach(page -> {
+                    List<String> ancestors = this.getAncestors(pagesMap, page);
+                    if (ancestors.contains(parent)) {
+                        pages.add(page);
+                    }
+                });
             } else {
                 pages = pageStream.collect(Collectors.toList());
             }

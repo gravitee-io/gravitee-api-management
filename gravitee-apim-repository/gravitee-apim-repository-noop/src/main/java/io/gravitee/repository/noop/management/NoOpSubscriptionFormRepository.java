@@ -23,7 +23,8 @@ import java.util.Optional;
 
 public class NoOpSubscriptionFormRepository
     extends AbstractNoOpManagementRepository<SubscriptionForm, String>
-    implements SubscriptionFormRepository {
+    implements SubscriptionFormRepository
+{
 
     @Override
     public Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException {

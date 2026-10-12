@@ -280,7 +280,10 @@ class ClusterResourceTest extends AbstractResourceTest {
         @Test
         void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.CLUSTER_MEMBER, CLUSTER_ID, RolePermissionAction.UPDATE, () ->
-                rootTarget().path("groups").request().put(json(Map.of("groups", Set.of("G1", "G2"))))
+                rootTarget()
+                    .path("groups")
+                    .request()
+                    .put(json(Map.of("groups", Set.of("G1", "G2"))))
             );
         }
 
@@ -288,7 +291,12 @@ class ClusterResourceTest extends AbstractResourceTest {
         void should_update_cluster_groups() {
             when(updateClusterGroupsUseCase.execute(any())).thenReturn(new UpdateClusterGroupsUseCase.Output(Set.of("G1", "G2")));
 
-            try (Response response = rootTarget().path("groups").request().put(json(List.of("G1", "G2")))) {
+            try (
+                Response response = rootTarget()
+                    .path("groups")
+                    .request()
+                    .put(json(List.of("G1", "G2")))
+            ) {
                 assertThat(response.getStatus()).isEqualTo(OK_200);
                 List<String> groups = response.readEntity(List.class);
                 assertThat(groups).containsExactlyInAnyOrder("G1", "G2");

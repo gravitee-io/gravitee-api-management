@@ -106,7 +106,9 @@ class ClassicCategoriesMigrationUpgraderTest {
             portalNavigationItemsQueryService,
             portalNavigationItemCrudService
         );
-        lenient().when(apiRepository.search(any(), any(ApiFieldFilter.class))).thenReturn(List.of());
+        lenient()
+            .when(apiRepository.search(any(), any(ApiFieldFilter.class)))
+            .thenReturn(List.of());
     }
 
     @Test

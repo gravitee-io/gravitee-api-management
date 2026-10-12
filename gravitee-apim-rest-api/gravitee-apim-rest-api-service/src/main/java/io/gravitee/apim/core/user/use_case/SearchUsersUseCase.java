@@ -65,7 +65,10 @@ public class SearchUsersUseCase {
     }
 
     private List<User> sortUsers(List<User> users) {
-        return users.stream().sorted(Comparator.comparing(User::lastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))).toList();
+        return users
+            .stream()
+            .sorted(Comparator.comparing(User::lastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+            .toList();
     }
 
     private Map<String, Boolean> buildApplicationMembership(String applicationId, List<User> users) {

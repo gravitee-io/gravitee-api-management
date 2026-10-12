@@ -148,7 +148,10 @@ class ApiDocumentationNavigationResource_UnknownApiTest extends AbstractResource
                     )
             ),
             Named.of("publish", target ->
-                target.path("_publish").request().post(json(new PublishApiToPortal().sectionId(UUID.randomUUID())))
+                target
+                    .path("_publish")
+                    .request()
+                    .post(json(new PublishApiToPortal().sectionId(UUID.randomUUID())))
             ),
             Named.of("unpublish", target -> target.path("_unpublish").request().post(json("")))
         );

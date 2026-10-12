@@ -45,10 +45,9 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
         try {
             log.debug("Find license by organization id: {}", organizationId);
 
-            return this.licenseRepository.findById(
-                organizationId,
-                io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
-            ).map(LicenseAdapter.INSTANCE::toModel);
+            return this.licenseRepository
+                .findById(organizationId, io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
+                .map(LicenseAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }

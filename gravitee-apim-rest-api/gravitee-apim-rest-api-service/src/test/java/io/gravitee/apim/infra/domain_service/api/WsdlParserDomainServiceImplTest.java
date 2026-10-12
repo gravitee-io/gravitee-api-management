@@ -51,7 +51,10 @@ class WsdlParserDomainServiceImplTest {
     @ParameterizedTest
     @ValueSource(
         strings = {
-            "http://localhost:8080/spec.wsdl", "http://127.0.0.1/spec.wsdl", "http://169.254.1.2/spec.wsdl", "http://192.168.1.1/spec.wsdl",
+            "http://localhost:8080/spec.wsdl",
+            "http://127.0.0.1/spec.wsdl",
+            "http://169.254.1.2/spec.wsdl",
+            "http://192.168.1.1/spec.wsdl",
         }
     )
     void should_block_ssrf_attack_vectors(String url) {

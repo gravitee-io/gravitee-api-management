@@ -198,7 +198,7 @@ public class MembershipService_FindUserMembershipTest {
         when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(Set.of(group1));
 
         when(
-            mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
+            mockApiRepository.searchIds(eq(List.of(new ApiCriteria.Builder().groups("Group1Id").build())), isA(Pageable.class), isNull())
         ).thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(
@@ -237,7 +237,7 @@ public class MembershipService_FindUserMembershipTest {
         when(mockGroupService.findByUser(eq(USER_ID))).thenReturn(Set.of(group1));
 
         when(
-            mockApiRepository.searchIds(eq(List.of((new ApiCriteria.Builder().groups("Group1Id").build()))), isA(Pageable.class), isNull())
+            mockApiRepository.searchIds(eq(List.of(new ApiCriteria.Builder().groups("Group1Id").build())), isA(Pageable.class), isNull())
         ).thenReturn(new Page<>(List.of("apiGroup1Id"), 0, 1, 1));
 
         List<UserMembership> references = membershipService.findUserMembership(

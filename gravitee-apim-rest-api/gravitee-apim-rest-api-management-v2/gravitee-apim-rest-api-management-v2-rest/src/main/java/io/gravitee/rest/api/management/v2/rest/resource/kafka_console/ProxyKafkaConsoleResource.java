@@ -236,13 +236,11 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
                                 log.trace("Response body: {}", payload);
 
                                 responseBuilder = Response.status(response.statusCode()).entity(payload);
-                                response
-                                    .headers()
-                                    .forEach(header -> {
-                                        if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
-                                            responseBuilder.header(header.getKey(), header.getValue());
-                                        }
-                                    });
+                                response.headers().forEach(header -> {
+                                    if (!header.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_LENGTH.toString())) {
+                                        responseBuilder.header(header.getKey(), header.getValue());
+                                    }
+                                });
                                 responseBuilder.header(
                                     HttpHeaders.CONTENT_LENGTH.toString(),
                                     payload.getBytes(StandardCharsets.UTF_8).length

@@ -70,8 +70,7 @@ class SubscriptionFetcherTest {
         subscription.setId("s");
         subscription.setUpdatedAt(new Date(1));
         when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(subscription));
-        cut
-            .fetchLatest(null, null, Set.of())
+        cut.fetchLatest(null, null, Set.of())
             .test()
             .assertValueCount(1)
             .assertValue(subscriptions -> subscriptions.contains(subscription));
@@ -98,8 +97,7 @@ class SubscriptionFetcherTest {
                 eq(BULK_ITEMS)
             )
         ).thenReturn(List.of(subscription));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
             .assertValueCount(1)
             .assertValue(subscriptions -> subscriptions.contains(subscription));

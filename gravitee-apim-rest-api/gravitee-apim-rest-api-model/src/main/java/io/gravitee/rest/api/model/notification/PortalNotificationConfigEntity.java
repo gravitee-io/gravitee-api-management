@@ -64,10 +64,14 @@ public class PortalNotificationConfigEntity {
         return (
             (hooks == null || hooks.isEmpty()) &&
             (groups == null || groups.isEmpty()) &&
-            (user != null && !user.isEmpty()) &&
-            (referenceType != null && !referenceType.isEmpty()) &&
-            (referenceId != null && !referenceId.isEmpty()) &&
-            (organizationId != null && !organizationId.isEmpty())
+            user != null &&
+            !user.isEmpty() &&
+            referenceType != null &&
+            !referenceType.isEmpty() &&
+            referenceId != null &&
+            !referenceId.isEmpty() &&
+            organizationId != null &&
+            !organizationId.isEmpty()
         );
     }
 

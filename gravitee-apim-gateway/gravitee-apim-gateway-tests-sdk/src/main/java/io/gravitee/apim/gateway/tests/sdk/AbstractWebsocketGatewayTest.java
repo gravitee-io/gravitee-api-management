@@ -53,26 +53,18 @@ public abstract class AbstractWebsocketGatewayTest extends AbstractGatewayTest {
                 if (null != websocketHandshakeHandler) {
                     websocketHandshakeHandler.handle(handshake);
                 } else {
-                    handshake
-                        .rxAccept()
-                        .subscribe(
-                            serverWebSocket -> {
-                                if (null != websocketServerHandler) {
-                                    websocketServerHandler.handle(serverWebSocket);
-                                }
-                            },
-                            context::failNow
-                        );
+                    handshake.rxAccept().subscribe(serverWebSocket -> {
+                        if (null != websocketServerHandler) {
+                            websocketServerHandler.handle(serverWebSocket);
+                        }
+                    }, context::failNow);
                 }
             })
             .listen(serverPort)
-            .subscribe(
-                server -> {
-                    httpServer = server;
-                    context.completeNow();
-                },
-                context::failNow
-            );
+            .subscribe(server -> {
+                httpServer = server;
+                context.completeNow();
+            }, context::failNow);
     }
 
     @AfterAll

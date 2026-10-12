@@ -117,7 +117,12 @@ class AnalyticsEngineQueryServiceImplTest {
         @Test
         void should_map_repository_response_to_requests_count() {
             when(analyticsRepository.searchRequestsCount(any(QueryContext.class), any())).thenReturn(
-                Optional.of(CountAggregate.builder().total(10).countBy(Map.of("first", 3L, "second", 4L, "third", 3L)).build())
+                Optional.of(
+                    CountAggregate.builder()
+                        .total(10)
+                        .countBy(Map.of("first", 3L, "second", 4L, "third", 3L))
+                        .build()
+                )
             );
             assertThat(cut.searchRequestsCount(GraviteeContext.getExecutionContext(), "api#1", null, null)).hasValueSatisfying(
                 requestsCount -> {
@@ -162,7 +167,11 @@ class AnalyticsEngineQueryServiceImplTest {
         void should_return_top_hits() {
             var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchTopHitsApi(any(QueryContext.class), any())).thenReturn(
-                Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L)).build())
+                Optional.of(
+                    TopHitsAggregate.builder()
+                        .topHitsCounts(Map.of("api-id-1", 15L, "api-id-2", 2L, "api-id-3", 17L))
+                        .build()
+                )
             );
 
             var result = cut.searchTopHitsApis(GraviteeContext.getExecutionContext(), queryParameters);
@@ -256,7 +265,11 @@ class AnalyticsEngineQueryServiceImplTest {
         void should_search_top_apps() {
             var queryParameters = AnalyticsQueryParameters.builder().apiIds(List.of("api#1")).build();
             when(analyticsRepository.searchTopApps(any(QueryContext.class), any())).thenReturn(
-                Optional.of(TopHitsAggregate.builder().topHitsCounts(Map.of("app-id-1", 15L, "app-id-2", 2L, "app-id-3", 17L)).build())
+                Optional.of(
+                    TopHitsAggregate.builder()
+                        .topHitsCounts(Map.of("app-id-1", 15L, "app-id-2", 2L, "app-id-3", 17L))
+                        .build()
+                )
             );
 
             var result = cut.searchTopHitsApps(GraviteeContext.getExecutionContext(), queryParameters);

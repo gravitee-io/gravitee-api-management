@@ -83,7 +83,7 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
         while (found) {
             String user = environment.getProperty("users[" + userIdx + "].user");
-            found = (user != null && user.isEmpty());
+            found = user != null && user.isEmpty();
 
             if (found) {
                 String username = environment.getProperty("users[" + userIdx + "].username");

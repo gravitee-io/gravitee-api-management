@@ -171,7 +171,12 @@ class AdditionalKeywordMetricsMappingTest {
 
     private String fieldType(String index, String metric) throws Exception {
         JsonNode mappings = get("/" + index + "/_mapping/field/additional-metrics." + metric);
-        JsonNode field = mappings.path(index).path("mappings").path("additional-metrics." + metric).path("mapping").path(metric);
+        JsonNode field = mappings
+            .path(index)
+            .path("mappings")
+            .path("additional-metrics." + metric)
+            .path("mapping")
+            .path(metric);
         return field.path("type").asText();
     }
 

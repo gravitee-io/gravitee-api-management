@@ -122,7 +122,7 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
             query.append(" order by updated_at asc ");
             if (page != null && size != null && size > 0) {
                 final int limit = size.intValue();
-                query.append(createPagingClause(limit, (page.intValue() * limit)));
+                query.append(createPagingClause(limit, page.intValue() * limit));
             }
 
             return jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());

@@ -417,7 +417,10 @@ public class ApiService_CreateWithDefinitionTest {
         assertThrows(EndpointNameAlreadyExistsException.class, () -> {
             Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
             EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-            Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+            Proxy proxy = Proxy.builder()
+                .groups(singleton(endpointGroup))
+                .virtualHosts(singletonList(new VirtualHost("/context")))
+                .build();
 
             UpdateApiEntity api = new UpdateApiEntity();
             api.setProxy(proxy);

@@ -213,9 +213,9 @@ public class CreateDefaultPortalNavigationItemsUseCase {
 
     private String loadContent(String contentPath) {
         try (
-            final var is = CreateDefaultPortalNavigationItemsUseCase.class.getClassLoader().getResourceAsStream(
-                String.format("templates/%s", contentPath)
-            )
+            final var is = CreateDefaultPortalNavigationItemsUseCase.class
+                .getClassLoader()
+                .getResourceAsStream(String.format("templates/%s", contentPath))
         ) {
             if (is == null) {
                 throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));

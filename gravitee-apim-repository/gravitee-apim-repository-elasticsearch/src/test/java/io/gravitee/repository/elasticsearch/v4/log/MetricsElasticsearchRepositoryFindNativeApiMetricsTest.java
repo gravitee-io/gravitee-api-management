@@ -51,16 +51,14 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             .withMinute(0)
             .withSecond(0)
             .withNano(0)
-            .toEpochSecond() *
-        1000;
+            .toEpochSecond() * 1000;
     private static final long TO_MILLIS =
         ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
             .withHour(11)
             .withMinute(0)
             .withSecond(0)
             .withNano(0)
-            .toEpochSecond() *
-        1000;
+            .toEpochSecond() * 1000;
 
     private static final String API_ID = "kafka-api-001";
     private static final String GATEWAY_ID = "2c99d50d-d318-42d3-99d5-0dd31862d3d2";
@@ -110,8 +108,7 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:00:00.000Z");
             soft.assertThat(result.getErrorKey()).as("no error fields on a CONNECTED event").isNull();
             soft.assertThat(result.getMessage()).as("no error message on a CONNECTED event").isNull();
-            soft
-                .assertThat(result.getAdditionalMetrics())
+            soft.assertThat(result.getAdditionalMetrics())
                 .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
                 .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
                 .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTED")
@@ -139,8 +136,7 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:05:00.000Z");
             soft.assertThat(result.getErrorKey()).isEqualTo("KAFKA_AUTH_FAILED");
             soft.assertThat(result.getMessage()).isEqualTo("SASL authentication failed: Invalid credentials");
-            soft
-                .assertThat(result.getAdditionalMetrics())
+            soft.assertThat(result.getAdditionalMetrics())
                 .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-B")
                 .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "CONNECTION_ERROR")
                 .doesNotContainKey(NativeApiMetricKeys.BROKER_ID)
@@ -167,8 +163,7 @@ public class MetricsElasticsearchRepositoryFindNativeApiMetricsTest extends Abst
             soft.assertThat(result.getHost()).isEqualTo(NATIVE_HOST);
             soft.assertThat(result.getTimestamp()).isEqualTo(today + "T10:30:00.000Z");
             soft.assertThat(result.getErrorKey()).isEqualTo("KAFKA_CONSUMER_LEFT_GROUP");
-            soft
-                .assertThat(result.getAdditionalMetrics())
+            soft.assertThat(result.getAdditionalMetrics())
                 .containsEntry(NativeApiMetricKeys.CLIENT_ID, "consumer-app-1-A")
                 .containsEntry(NativeApiMetricKeys.BROKER_ID, "broker-1")
                 .containsEntry(NativeApiMetricKeys.CONNECTION_STATUS, "DISCONNECTED")

@@ -157,10 +157,10 @@ class ApiMigration {
     private Failover mapFailOver(Proxy proxy) {
         return proxy.failoverEnabled()
             ? Failover.builder()
-                .enabled(proxy.failoverEnabled())
-                .slowCallDuration(proxy.getFailover().getRetryTimeout())
-                .maxRetries(proxy.getFailover().getMaxAttempts())
-                .build()
+                  .enabled(proxy.failoverEnabled())
+                  .slowCallDuration(proxy.getFailover().getRetryTimeout())
+                  .maxRetries(proxy.getFailover().getMaxAttempts())
+                  .build()
             : null;
     }
 
@@ -281,8 +281,8 @@ class ApiMigration {
         return properties == null
             ? null
             : stream(properties.getProperties())
-                .map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic()))
-                .toList();
+                  .map(a -> new Property(a.getKey(), a.getValue(), a.isEncrypted(), a.isDynamic()))
+                  .toList();
     }
 
     private List<Resource> mapResources(List<io.gravitee.definition.model.plugins.resources.Resource> resources) {

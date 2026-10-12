@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ApiExposedEntrypointDomainServiceInMemory
-    implements ApiExposedEntrypointDomainService, InMemoryAlternative<ExposedEntrypoint> {
+    implements ApiExposedEntrypointDomainService, InMemoryAlternative<ExposedEntrypoint>
+{
 
     final List<ExposedEntrypoint> storage = new ArrayList<>();
 

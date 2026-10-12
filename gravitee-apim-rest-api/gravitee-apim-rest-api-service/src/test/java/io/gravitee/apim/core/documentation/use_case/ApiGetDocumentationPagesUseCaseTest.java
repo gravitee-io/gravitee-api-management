@@ -242,15 +242,33 @@ class ApiGetDocumentationPagesUseCaseTest {
             assertThat(res.breadcrumbList()).hasSize(3);
             assertThat(res.breadcrumbList().get(0))
                 .isNotNull()
-                .isEqualTo(Breadcrumb.builder().position(1).id(parentIdPos1).name(parentIdPos1 + "-name").build());
+                .isEqualTo(
+                    Breadcrumb.builder()
+                        .position(1)
+                        .id(parentIdPos1)
+                        .name(parentIdPos1 + "-name")
+                        .build()
+                );
 
             assertThat(res.breadcrumbList().get(1))
                 .isNotNull()
-                .isEqualTo(Breadcrumb.builder().position(2).id(parentIdPos2).name(parentIdPos2 + "-name").build());
+                .isEqualTo(
+                    Breadcrumb.builder()
+                        .position(2)
+                        .id(parentIdPos2)
+                        .name(parentIdPos2 + "-name")
+                        .build()
+                );
 
             assertThat(res.breadcrumbList().get(2))
                 .isNotNull()
-                .isEqualTo(Breadcrumb.builder().position(3).id(parentIdPos3).name(parentIdPos3 + "-name").build());
+                .isEqualTo(
+                    Breadcrumb.builder()
+                        .position(3)
+                        .id(parentIdPos3)
+                        .name(parentIdPos3 + "-name")
+                        .build()
+                );
         }
 
         @Test

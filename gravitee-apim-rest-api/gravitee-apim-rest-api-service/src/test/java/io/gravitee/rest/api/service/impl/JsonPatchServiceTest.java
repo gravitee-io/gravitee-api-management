@@ -46,50 +46,34 @@ import org.springframework.mock.env.MockEnvironment;
 class JsonPatchServiceTest {
 
     static final String API_DEFINITION = """
-        {
-          "description" : "Gravitee.io",
-          "paths" : { },
-          "path_mappings":[],
-          "proxy": {
-            "virtual_hosts": [{
-              "path": "/test"
-            }],
-            "strip_context_path": false,
-            "preserve_host":false,
-            "logging": {
-              "mode":"CLIENT_PROXY",
-              "condition":"condition"
-            },
-            "groups": [
+    {
+      "description" : "Gravitee.io",
+      "paths" : { },
+      "path_mappings":[],
+      "proxy": {
+        "virtual_hosts": [{
+          "path": "/test"
+        }],
+        "strip_context_path": false,
+        "preserve_host":false,
+        "logging": {
+          "mode":"CLIENT_PROXY",
+          "condition":"condition"
+        },
+        "groups": [
+          {
+            "name": "default-group",
+            "endpoints": [
               {
-                "name": "default-group",
-                "endpoints": [
-                  {
-                    "name": "default",
-                    "target": "http://test",
-                    "weight": 1,
-                    "backup": true,
-                    "type": "HTTP",
-                    "http": {
-                      "connectTimeout": 5000,
-                      "idleTimeout": 60000,
-                      "keepAliveTimeout": 30000,
-                      "keepAlive": true,
-                      "readTimeout": 10000,
-                      "pipelining": false,
-                      "maxConcurrentConnections": 100,
-                      "useCompression": true,
-                      "followRedirects": false,
-                      "encodeURI":false
-                    }
-                  }
-                ],
-                "load_balancing": {
-                  "type": "ROUND_ROBIN"
-                },
+                "name": "default",
+                "target": "http://test",
+                "weight": 1,
+                "backup": true,
+                "type": "HTTP",
                 "http": {
                   "connectTimeout": 5000,
                   "idleTimeout": 60000,
+                  "keepAliveTimeout": 30000,
                   "keepAlive": true,
                   "readTimeout": 10000,
                   "pipelining": false,
@@ -99,10 +83,26 @@ class JsonPatchServiceTest {
                   "encodeURI":false
                 }
               }
-            ]
+            ],
+            "load_balancing": {
+              "type": "ROUND_ROBIN"
+            },
+            "http": {
+              "connectTimeout": 5000,
+              "idleTimeout": 60000,
+              "keepAlive": true,
+              "readTimeout": 10000,
+              "pipelining": false,
+              "maxConcurrentConnections": 100,
+              "useCompression": true,
+              "followRedirects": false,
+              "encodeURI":false
+            }
           }
-        }
-        """;
+        ]
+      }
+    }
+    """;
 
     JsonPatchServiceImpl jsonPatchService;
 

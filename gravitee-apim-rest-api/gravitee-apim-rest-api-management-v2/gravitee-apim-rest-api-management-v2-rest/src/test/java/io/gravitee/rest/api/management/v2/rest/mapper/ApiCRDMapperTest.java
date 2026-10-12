@@ -72,7 +72,9 @@ class ApiCRDMapperTest {
     @Test
     void should_not_mask_encrypted_property_values_when_exporting_to_crd() {
         var restModel = ApiCRDMapper.INSTANCE.map(
-            aCoreCRD().properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build())).build()
+            aCoreCRD()
+                .properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build()))
+                .build()
         );
 
         assertThat(restModel.getProperties()).hasSize(1);
@@ -126,7 +128,9 @@ class ApiCRDMapperTest {
     @NullSource
     @EnumSource(value = ApiLifecycleState.class, names = "CREATED", mode = EnumSource.Mode.EXCLUDE)
     void should_keep_lifecycle_state_for_kubernetes_when_not_created(ApiLifecycleState lifecycleState) {
-        var coreSpec = aCoreCRD().lifecycleState(lifecycleState == null ? null : lifecycleState.name()).build();
+        var coreSpec = aCoreCRD()
+            .lifecycleState(lifecycleState == null ? null : lifecycleState.name())
+            .build();
 
         var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(coreSpec);
 

@@ -101,18 +101,16 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
             });
 
         // Close resource classLoaders
-        resources
-            .values()
-            .forEach(resource -> {
-                ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
-                if (resourceClassLoader instanceof PluginClassLoader) {
-                    try {
-                        ((PluginClassLoader) resourceClassLoader).close();
-                    } catch (IOException ioe) {
-                        log.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
-                    }
+        resources.values().forEach(resource -> {
+            ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
+            if (resourceClassLoader instanceof PluginClassLoader) {
+                try {
+                    ((PluginClassLoader) resourceClassLoader).close();
+                } catch (IOException ioe) {
+                    log.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
                 }
-            });
+            }
+        });
 
         // Be sure to remove all references to resources
         resources.clear();
@@ -135,15 +133,19 @@ public class LegacyResourceManagerImpl extends AbstractLifecycleComponent<Resour
             log.debug("Loading resource {} for {}", resource.getName(), reactable);
 
             try {
-                Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<
-                    ? extends io.gravitee.resource.api.Resource
-                >) ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
+                Class<? extends io.gravitee.resource.api.Resource> resourceClass =
+                    (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
+                        resourcePlugin.resource().getName(),
+                        resourceClassLoader
+                    );
                 Map<Class<?>, Object> injectables = new HashMap<>();
 
                 if (resourcePlugin.configuration() != null) {
-                    Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<
-                        ? extends ResourceConfiguration
-                    >) ClassUtils.forName(resourcePlugin.configuration().getName(), resourceClassLoader);
+                    Class<? extends ResourceConfiguration> resourceConfigurationClass =
+                        (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                            resourcePlugin.configuration().getName(),
+                            resourceClassLoader
+                        );
                     injectables.put(
                         resourceConfigurationClass,
                         resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())

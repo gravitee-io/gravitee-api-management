@@ -58,7 +58,13 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(
     uses = {
-        ApiMapper.class, DateMapper.class, MemberMapper.class, MetadataMapper.class, PageMapper.class, PlanMapper.class, FlowMapper.class,
+        ApiMapper.class,
+        DateMapper.class,
+        MemberMapper.class,
+        MetadataMapper.class,
+        PageMapper.class,
+        PlanMapper.class,
+        FlowMapper.class,
     }
 )
 public interface ImportExportApiMapper {

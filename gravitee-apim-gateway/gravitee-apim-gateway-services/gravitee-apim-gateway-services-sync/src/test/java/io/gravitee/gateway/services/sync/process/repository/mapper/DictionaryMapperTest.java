@@ -48,8 +48,7 @@ class DictionaryMapperTest {
         io.gravitee.gateway.dictionary.model.Dictionary dictionaryExpected = new io.gravitee.gateway.dictionary.model.Dictionary();
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(dictionaryExpected));
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(dictionary -> {
                 assertThat(dictionary).isEqualTo(dictionaryExpected);
@@ -70,8 +69,7 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\"}}");
 
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(dictionary -> {
                 assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
@@ -88,8 +86,7 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
 
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(dictionary -> {
                 assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
@@ -106,8 +103,7 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"null-key\":null}}");
 
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(dictionary -> {
                 assertThat(dictionary.getProperties()).containsOnlyKeys("legacy-key");
@@ -122,8 +118,7 @@ class DictionaryMapperTest {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
 
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(dictionary -> {
                 assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");

@@ -214,7 +214,9 @@ class DebugHttpRequestDispatcherTest {
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
         lenient().when(httpServerConnection.channelHandlerContext()).thenReturn(channelHandlerContext);
         lenient().when(channelHandlerContext.channel()).thenReturn(channel);
-        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient()
+            .when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME)))
+            .thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 
@@ -244,7 +246,9 @@ class DebugHttpRequestDispatcherTest {
             .when(apiReactor.api())
             .thenAnswer(invocation -> debugApi);
         lenient().when(acceptor.reactor()).thenReturn(apiReactor);
-        lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+        lenient()
+            .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+            .thenReturn(acceptor);
     }
 
     @Nested
@@ -294,7 +298,9 @@ class DebugHttpRequestDispatcherTest {
                 .when(handler.debugApi())
                 .thenAnswer(invocation -> debugApi);
             lenient().when(acceptor.reactor()).thenReturn(handler);
-            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+            lenient()
+                .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                .thenReturn(acceptor);
 
             // When the request is refused on its path.
             dispatcher(RequestPathHandling.REJECT).dispatch(rxRequest, SERVER_ID).test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
@@ -343,7 +349,9 @@ class DebugHttpRequestDispatcherTest {
             when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(stored));
 
             // The real chain actually writes the body, which the stubbed-empty chain never does.
-            lenient().when(rxResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
+            lenient()
+                .when(rxResponse.rxSend(any(Flowable.class)))
+                .thenReturn(Completable.complete());
 
             final DebugHttpRequestDispatcher dispatcher = dispatcherWithRealChain();
 
@@ -372,7 +380,9 @@ class DebugHttpRequestDispatcherTest {
                 .when(apiReactor.api())
                 .thenAnswer(invocation -> realDebugApi);
             lenient().when(acceptor.reactor()).thenReturn(apiReactor);
-            lenient().when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID)).thenReturn(acceptor);
+            lenient()
+                .when(httpAcceptorResolver.resolve(HOST, PATH_WITH_DOT_SEGMENTS, SERVER_ID))
+                .thenReturn(acceptor);
         }
 
         private DebugHttpRequestDispatcher dispatcherWithRealChain() {

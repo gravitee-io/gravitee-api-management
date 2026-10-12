@@ -42,15 +42,16 @@ public interface PortalPageContentAdapter {
 
     default PortalPageContent<?> toEntity(io.gravitee.repository.management.model.PortalPageContent portalPageContent) {
         var repoMeta = portalPageContent.getAutomationMetadata();
-        var meta = repoMeta == null
-            ? null
-            : new AutomationMetadata(
-                AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
-                repoMeta.getReferenceId(),
-                repoMeta.getName(),
-                Optional.ofNullable(repoMeta.getLocation()),
-                Optional.ofNullable(repoMeta.getOrder())
-            );
+        var meta =
+            repoMeta == null
+                ? null
+                : new AutomationMetadata(
+                      AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
+                      repoMeta.getReferenceId(),
+                      repoMeta.getName(),
+                      Optional.ofNullable(repoMeta.getLocation()),
+                      Optional.ofNullable(repoMeta.getOrder())
+                  );
         return switch (portalPageContent.getType()) {
             case GRAVITEE_MARKDOWN -> graviteeMarkdownPageContentFromRepository(portalPageContent, meta);
             case OPENAPI -> openApiPageContentFromRepository(portalPageContent, meta);
@@ -146,12 +147,12 @@ public interface PortalPageContentAdapter {
                 meta == null
                     ? null
                     : io.gravitee.repository.management.model.AutomationMetadata.builder()
-                        .referenceType(AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
-                        .referenceId(meta.referenceId())
-                        .name(meta.name())
-                        .location(meta.location().orElse(null))
-                        .order(meta.order().orElse(null))
-                        .build()
+                          .referenceType(AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
+                          .referenceId(meta.referenceId())
+                          .name(meta.name())
+                          .location(meta.location().orElse(null))
+                          .order(meta.order().orElse(null))
+                          .build()
             )
             .build();
     }

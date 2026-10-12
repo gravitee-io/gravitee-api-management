@@ -33,16 +33,14 @@ class ObservabilityFilterValidatorAuthzDecisionFiltersTest {
     private final ObservabilityFilterValidator validator = new ObservabilityFilterValidator(new SpiFilterRegistry());
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "AUTHZ_SUBJECT_ID, LOGS",
-            "AUTHZ_SUBJECT_ID, ANALYTICS",
-            "AUTHZ_ACTION, LOGS",
-            "AUTHZ_ACTION, ANALYTICS",
-            "AUTHZ_RESOURCE_ID, LOGS",
-            "AUTHZ_RESOURCE_ID, ANALYTICS",
-        }
-    )
+    @CsvSource({
+        "AUTHZ_SUBJECT_ID, LOGS",
+        "AUTHZ_SUBJECT_ID, ANALYTICS",
+        "AUTHZ_ACTION, LOGS",
+        "AUTHZ_ACTION, ANALYTICS",
+        "AUTHZ_RESOURCE_ID, LOGS",
+        "AUTHZ_RESOURCE_ID, ANALYTICS",
+    })
     void should_accept_several_entity_references_in_one_condition(String filter, Signal signal) {
         var conditions = List.of(new FilterCondition(filter, FilterOperator.IN, List.of("alice", "User::\"bob\"")));
 

@@ -96,9 +96,8 @@ public class ApplicationLogsResource extends AbstractResource {
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
 
-        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null
-            ? new HashMap()
-            : new HashMap(searchLogResponse.getMetadata());
+        final Map<String, Map<String, Object>> metadata =
+            searchLogResponse.getMetadata() == null ? new HashMap() : new HashMap(searchLogResponse.getMetadata());
         metadata.put(METADATA_DATA_KEY, metadataTotal);
         //No pagination, because logsService did it already
         return createListResponse(GraviteeContext.getExecutionContext(), logs, paginationParam, metadata, false);

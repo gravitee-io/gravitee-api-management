@@ -104,16 +104,14 @@ public class HtmlSanitizerTest {
     }
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "<!-><img src=x onerror=alert(1) />",
-            "<!--><img src=x onerror=alert(1) />",
-            "<!---><img src=x onerror=alert(1) />",
-            "<!--->\\n<img src=x onerror=alert(1) />",
-            "<!--->\\n\\n\\n\\n<img src=x onerror=alert(1) />",
-            "<!------->\\n<img src=x onerror=alert(1) />",
-        }
-    )
+    @CsvSource({
+        "<!-><img src=x onerror=alert(1) />",
+        "<!--><img src=x onerror=alert(1) />",
+        "<!---><img src=x onerror=alert(1) />",
+        "<!--->\\n<img src=x onerror=alert(1) />",
+        "<!--->\\n\\n\\n\\n<img src=x onerror=alert(1) />",
+        "<!------->\\n<img src=x onerror=alert(1) />",
+    })
     public void isXssNotSafe(String content) {
         HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(content);
 

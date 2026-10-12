@@ -71,7 +71,7 @@ public class PromotionQueryServiceInMemory implements PromotionQueryService, InM
                         promotionQuery.targetEnvCockpitIds().contains(promotion.getTargetEnvCockpitId()));
 
                 boolean matchesTargetApiExists =
-                    promotionQuery.targetApiExists() == null || (promotionQuery.targetApiExists() == (promotion.getTargetApiId() != null));
+                    promotionQuery.targetApiExists() == null || promotionQuery.targetApiExists() == (promotion.getTargetApiId() != null);
 
                 return matchesApiId && matchesStatuses && matchesTargetEnvCockpitIds && matchesTargetApiExists;
             })

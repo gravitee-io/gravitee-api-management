@@ -70,7 +70,7 @@ public class ContextAttributeMap extends HashMap<String, Object> {
                 return value;
             }
         }
-        return (fallbackContextAttributeMap != null) ? fallbackContextAttributeMap.get(key) : null;
+        return fallbackContextAttributeMap != null ? fallbackContextAttributeMap.get(key) : null;
     }
 
     @Override

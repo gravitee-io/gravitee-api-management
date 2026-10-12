@@ -89,20 +89,18 @@ public class SharedPolicyGroupRegistry {
     }
 
     public void clear() {
-        registry
-            .values()
-            .forEach(reactor -> {
-                try {
-                    reactor.stop();
-                } catch (Exception ex) {
-                    log.error(
-                        "Unable to remove and stop shared policy group {} for environment {}",
-                        reactor.id(),
-                        reactor.reactableSharedPolicyGroup().getEnvironmentId(),
-                        ex
-                    );
-                }
-            });
+        registry.values().forEach(reactor -> {
+            try {
+                reactor.stop();
+            } catch (Exception ex) {
+                log.error(
+                    "Unable to remove and stop shared policy group {} for environment {}",
+                    reactor.id(),
+                    reactor.reactableSharedPolicyGroup().getEnvironmentId(),
+                    ex
+                );
+            }
+        });
         registry.clear();
     }
 

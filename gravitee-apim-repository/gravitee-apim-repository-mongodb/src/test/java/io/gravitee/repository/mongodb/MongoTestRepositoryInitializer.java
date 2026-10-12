@@ -79,8 +79,7 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
     public void tearDown() {
         LOG.debug("Deleting all documents...");
         final MongoTemplate mt = new MongoTemplate(mongoClient, "test");
-        mt
-            .getDb()
+        mt.getDb()
             .listCollectionNames()
             .forEach(collection -> {
                 if (!collection.contains("__dataKeys")) {

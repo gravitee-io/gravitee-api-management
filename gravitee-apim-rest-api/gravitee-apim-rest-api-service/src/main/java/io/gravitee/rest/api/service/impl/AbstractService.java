@@ -50,10 +50,10 @@ public abstract class AbstractService extends TransactionalService {
         return authenticatedUser == null
             ? null
             : AuditActor.builder()
-                .userId(getAuthenticatedUser().getUsername())
-                .userSource(getAuthenticatedUser().getSource())
-                .userSourceId(getAuthenticatedUser().getSourceId())
-                .build();
+                  .userId(getAuthenticatedUser().getUsername())
+                  .userSource(getAuthenticatedUser().getSource())
+                  .userSourceId(getAuthenticatedUser().getSourceId())
+                  .build();
     }
 
     protected boolean isAuthenticated() {
@@ -79,7 +79,10 @@ public abstract class AbstractService extends TransactionalService {
         if (pageable == null) {
             return null;
         }
-        return new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build();
+        return new PageableBuilder()
+            .pageNumber(pageable.getPageNumber() - 1)
+            .pageSize(pageable.getPageSize())
+            .build();
     }
 
     protected static io.gravitee.repository.management.api.search.Sortable convert(Sortable sortable) {

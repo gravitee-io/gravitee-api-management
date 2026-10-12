@@ -66,8 +66,8 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
     private static final String SHARED_CONFIGURATION = """
-            { "description": "shared config" }
-        """;
+        { "description": "shared config" }
+    """;
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService = mock(EndpointConnectorPluginDomainService.class);

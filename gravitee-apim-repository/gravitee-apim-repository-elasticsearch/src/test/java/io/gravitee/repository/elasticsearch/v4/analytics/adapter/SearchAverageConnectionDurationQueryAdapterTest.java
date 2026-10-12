@@ -34,36 +34,36 @@ import org.junit.jupiter.api.Test;
 class SearchAverageConnectionDurationQueryAdapterTest {
 
     public static final String QUERY_WITHOUT_FILTER = """
-           {
-                 "size": 0,
-                 "query": {
-                   "bool": {
-                     "must": [
-                       {
-                         "term": {
-                           "request-ended": "true"
-                         }
-                       }
-                     ]
+       {
+             "size": 0,
+             "query": {
+               "bool": {
+                 "must": [
+                   {
+                     "term": {
+                       "request-ended": "true"
+                     }
                    }
+                 ]
+               }
+             },
+             "aggs": {
+               "entrypoints_agg": {
+                 "terms": {
+                   "field": "entrypoint-id",
+                   "size": 100
                  },
                  "aggs": {
-                   "entrypoints_agg": {
-                     "terms": {
-                       "field": "entrypoint-id",
-                       "size": 100
-                     },
-                     "aggs": {
-                       "avg_ended_request_duration_ms": {
-                         "avg": {
-                           "field": "gateway-response-time-ms"
-                         }
-                       }
+                   "avg_ended_request_duration_ms": {
+                     "avg": {
+                       "field": "gateway-response-time-ms"
                      }
                    }
                  }
                }
-        """;
+             }
+           }
+    """;
 
     @Test
     void should_build_query_without_filter() {

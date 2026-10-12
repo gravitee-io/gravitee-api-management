@@ -63,48 +63,48 @@ class A2aAgentFetcherImplTest {
     void should_successfully_fetch_agent_card() {
         // Given
         String agentCardJson = """
-            {
-                "name": "Test Agent",
-                "description": "A test A2A agent",
-                "version": "1.0.0",
-                "url": "https://example.com/.well-known/agent.json",
-                "documentationUrl": "https://example.com/docs",
-                "provider": {
-                    "organization": "test-org",
-                    "url": "https://provider.example.com"
-                },
-                "capabilities": {
-                    "streaming": true,
-                    "pushNotifications": false,
-                    "stateTransitionHistory": true
-                },
-                "skills": [
-                    {
-                        "id": "skill-1",
-                        "name": "Test Skill",
-                        "description": "Skill Description",
-                        "tags": ["test", "example"],
-                        "examples": ["example command"],
-                        "inputModes": ["text"],
-                        "outputModes": ["text", "json"]
-                    }
-                ],
-                "defaultInputModes": ["text"],
-                "defaultOutputModes": ["text"],
-                "securitySchemes": {
-                    "apiKey": {
-                        "type": "apiKey",
-                        "name": "X-API-Key",
-                        "in": "header"
-                    }
-                },
-                "security": [
-                    {
-                        "apiKey": []
-                    }
-                ]
-            }
-            """;
+        {
+            "name": "Test Agent",
+            "description": "A test A2A agent",
+            "version": "1.0.0",
+            "url": "https://example.com/.well-known/agent.json",
+            "documentationUrl": "https://example.com/docs",
+            "provider": {
+                "organization": "test-org",
+                "url": "https://provider.example.com"
+            },
+            "capabilities": {
+                "streaming": true,
+                "pushNotifications": false,
+                "stateTransitionHistory": true
+            },
+            "skills": [
+                {
+                    "id": "skill-1",
+                    "name": "Test Skill",
+                    "description": "Skill Description",
+                    "tags": ["test", "example"],
+                    "examples": ["example command"],
+                    "inputModes": ["text"],
+                    "outputModes": ["text", "json"]
+                }
+            ],
+            "defaultInputModes": ["text"],
+            "defaultOutputModes": ["text"],
+            "securitySchemes": {
+                "apiKey": {
+                    "type": "apiKey",
+                    "name": "X-API-Key",
+                    "in": "header"
+                }
+            },
+            "security": [
+                {
+                    "apiKey": []
+                }
+            ]
+        }
+        """;
 
         wireMockServer.stubFor(
             get(urlEqualTo("/.well-known/agent.json")).willReturn(
@@ -158,17 +158,17 @@ class A2aAgentFetcherImplTest {
     void should_successfully_fetch_minimal_agent_card() {
         // Given
         String minimalAgentCardJson = """
-            {
-                "name": "Minimal Agent",
-                "description": "A minimal A2A agent",
-                "version": "1.0.0",
-                "url": "https://minimal.example.com/.well-known/agent.json",
-                "capabilities": {},
-                "skills": [],
-                "defaultInputModes": [],
-                "defaultOutputModes": []
-            }
-            """;
+        {
+            "name": "Minimal Agent",
+            "description": "A minimal A2A agent",
+            "version": "1.0.0",
+            "url": "https://minimal.example.com/.well-known/agent.json",
+            "capabilities": {},
+            "skills": [],
+            "defaultInputModes": [],
+            "defaultOutputModes": []
+        }
+        """;
 
         wireMockServer.stubFor(
             get(urlEqualTo("/.well-known/agent.json")).willReturn(
@@ -199,17 +199,17 @@ class A2aAgentFetcherImplTest {
     void should_handle_https_url() {
         // Given
         String agentCardJson = """
-            {
-                "name": "HTTPS Agent",
-                "description": "An agent over HTTPS",
-                "version": "1.0.0",
-                "url": "https://secure.example.com/.well-known/agent.json",
-                "capabilities": {},
-                "skills": [],
-                "defaultInputModes": [],
-                "defaultOutputModes": []
-            }
-            """;
+        {
+            "name": "HTTPS Agent",
+            "description": "An agent over HTTPS",
+            "version": "1.0.0",
+            "url": "https://secure.example.com/.well-known/agent.json",
+            "capabilities": {},
+            "skills": [],
+            "defaultInputModes": [],
+            "defaultOutputModes": []
+        }
+        """;
 
         wireMockServer.stubFor(
             get(urlEqualTo("/.well-known/agent.json")).willReturn(

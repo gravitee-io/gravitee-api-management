@@ -60,9 +60,10 @@ public class GammaUIResource {
         if (enforceOrganizationId != null) {
             organizationId = enforceOrganizationId;
         } else {
-            organizationId = GraviteeContext.getCurrentOrganization() != null
-                ? GraviteeContext.getCurrentOrganization()
-                : GraviteeContext.getDefaultOrganization();
+            organizationId =
+                GraviteeContext.getCurrentOrganization() != null
+                    ? GraviteeContext.getCurrentOrganization()
+                    : GraviteeContext.getDefaultOrganization();
         }
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
 

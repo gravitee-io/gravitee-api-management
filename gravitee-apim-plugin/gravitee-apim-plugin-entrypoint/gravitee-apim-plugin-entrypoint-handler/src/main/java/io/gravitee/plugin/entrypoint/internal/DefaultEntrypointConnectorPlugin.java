@@ -27,8 +27,10 @@ import java.nio.file.Path;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-class DefaultEntrypointConnectorPlugin<T extends EntrypointConnectorFactory<?>, U extends EntrypointConnectorConfiguration>
-    implements EntrypointConnectorPlugin<T, U> {
+class DefaultEntrypointConnectorPlugin<
+    T extends EntrypointConnectorFactory<?>,
+    U extends EntrypointConnectorConfiguration
+> implements EntrypointConnectorPlugin<T, U> {
 
     private final Plugin plugin;
     private final Class<T> entrypointConnectorFactoryClass;

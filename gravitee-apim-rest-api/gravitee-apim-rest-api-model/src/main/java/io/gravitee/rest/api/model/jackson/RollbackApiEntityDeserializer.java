@@ -107,7 +107,7 @@ public class RollbackApiEntityDeserializer extends StdDeserializer<RollbackApiEn
     }
 
     private static String text(JsonNode n) {
-        return (n != null && n.isTextual()) ? n.asText() : null;
+        return n != null && n.isTextual() ? n.asText() : null;
     }
 
     private static boolean isV4(String v) {

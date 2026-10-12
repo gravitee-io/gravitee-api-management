@@ -493,8 +493,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result).isNotNull();
                 soft.assertThat(result.total()).isEqualTo(2);
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(AggregatedMessageLog::getRequestId, AggregatedMessageLog::getCorrelationId)
                     .containsExactly(tuple("d789ffdc-d092-4675-97a9-213cf569350d", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea49"));
             });
@@ -519,8 +518,7 @@ public class LogElasticsearchRepositoryTest extends AbstractElasticsearchReposit
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result).isNotNull();
                 soft.assertThat(result.total()).isEqualTo(2);
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(AggregatedMessageLog::getRequestId, AggregatedMessageLog::getCorrelationId)
                     .containsExactly(tuple("d789ffdc-d092-4675-97a9-213cf569350d", "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48"));
             });

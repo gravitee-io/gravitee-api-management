@@ -95,7 +95,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
             var importWithTags = replaceTagsNamesWithIds(organizationId, importWithEndpointGroupsSharedConfiguration);
             // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
             // resolved first. Skip the work when neither of them is going to keep it.
-            var specContent = (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
+            var specContent = withDocumentation || withOASValidationPolicy ? resolveSpecContent(payload, descriptor) : payload;
             var importWithDocumentation = addOAIDocumentation(withDocumentation, specContent, importWithTags);
             boolean deferResponseValidation = shouldDeferResponseValidation(importSwaggerDescriptor);
             return addOASValidationPolicy(withOASValidationPolicy, specContent, importWithDocumentation, deferResponseValidation);

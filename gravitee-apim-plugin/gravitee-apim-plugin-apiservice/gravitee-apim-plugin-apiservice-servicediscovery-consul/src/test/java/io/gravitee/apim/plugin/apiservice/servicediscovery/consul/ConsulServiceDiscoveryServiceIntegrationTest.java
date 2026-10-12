@@ -380,8 +380,7 @@ class ConsulServiceDiscoveryServiceIntegrationTest {
 
         private void startConsulServiceDiscovery(VertxTestContext testContext) throws InterruptedException {
             cut = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
-            cut
-                .start()
+            cut.start()
                 .andThen(
                     Completable.create(emitter -> {
                         testContext.awaitCompletion(5, TimeUnit.SECONDS);

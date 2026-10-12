@@ -72,14 +72,12 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+    })
     void should_receive_messages_single(Qos qos) throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/without-header";
@@ -102,14 +100,12 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+    })
     void should_receive_all_messages_with_additional_headers(Qos qos) throws JsonProcessingException {
         final int messageCount = 10;
         final String callbackPath = WEBHOOK_URL_PATH + "/with-header";
@@ -142,14 +138,12 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @ParameterizedTest
     @MethodSource("allQosParameters")
-    @DeployApi(
-        {
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
-            "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-auto.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-none.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-most-once.json",
+        "/apis/v4/messages/kafka/kafka-endpoint-qos-at-least-once.json",
+    })
     void should_receive_messages_parallel(Qos qos, boolean unused, @InjectApi Map<String, ReactableApi<?>> reactableApis)
         throws JsonProcessingException {
         final int messageCount = 40;
@@ -161,7 +155,8 @@ class WebhookEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
         // Reconfigure the api to add a special policy that forces the client identifier since it is not possible to set it when using webhook.
         final ReactableApi<?> api = reactableApis.get(apiId);
-        ((Api) api.getDefinition()).getFlows()
+        ((Api) api.getDefinition())
+            .getFlows()
             .get(0)
             .setRequest(List.of(Step.builder().name("Force client identifier").policy("force-client-identifier").enabled(true).build()));
 

@@ -187,9 +187,12 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     private static Filter translateFilter(FilterCondition condition) {
         var name = FilterSpec.Name.valueOf(condition.name());
         var operator = io.gravitee.apim.core.observability.model.FilterOperator.valueOf(condition.operator().name());
-        Object value = (condition.operator() == FilterOperator.IN || condition.operator() == FilterOperator.NOT_IN)
-            ? condition.values()
-            : (condition.values() != null && !condition.values().isEmpty() ? condition.values().getFirst() : null);
+        Object value =
+            condition.operator() == FilterOperator.IN || condition.operator() == FilterOperator.NOT_IN
+                ? condition.values()
+                : condition.values() != null && !condition.values().isEmpty()
+                  ? condition.values().getFirst()
+                  : null;
         return new Filter(name, operator, value);
     }
 
@@ -296,9 +299,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails user) {
             actor = AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build();
         } else {
-            String userId = (authentication != null && authentication.getPrincipal() != null)
-                ? authentication.getPrincipal().toString()
-                : "unknown";
+            String userId =
+                authentication != null && authentication.getPrincipal() != null ? authentication.getPrincipal().toString() : "unknown";
             actor = AuditActor.builder().userId(userId).build();
         }
         return AuditInfo.builder().organizationId(organizationId).environmentId(environmentId).actor(actor).build();

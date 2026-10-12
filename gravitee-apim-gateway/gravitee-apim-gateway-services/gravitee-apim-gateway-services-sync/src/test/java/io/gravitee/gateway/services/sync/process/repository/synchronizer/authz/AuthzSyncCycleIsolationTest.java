@@ -69,7 +69,9 @@ class AuthzSyncCycleIsolationTest {
         NoopDistributedSyncService distributedSyncService = new NoopDistributedSyncService();
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient()
+            .when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong()))
+            .thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         lenient().when(deployerFactory.createAuthzEntityDeployer()).thenReturn(new AuthzEntityDeployer(enginePort, distributedSyncService));
         lenient().when(deployerFactory.createAuthzPolicyDeployer()).thenReturn(new AuthzPolicyDeployer(enginePort, distributedSyncService));

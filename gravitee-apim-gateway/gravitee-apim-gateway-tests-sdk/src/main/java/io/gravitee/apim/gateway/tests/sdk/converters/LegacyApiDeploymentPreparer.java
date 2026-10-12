@@ -55,8 +55,7 @@ public class LegacyApiDeploymentPreparer implements ApiDeploymentPreparer<Api> {
 
             api.setPlans(Collections.singletonList(plan));
         } else {
-            api
-                .getPlans()
+            api.getPlans()
                 .stream()
                 .filter(plan -> plan.getStatus() == null || plan.getStatus().isEmpty())
                 .forEach(plan -> plan.setStatus("published"));

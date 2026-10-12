@@ -39,7 +39,8 @@ import lombok.CustomLog;
 @CustomLog
 public class DefaultApiServicePluginManager
     extends AbstractConfigurablePluginManager<ApiServicePlugin<?, ?>>
-    implements ApiServicePluginManager {
+    implements ApiServicePluginManager
+{
 
     private final ApiServiceClassLoaderFactory classLoaderFactory;
     private final Map<String, ApiServiceFactory<?>> factories = new HashMap<>();

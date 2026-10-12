@@ -187,11 +187,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     private Application mapApplication(ApplicationMongo applicationMongo) {
-        return (applicationMongo == null) ? null : mapper.map(applicationMongo);
+        return applicationMongo == null ? null : mapper.map(applicationMongo);
     }
 
     private ApplicationMongo mapApplication(Application application) {
-        return (application == null) ? null : mapper.map(application);
+        return application == null ? null : mapper.map(application);
     }
 
     @Override

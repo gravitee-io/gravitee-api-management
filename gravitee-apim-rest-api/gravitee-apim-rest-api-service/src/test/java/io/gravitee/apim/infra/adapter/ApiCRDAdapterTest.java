@@ -288,7 +288,13 @@ class ApiCRDAdapterTest {
                     .id("api-id")
                     .crossId("api-cross-id")
                     .hrid(withHrid ? "api-hrid" : null)
-                    .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/api-path"))).build()))
+                    .listeners(
+                        List.of(
+                            HttpListener.builder()
+                                .paths(List.of(new Path("/api-path")))
+                                .build()
+                        )
+                    )
                     .endpointGroups(
                         List.of(
                             EndpointGroup.builder()

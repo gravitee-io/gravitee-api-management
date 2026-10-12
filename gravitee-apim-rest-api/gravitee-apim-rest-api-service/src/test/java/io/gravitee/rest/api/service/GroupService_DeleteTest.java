@@ -285,7 +285,16 @@ public class GroupService_DeleteTest {
             )
         )
             .thenReturn(
-                new io.gravitee.common.data.domain.Page<>(List.of(Api.builder().groups(new HashSet<>(Set.of(GROUP_ID))).build()), 0, 1, 1)
+                new io.gravitee.common.data.domain.Page<>(
+                    List.of(
+                        Api.builder()
+                            .groups(new HashSet<>(Set.of(GROUP_ID)))
+                            .build()
+                    ),
+                    0,
+                    1,
+                    1
+                )
             )
             .thenReturn(new io.gravitee.common.data.domain.Page<>(List.of(), 0, 0, 0));
 

@@ -68,14 +68,15 @@ public class IntegrationPrimaryOwnerDomainService {
 
     public Maybe<PrimaryOwnerEntity> getIntegrationPrimaryOwner(final String organizationId, String integrationId) {
         return Maybe.fromOptional(findPrimaryOwnerRole(organizationId)).flatMap(role ->
-            findApiPrimaryOwnerMembership(integrationId, role).flatMap(membership ->
-                switch (membership.getMemberType()) {
-                    case USER -> findUserPrimaryOwner(membership);
-                    case GROUP -> {
-                        log.error("Can't have group primary owner for Integrations");
-                        yield Maybe.empty();
+            findApiPrimaryOwnerMembership(integrationId, role).flatMap(
+                membership ->
+                    switch (membership.getMemberType()) {
+                        case USER -> findUserPrimaryOwner(membership);
+                        case GROUP -> {
+                            log.error("Can't have group primary owner for Integrations");
+                            yield Maybe.empty();
+                        }
                     }
-                }
             )
         );
     }

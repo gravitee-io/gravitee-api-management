@@ -47,9 +47,8 @@ public final class PortalNavigationTreeWalker {
         PortalNavigationVisitor visitor
     ) {
         final var childrenByParent = childrenByParent(items);
-        final List<PortalNavigationItem> startingNodes = rootId == null
-            ? topLevelElements(items)
-            : childrenByParent.getOrDefault(rootId, List.of());
+        final List<PortalNavigationItem> startingNodes =
+            rootId == null ? topLevelElements(items) : childrenByParent.getOrDefault(rootId, List.of());
         startingNodes.forEach(node -> traverse(node, ROOT, childrenByParent, visitor));
     }
 

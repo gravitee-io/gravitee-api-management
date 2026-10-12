@@ -305,15 +305,13 @@ public class PlanMapperTest {
             soft.assertThat(target.getGeneralConditions()).isEqualTo(source.getGeneralConditions());
             soft.assertThat(target.getOrder()).isEqualTo(source.getOrder());
             soft.assertThat(target.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
-            soft
-                .assertThat(target.getFederatedPlanDefinition())
-                .isEqualTo(
-                    FederatedPlan.builder()
-                        .status(PlanStatus.PUBLISHED)
-                        .mode(PlanMode.STANDARD)
-                        .security(PlanSecurity.builder().configuration("{\"nice\": \"config\"}").build())
-                        .build()
-                );
+            soft.assertThat(target.getFederatedPlanDefinition()).isEqualTo(
+                FederatedPlan.builder()
+                    .status(PlanStatus.PUBLISHED)
+                    .mode(PlanMode.STANDARD)
+                    .security(PlanSecurity.builder().configuration("{\"nice\": \"config\"}").build())
+                    .build()
+            );
         });
     }
 

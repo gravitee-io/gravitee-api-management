@@ -62,7 +62,10 @@ public class DatabaseHydrator {
             "event-metrics",
             "decisions"
         );
-        createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
+        createTemplate(indexTypes)
+            .andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true)))
+            .ignoreElement()
+            .blockingAwait();
     }
 
     private Completable createTemplate(List<String> types) {

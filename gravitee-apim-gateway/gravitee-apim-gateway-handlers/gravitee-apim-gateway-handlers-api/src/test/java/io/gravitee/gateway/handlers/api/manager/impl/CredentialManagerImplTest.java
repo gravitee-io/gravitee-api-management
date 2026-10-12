@@ -221,7 +221,9 @@ class CredentialManagerImplTest {
 
     @Test
     void should_keep_the_encrypted_secret_out_of_toString() {
-        assertThat(credential("credential-1", "env-1", "secret-v1", 1L).toString()).contains("credential-1").doesNotContain("secret-v1");
+        assertThat(credential("credential-1", "env-1", "secret-v1", 1L).toString())
+            .contains("credential-1")
+            .doesNotContain("secret-v1");
     }
 
     private static DeployedCredential credential(String id, String environmentId, String encryptedSecret, long updatedAt) {

@@ -204,8 +204,7 @@ public class HelloCommandAdapterTest {
     @Test
     void adaptWithException() {
         when(installationService.getOrInitialize()).thenThrow(new TechnicalManagementException());
-        cut
-            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+        cut.adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
             .test()
             .assertError(TechnicalManagementException.class);
     }

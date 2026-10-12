@@ -27,7 +27,8 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class FakeEndpointConnectorPlugin
-    implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration> {
+    implements EndpointConnectorPlugin<FakeEndpointConnectorFactory, FakeEndpointConnectorConfiguration>
+{
 
     private static final String WITH_ENDPOINT_SHARED_CONFIGURATION_FILE = "with-endpoint-group-configuration";
     private static final String WITHOUT_ENDPOINT_SHARED_CONFIGURATION_FILE = "without-endpoint-group-configuration";
@@ -99,7 +100,12 @@ public class FakeEndpointConnectorPlugin
     @Override
     public Path path() {
         try {
-            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+            return Paths.get(
+                this.getClass()
+                    .getClassLoader()
+                    .getResource("files/" + resourceFolder)
+                    .toURI()
+            );
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

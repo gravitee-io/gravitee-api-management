@@ -110,20 +110,19 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
         final AtomicInteger counter = new AtomicInteger(0);
         final AtomicReference<Short> websocketStatus = new AtomicReference<>();
 
-        ws
-            .flatMapCompletable(webSocket ->
-                Completable.ambArray(
-                    publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-auto", MqttQos.AT_LEAST_ONCE),
-                    extractMessages(webSocket)
-                        .doOnNext(buffer -> {
-                            if (counter.incrementAndGet() > messageCountBeforeDrain) {
-                                connectionDrainManager.requestDrain();
-                            }
-                        })
-                        .ignoreElements()
-                        .doOnComplete(() -> websocketStatus.set(webSocket.closeStatusCode()))
-                )
+        ws.flatMapCompletable(webSocket ->
+            Completable.ambArray(
+                publishMessagesWhenReady(readyObs, TEST_TOPIC + "-qos-auto", MqttQos.AT_LEAST_ONCE),
+                extractMessages(webSocket)
+                    .doOnNext(buffer -> {
+                        if (counter.incrementAndGet() > messageCountBeforeDrain) {
+                            connectionDrainManager.requestDrain();
+                        }
+                    })
+                    .ignoreElements()
+                    .doOnComplete(() -> websocketStatus.set(webSocket.closeStatusCode()))
             )
+        )
             .test()
             // Expect the flow to finish because of the connection drain.
             .awaitDone(10, TimeUnit.SECONDS)
@@ -213,19 +212,18 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
             .assertComplete()
             .assertNoErrors();
 
-        testSubscriber
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(frame -> {
-                assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
-                return true;
-            });
+        testSubscriber.awaitDone(30, TimeUnit.SECONDS).assertValue(frame -> {
+            assertThat(Buffer.buffer(frame.getPayloadAsBytes())).hasToString("message");
+            return true;
+        });
     }
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should reject websocket upgrade with {0} qos")
-    @DeployApi(
-        { "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json", "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json" }
-    )
+    @DeployApi({
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-least-once.json",
+        "/apis/v4/messages/mqtt5/mqtt5-endpoint-qos-at-most-once.json",
+    })
     void should_reject_websocket_upgrade_with_unsupported_qos(Qos qos, WebSocketClient webSocketClient) {
         final TestObserver<WebSocket> obs = createWSRequest(
             "/test-qos-" + qos.getLabel(),
@@ -265,14 +263,12 @@ class WebsocketEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpo
     private Flowable<JsonObject> extractMessages(WebSocket webSocket) {
         final String transactionId = extractTransactionId(webSocket);
         // Map to a json structure to ease the assertions.
-        return webSocket
-            .toFlowable()
-            .map(buffer -> {
-                final String content = buffer.toString();
-                return JsonObject.of("transactionId", transactionId)
-                    .put("counter", Integer.parseInt(content.replaceFirst(".*message-", "")))
-                    .put("content", content);
-            });
+        return webSocket.toFlowable().map(buffer -> {
+            final String content = buffer.toString();
+            return JsonObject.of("transactionId", transactionId)
+                .put("counter", Integer.parseInt(content.replaceFirst(".*message-", "")))
+                .put("content", content);
+        });
     }
 
     private void verifyMessagesAreOrdered(int messageCount, TestSubscriber<JsonObject> obs) {

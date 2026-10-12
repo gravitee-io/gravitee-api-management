@@ -143,8 +143,7 @@ class FlowAdapterTest {
             soft.assertThat(result.getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
             soft.assertThat(result.getOrder()).isEqualTo(12);
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getSelectors())
+            soft.assertThat(result.getSelectors())
                 .hasSize(4)
                 .containsOnly(
                     FlowHttpSelector.builder().path("/").pathOperator(FlowOperator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
@@ -157,50 +156,42 @@ class FlowAdapterTest {
                     FlowConditionSelector.builder().condition("my-condition").build(),
                     FlowMcpSelector.builder().methods(Set.of("mcp")).build()
                 );
-            soft
-                .assertThat(result.getRequest())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getResponse())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-3")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-4")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getRequest()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-1")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getResponse()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-2")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPublish()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-3")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getSubscribe()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-4")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 
@@ -315,28 +306,24 @@ class FlowAdapterTest {
             soft.assertThat(updatedResult.getTags()).containsExactly("updated-tag1");
             soft.assertThat(updatedResult.getSelectors()).isNull();
             soft.assertThat(updatedResult.getRequest()).isEmpty();
-            soft
-                .assertThat(updatedResult.getResponse())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-updated-step-name-2")
-                        .policy("a-updated-policy")
-                        .description("my-updated-step-description")
-                        .condition("my-updated-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(updatedResult.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-updated-step-name-3")
-                        .policy("a-updated-policy")
-                        .description("my-updated-step-description")
-                        .condition("my-updated-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(updatedResult.getResponse()).containsOnly(
+                FlowStep.builder()
+                    .name("my-updated-step-name-2")
+                    .policy("a-updated-policy")
+                    .description("my-updated-step-description")
+                    .condition("my-updated-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(updatedResult.getPublish()).containsOnly(
+                FlowStep.builder()
+                    .name("my-updated-step-name-3")
+                    .policy("a-updated-policy")
+                    .description("my-updated-step-description")
+                    .condition("my-updated-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
             soft.assertThat(updatedResult.getSubscribe()).isEmpty();
         });
     }
@@ -362,28 +349,24 @@ class FlowAdapterTest {
             soft.assertThat(result.getCondition()).isEqualTo("my-condition");
             soft.assertThat(result.getMethods()).containsExactly(HttpMethod.GET);
             soft.assertThat(result.getConsumers()).containsExactly(new FlowConsumer(FlowConsumerType.TAG, "consumer-id"));
-            soft
-                .assertThat(result.getPre())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPost())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getPre()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-1")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPost()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-2")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 
@@ -458,8 +441,7 @@ class FlowAdapterTest {
             soft.assertThat(result.getName()).isEqualTo("my-flow");
             soft.assertThat(result.isEnabled()).isTrue();
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getSelectors())
+            soft.assertThat(result.getSelectors())
                 .hasSize(4)
                 .containsOnly(
                     HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
@@ -472,50 +454,42 @@ class FlowAdapterTest {
                     ConditionSelector.builder().condition("my-condition").build(),
                     McpSelector.builder().methods(Set.of("mcp")).build()
                 );
-            soft
-                .assertThat(result.getRequest())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getResponse())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-3")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-4")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getRequest()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-1")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getResponse()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-2")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPublish()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-3")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getSubscribe()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-4")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 
@@ -602,28 +576,24 @@ class FlowAdapterTest {
             soft.assertThat(result.getCondition()).isEqualTo("my-condition");
             soft.assertThat(result.getMethods()).containsExactly(HttpMethod.GET);
             soft.assertThat(result.getConsumers()).containsExactly(new Consumer(ConsumerType.TAG, "consumer-id"));
-            soft
-                .assertThat(result.getPre())
-                .containsOnly(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-1")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPost())
-                .containsOnly(
-                    io.gravitee.definition.model.flow.Step.builder()
-                        .name("my-step-name-2")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getPre()).containsOnly(
+                io.gravitee.definition.model.flow.Step.builder()
+                    .name("my-step-name-1")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPost()).containsOnly(
+                io.gravitee.definition.model.flow.Step.builder()
+                    .name("my-step-name-2")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 
@@ -691,50 +661,42 @@ class FlowAdapterTest {
             soft.assertThat(result.getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
             soft.assertThat(result.getOrder()).isEqualTo(12);
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getEntrypointConnect())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-entrypoint-connect")
-                        .policy("ip-filtering")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getInteract())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-interact")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-publish")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    FlowStep.builder()
-                        .name("my-step-name-subscribe")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getEntrypointConnect()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-entrypoint-connect")
+                    .policy("ip-filtering")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
+                    .build()
+            );
+            soft.assertThat(result.getInteract()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-interact")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPublish()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-publish")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getSubscribe()).containsOnly(
+                FlowStep.builder()
+                    .name("my-step-name-subscribe")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 
@@ -796,50 +758,42 @@ class FlowAdapterTest {
             soft.assertThat(result.getName()).isEqualTo("my-native-flow");
             soft.assertThat(result.isEnabled()).isTrue();
             soft.assertThat(result.getTags()).containsExactly("tag1");
-            soft
-                .assertThat(result.getEntrypointConnect())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-entrypoint-connect")
-                        .policy("ip-filtering")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getInteract())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-interact")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getPublish())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-publish")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
-            soft
-                .assertThat(result.getSubscribe())
-                .containsOnly(
-                    Step.builder()
-                        .name("my-step-name-subscribe")
-                        .policy("a-policy")
-                        .description("my-step-description")
-                        .condition("my-step-condition")
-                        .configuration("{}")
-                        .build()
-                );
+            soft.assertThat(result.getEntrypointConnect()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-entrypoint-connect")
+                    .policy("ip-filtering")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{\"blacklistIps\":[\"127.0.0.1\"]}")
+                    .build()
+            );
+            soft.assertThat(result.getInteract()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-interact")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getPublish()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-publish")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
+            soft.assertThat(result.getSubscribe()).containsOnly(
+                Step.builder()
+                    .name("my-step-name-subscribe")
+                    .policy("a-policy")
+                    .description("my-step-description")
+                    .condition("my-step-condition")
+                    .configuration("{}")
+                    .build()
+            );
         });
     }
 }

@@ -44,21 +44,16 @@ public class RoleService_HasPermissionTest {
     @Test
     public void shouldHasPermission() {
         final Map<String, char[]> perms = new HashMap<>();
-        perms.put(
-            ApiPermission.DOCUMENTATION.name(),
-            new char[] {
-                RolePermissionAction.CREATE.getId(),
-                RolePermissionAction.READ.getId(),
-                RolePermissionAction.UPDATE.getId(),
-                RolePermissionAction.DELETE.getId(),
-            }
-        );
+        perms.put(ApiPermission.DOCUMENTATION.name(), new char[] {
+            RolePermissionAction.CREATE.getId(),
+            RolePermissionAction.READ.getId(),
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.DELETE.getId(),
+        });
 
-        boolean hasPermission = roleService.hasPermission(
-            perms,
-            ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[] { RolePermissionAction.UPDATE }
-        );
+        boolean hasPermission = roleService.hasPermission(perms, ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+            RolePermissionAction.UPDATE,
+        });
 
         assertTrue(hasPermission);
     }
@@ -66,16 +61,15 @@ public class RoleService_HasPermissionTest {
     @Test
     public void shouldNotHasPermission() {
         final Map<String, char[]> perms = new HashMap<>();
-        perms.put(
-            ApiPermission.DOCUMENTATION.name(),
-            new char[] { RolePermissionAction.CREATE.getId(), RolePermissionAction.READ.getId(), RolePermissionAction.DELETE.getId() }
-        );
+        perms.put(ApiPermission.DOCUMENTATION.name(), new char[] {
+            RolePermissionAction.CREATE.getId(),
+            RolePermissionAction.READ.getId(),
+            RolePermissionAction.DELETE.getId(),
+        });
 
-        boolean hasPermission = roleService.hasPermission(
-            perms,
-            ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[] { RolePermissionAction.UPDATE }
-        );
+        boolean hasPermission = roleService.hasPermission(perms, ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+            RolePermissionAction.UPDATE,
+        });
 
         assertFalse(hasPermission);
     }
@@ -83,21 +77,16 @@ public class RoleService_HasPermissionTest {
     @Test
     public void shouldNotHasPermission2() {
         final Map<String, char[]> perms = new HashMap<>();
-        perms.put(
-            ApiPermission.PLAN.name(),
-            new char[] {
-                RolePermissionAction.CREATE.getId(),
-                RolePermissionAction.READ.getId(),
-                RolePermissionAction.UPDATE.getId(),
-                RolePermissionAction.DELETE.getId(),
-            }
-        );
+        perms.put(ApiPermission.PLAN.name(), new char[] {
+            RolePermissionAction.CREATE.getId(),
+            RolePermissionAction.READ.getId(),
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.DELETE.getId(),
+        });
 
-        boolean hasPermission = roleService.hasPermission(
-            perms,
-            ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[] { RolePermissionAction.UPDATE }
-        );
+        boolean hasPermission = roleService.hasPermission(perms, ApiPermission.DOCUMENTATION, new RolePermissionAction[] {
+            RolePermissionAction.UPDATE,
+        });
 
         assertFalse(hasPermission);
     }

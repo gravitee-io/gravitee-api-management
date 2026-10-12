@@ -77,15 +77,13 @@ public class NullByteRequestProcessor implements Processor {
                 return Completable.complete();
             }
 
-            ctx
-                .withLogger(log)
-                .warn(
-                    "Rejected request: null byte detected in {} '{}' (api={}, txn={})",
-                    detection.source,
-                    detection.name,
-                    ctx.getAttribute(ContextAttributes.ATTR_API),
-                    ctx.request().transactionId()
-                );
+            ctx.withLogger(log).warn(
+                "Rejected request: null byte detected in {} '{}' (api={}, txn={})",
+                detection.source,
+                detection.name,
+                ctx.getAttribute(ContextAttributes.ATTR_API),
+                ctx.request().transactionId()
+            );
 
             return ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400).key(NULL_BYTE_REJECTED_KEY).message(NULL_BYTE_REJECTED_MESSAGE)

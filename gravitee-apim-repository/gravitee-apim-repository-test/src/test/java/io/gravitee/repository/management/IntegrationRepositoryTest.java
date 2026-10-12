@@ -112,7 +112,9 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             )
             .getContent();
 
-        assertThat(integrations).hasSize(2).are(anyOf(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"), associateToGroup("group-2")));
+        assertThat(integrations)
+            .hasSize(2)
+            .are(anyOf(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"), associateToGroup("group-2")));
     }
 
     @Test

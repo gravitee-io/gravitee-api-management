@@ -302,12 +302,10 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_GATEWAY_DEFINITION, acls = RolePermissionAction.UPDATE),
+    })
     public Response updateApi(
         @Context HttpHeaders headers,
         @Parameter(name = "api", required = true) @Valid @NotNull final UpdateApiEntity apiToUpdate
@@ -390,7 +388,9 @@ public class ApiResource extends AbstractResource {
                 .build();
         } catch (Exception e) {
             log.error("Error deploying API [{}]", api, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity("JsonProcessingException " + e)
+                .build();
         }
     }
 
@@ -764,12 +764,10 @@ public class ApiResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "204", description = "Updated API")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.API_REVIEWS, acls = RolePermissionAction.UPDATE),
+    })
     public Response doApiReviewAction(
         @Context HttpHeaders headers,
         @Parameter(required = true) @NotNull @Valid @QueryParam("action") ReviewAction action,
@@ -849,12 +847,10 @@ public class ApiResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
-            @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ),
+        @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE),
+    })
     public Response duplicateAPI(@Parameter(name = "api", required = true) @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity(); // call this method to check READ permission on source API.
         return Response.ok(apiDuplicatorService.duplicate(GraviteeContext.getExecutionContext(), apiEntity, duplicateApiEntity)).build();

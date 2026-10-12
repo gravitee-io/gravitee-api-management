@@ -68,7 +68,9 @@ class ImportSubscriptionCRDUseCaseTest {
 
     @Test
     void should_import_with_sanitized_input() {
-        var sanitizedSpec = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key("another-custom-key").build())).build();
+        var sanitizedSpec = SPEC.toBuilder()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key("another-custom-key").build()))
+            .build();
         when(validateSubscriptionCRDDomainService.validateAndSanitize(any(ValidateSubscriptionCRDDomainService.Input.class))).thenReturn(
             Validator.Result.ofValue(new ValidateSubscriptionCRDDomainService.Input(AUDIT_INFO, sanitizedSpec))
         );

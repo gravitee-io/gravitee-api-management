@@ -97,7 +97,10 @@ class ApiTemplateVariableProviderTest {
 
         @Test
         void should_provide_properties_in_EL_for_compatibility() {
-            var apiDefinition = anApiV4().toBuilder().properties(List.of(Property.builder().key("prop1").value("value1").build())).build();
+            var apiDefinition = anApiV4()
+                .toBuilder()
+                .properties(List.of(Property.builder().key("prop1").value("value1").build()))
+                .build();
 
             TemplateEngine engine = buildTemplateEngine(apiDefinition);
             var s1 = engine.eval("{#api.properties[prop1]}", String.class).toSingle();

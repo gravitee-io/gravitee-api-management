@@ -319,7 +319,9 @@ public class EventsLatestUpgraderTest {
             Event event = new Event();
             when(
                 eventRepository.search(
-                    EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api" + i).build(),
+                    EventCriteria.builder()
+                        .property(Event.EventProperties.API_ID.getValue(), "api" + i)
+                        .build(),
                     new PageableBuilder().pageNumber(0).pageSize(1).build()
                 )
             ).thenReturn(new Page<>(List.of(event), 0, 1, 1));

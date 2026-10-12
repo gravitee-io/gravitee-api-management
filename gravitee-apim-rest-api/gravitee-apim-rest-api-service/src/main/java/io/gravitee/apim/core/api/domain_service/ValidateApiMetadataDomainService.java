@@ -44,15 +44,16 @@ public class ValidateApiMetadataDomainService {
     private final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     public void validateUniqueKey(String apiId, String key) {
-        this.metadataCrudService.findById(
-            MetadataId.builder().key(key).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build()
-        ).ifPresent(m -> {
-            throw new DuplicateApiMetadataKeyException(apiId, key);
-        });
+        this.metadataCrudService
+            .findById(MetadataId.builder().key(key).referenceId(apiId).referenceType(Metadata.ReferenceType.API).build())
+            .ifPresent(m -> {
+                throw new DuplicateApiMetadataKeyException(apiId, key);
+            });
     }
 
     public void validateUniqueName(String environmentId, String apiId, String name) {
-        this.metadataQueryService.findApiMetadata(environmentId, apiId)
+        this.metadataQueryService
+            .findApiMetadata(environmentId, apiId)
             .values()
             .forEach(val -> {
                 if (val.getName().equalsIgnoreCase(name)) {

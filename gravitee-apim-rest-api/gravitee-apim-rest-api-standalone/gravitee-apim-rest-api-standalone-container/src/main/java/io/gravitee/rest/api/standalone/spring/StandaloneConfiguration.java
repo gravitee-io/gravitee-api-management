@@ -39,16 +39,14 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        RestManagementConfiguration.class,
-        io.gravitee.rest.api.management.v2.rest.spring.RestManagementConfiguration.class,
-        IntegrationControllerConfiguration.class,
-        RestPortalConfiguration.class,
-        GammaObservabilityConfiguration.class,
-        GammaAutomationConfiguration.class,
-    }
-)
+@Import({
+    RestManagementConfiguration.class,
+    io.gravitee.rest.api.management.v2.rest.spring.RestManagementConfiguration.class,
+    IntegrationControllerConfiguration.class,
+    RestPortalConfiguration.class,
+    GammaObservabilityConfiguration.class,
+    GammaAutomationConfiguration.class,
+})
 public class StandaloneConfiguration {
 
     @Bean

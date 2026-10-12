@@ -118,7 +118,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
-        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
+        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(of(apiKey));
 
         when(apiKey.getPlan()).thenReturn("planId2");
 
@@ -140,7 +140,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(authenticationHandler.canHandle(any())).thenReturn(true);
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
-        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
+        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(of(apiKey));
 
         boolean canHandle = apiKeyPlanBasedAuthenticationHandler.canHandle(authenticationContext);
 
@@ -165,7 +165,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(authenticationContext.request()).thenReturn(mock(Request.class));
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
-        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
+        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(of(apiKey));
 
         when(
             subscriptionService.getByApiAndSecurityToken(
@@ -193,7 +193,7 @@ public class ApiKeyPlanBasedAuthenticationHandlerTest {
         when(authenticationContext.request()).thenReturn(mock(Request.class));
 
         when(authenticationContext.contains(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(true);
-        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn((of(apiKey)));
+        when(authenticationContext.get(APIKEY_CONTEXT_ATTRIBUTE)).thenReturn(of(apiKey));
 
         when(
             subscriptionService.getByApiAndSecurityToken(

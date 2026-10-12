@@ -241,7 +241,7 @@ class PolicyAdapterTest {
         verify(stream).end();
 
         // Verify the new response body.
-        verify(response).body(argThat(b -> b.toString().equals((policyChunk1.toString() + policyChunk2.toString()))));
+        verify(response).body(argThat(b -> b.toString().equals(policyChunk1.toString() + policyChunk2.toString())));
     }
 
     @Test

@@ -40,7 +40,8 @@ public class GetResourcePluginsUseCase {
 
     public Output getResourcesByOrganization(Input input) {
         return new Output(
-            this.licenseChecker.setPluginDeployedStatusDependingOnLicense(resourcePluginQueryService.findAll(), input.organizationId)
+            this.licenseChecker
+                .setPluginDeployedStatusDependingOnLicense(resourcePluginQueryService.findAll(), input.organizationId)
                 .stream()
                 .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(ResourcePlugin::getName))))
         );

@@ -173,7 +173,13 @@ public class MediaServiceImpl extends AbstractService implements MediaService {
     public MediaEntity findByHashAndApi(String hash, String api, boolean ignoreType) {
         try {
             return mediaRepository
-                .findByHash(hash, MediaCriteria.builder().api(api).mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE).build())
+                .findByHash(
+                    hash,
+                    MediaCriteria.builder()
+                        .api(api)
+                        .mediaType(ignoreType ? null : MEDIA_TYPE_IMAGE)
+                        .build()
+                )
                 .map(MediaServiceImpl::convert)
                 .orElse(null);
         } catch (TechnicalException e) {

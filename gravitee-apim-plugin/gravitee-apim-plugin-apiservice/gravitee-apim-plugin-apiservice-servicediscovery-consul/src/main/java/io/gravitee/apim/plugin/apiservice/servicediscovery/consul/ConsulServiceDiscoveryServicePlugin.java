@@ -27,7 +27,8 @@ import java.nio.file.Path;
  * @author GraviteeSource Team
  */
 public class ConsulServiceDiscoveryServicePlugin
-    implements ApiServicePlugin<ConsulServiceDiscoveryServiceFactory, ConsulServiceDiscoveryServiceConfiguration> {
+    implements ApiServicePlugin<ConsulServiceDiscoveryServiceFactory, ConsulServiceDiscoveryServiceConfiguration>
+{
 
     @Override
     public String id() {

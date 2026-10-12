@@ -190,7 +190,7 @@ class EventMetricsQueryAdapterTest {
         for (JsonNode f : filters) {
             if (f.has(RANGE) && f.get(RANGE).has(TIMESTAMP)) {
                 JsonNode ts = f.get(RANGE).get(TIMESTAMP);
-                return (ts.hasNonNull(GTE)) && (ts.hasNonNull(LTE));
+                return ts.hasNonNull(GTE) && ts.hasNonNull(LTE);
             }
         }
         return false;

@@ -294,7 +294,9 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .timeRange(DashboardFixtures.defaultTimeRange())
                 .by(List.of())
                 .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT))));
-            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+            var response = rootTarget()
+                .request()
+                .post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -308,7 +310,9 @@ class DashboardsResourceTest extends AbstractResourceTest {
             var request = DashboardFixtures.validMeasuresRequest();
             request.getTimeRange().setFrom(OffsetDateTime.parse("2025-12-07T11:35:30Z"));
             request.getTimeRange().setTo(OffsetDateTime.parse("2025-10-07T06:50:30Z"));
-            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+            var response = rootTarget()
+                .request()
+                .post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -324,7 +328,9 @@ class DashboardsResourceTest extends AbstractResourceTest {
                 .timeRange(DashboardFixtures.defaultTimeRange())
                 .interval(new CustomInterval(-1L))
                 .metrics(List.of(new MetricRequest().name(MetricName.HTTP_REQUESTS).measures(List.of(MeasureName.COUNT))));
-            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+            var response = rootTarget()
+                .request()
+                .post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -337,7 +343,9 @@ class DashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_when_metric_has_no_measures() {
             var request = DashboardFixtures.validMeasuresRequest();
             request.getMetrics().getFirst().setMeasures(null);
-            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+            var response = rootTarget()
+                .request()
+                .post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -350,7 +358,9 @@ class DashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_when_metric_has_empty_measures() {
             var request = DashboardFixtures.validMeasuresRequest();
             request.getMetrics().getFirst().setMeasures(List.of());
-            var response = rootTarget().request().post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
+            var response = rootTarget()
+                .request()
+                .post(json(DashboardFixtures.createDashboardWithOneWidget(request)));
 
             MAPIAssertions.assertThat(response)
                 .hasStatus(BAD_REQUEST_400)

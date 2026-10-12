@@ -43,69 +43,61 @@ public class CorsSerializer extends StdScalarSerializer<Cors> {
 
         jgen.writeArrayFieldStart("allowOrigin");
         if (cors.getAccessControlAllowOrigin() != null && !cors.getAccessControlAllowOrigin().isEmpty()) {
-            cors
-                .getAccessControlAllowOrigin()
-                .forEach(origin -> {
-                    try {
-                        // check pattern regex before to save
-                        if (!"*".equals(origin) && (origin.contains("(") || origin.contains("[") || origin.contains("*"))) {
-                            try {
-                                Pattern.compile(origin);
-                            } catch (PatternSyntaxException pse) {
-                                throw provider.mappingException("Allow origin regex invalid: " + pse.getMessage());
-                            }
-                        }
-                        jgen.writeString(origin);
-                    } catch (IOException e) {
-                        if (e instanceof JsonMappingException) {
-                            throw new IllegalStateException(e.getMessage());
-                        } else {
-                            e.printStackTrace();
+            cors.getAccessControlAllowOrigin().forEach(origin -> {
+                try {
+                    // check pattern regex before to save
+                    if (!"*".equals(origin) && (origin.contains("(") || origin.contains("[") || origin.contains("*"))) {
+                        try {
+                            Pattern.compile(origin);
+                        } catch (PatternSyntaxException pse) {
+                            throw provider.mappingException("Allow origin regex invalid: " + pse.getMessage());
                         }
                     }
-                });
+                    jgen.writeString(origin);
+                } catch (IOException e) {
+                    if (e instanceof JsonMappingException) {
+                        throw new IllegalStateException(e.getMessage());
+                    } else {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
         jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("allowHeaders");
         if (cors.getAccessControlAllowHeaders() != null && !cors.getAccessControlAllowHeaders().isEmpty()) {
-            cors
-                .getAccessControlAllowHeaders()
-                .forEach(header -> {
-                    try {
-                        jgen.writeString(header);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            cors.getAccessControlAllowHeaders().forEach(header -> {
+                try {
+                    jgen.writeString(header);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("allowMethods");
         if (cors.getAccessControlAllowMethods() != null && !cors.getAccessControlAllowMethods().isEmpty()) {
-            cors
-                .getAccessControlAllowMethods()
-                .forEach(method -> {
-                    try {
-                        jgen.writeString(method);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            cors.getAccessControlAllowMethods().forEach(method -> {
+                try {
+                    jgen.writeString(method);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("exposeHeaders");
         if (cors.getAccessControlExposeHeaders() != null && !cors.getAccessControlExposeHeaders().isEmpty()) {
-            cors
-                .getAccessControlExposeHeaders()
-                .forEach(header -> {
-                    try {
-                        jgen.writeString(header);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            cors.getAccessControlExposeHeaders().forEach(header -> {
+                try {
+                    jgen.writeString(header);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
         jgen.writeEndArray();
 

@@ -198,7 +198,10 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
 
         // Return requested roles from cache
-        return roleIds.stream().filter(cache::containsKey).collect(Collectors.toMap(id -> id, cache::get));
+        return roleIds
+            .stream()
+            .filter(cache::containsKey)
+            .collect(Collectors.toMap(id -> id, cache::get));
     }
 
     @Override

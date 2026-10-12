@@ -92,7 +92,9 @@ public class AuditMongoRepositoryImplTest {
         AuditMongo a = auditWithId("a");
         AuditMongo b = auditWithId("b");
 
-        when(mongoTemplate.find(any(Query.class), eq(AuditMongo.class))).thenReturn(List.of(a, b)).thenReturn(Collections.emptyList());
+        when(mongoTemplate.find(any(Query.class), eq(AuditMongo.class)))
+            .thenReturn(List.of(a, b))
+            .thenReturn(Collections.emptyList());
         when(mongoTemplate.remove(any(Query.class), eq(AuditMongo.class))).thenReturn(DeleteResult.acknowledged(2));
 
         repository.deleteByEnvironmentIdAndAge("env-1", Instant.parse("2026-01-01T00:00:00Z"));

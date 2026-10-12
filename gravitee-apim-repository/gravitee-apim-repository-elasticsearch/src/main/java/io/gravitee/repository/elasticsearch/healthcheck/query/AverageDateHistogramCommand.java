@@ -85,7 +85,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
             //"from" and "to" are rounded according to the internal. It allows to exec the same request during the "interval" and make use of ES cache
             final long interval = dateHistogramQuery.timeRange().interval().toMillis();
             final long roundedFrom = (from / interval) * interval;
-            final long roundedTo = ((to / interval) * interval) + interval;
+            final long roundedTo = (to / interval) * interval + interval;
 
             final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
             final Single<SearchResponse> result = this.client.search(
@@ -123,16 +123,14 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
         }
 
         if (!query.aggregations().isEmpty()) {
-            query
-                .aggregations()
-                .forEach(aggregation -> {
-                    String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
-                    if (aggregation.type() == AggregationType.FIELD) {
-                        key = "by_" + aggregation.field();
-                    }
+            query.aggregations().forEach(aggregation -> {
+                String key = aggregation.type().name().toLowerCase() + '_' + aggregation.field();
+                if (aggregation.type() == AggregationType.FIELD) {
+                    key = "by_" + aggregation.field();
+                }
 
-                    dateHistogramResponse.values().add(fieldBuckets.get(key));
-                });
+                dateHistogramResponse.values().add(fieldBuckets.get(key));
+            });
         }
         return dateHistogramResponse;
     }
@@ -175,7 +173,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
                         failureCount = termBucket.get("doc_count").asLong();
                     }
                     double total = successCount + failureCount;
-                    double percent = (total == 0) ? 100 : (successCount / total) * 100;
+                    double percent = total == 0 ? 100 : (successCount / total) * 100;
 
                     data = bucketData.computeIfAbsent(fieldNameInDateBucket, k -> new ArrayList<>());
                     data.add(new Data(keyAsDate, percent));

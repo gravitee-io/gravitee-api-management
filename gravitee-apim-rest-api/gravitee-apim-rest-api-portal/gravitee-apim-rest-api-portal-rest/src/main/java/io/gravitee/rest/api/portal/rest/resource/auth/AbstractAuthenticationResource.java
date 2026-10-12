@@ -88,7 +88,7 @@ abstract class AbstractAuthenticationResource {
     public static final String STATE = "state";
 
     protected Map<String, Object> getResponseEntity(final Response response) throws IOException {
-        return getEntity((getResponseEntityAsString(response)));
+        return getEntity(getResponseEntityAsString(response));
     }
 
     protected String getResponseEntityAsString(final Response response) {
@@ -142,7 +142,11 @@ abstract class AbstractAuthenticationResource {
         );
         if (!userRoles.isEmpty()) {
             userRoles.forEach(role ->
-                authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build())
+                authorities.add(
+                    Maps.<String, String>builder()
+                        .put("authority", role.getScope().toString() + ':' + role.getName())
+                        .build()
+                )
             );
         }
 

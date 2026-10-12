@@ -56,17 +56,15 @@ class EnumValueValidatorTest {
     String nullValue = null;
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "validValue,true",
-            "invalidValue,false",
-            "invalidValueWrongCase,false",
-            "validValueCI,true",
-            "invalidValueCI,false",
-            "emptyValue,true",
-            "emptyValue,true",
-        }
-    )
+    @CsvSource({
+        "validValue,true",
+        "invalidValue,false",
+        "invalidValueWrongCase,false",
+        "validValueCI,true",
+        "invalidValueCI,false",
+        "emptyValue,true",
+        "emptyValue,true",
+    })
     void should_perform_validation(String fieldName, boolean isValid) throws NoSuchFieldException, IllegalAccessException {
         Field field = EnumValueValidatorTest.class.getDeclaredField(fieldName);
         EnumValue annotation = field.getAnnotation(EnumValue.class);

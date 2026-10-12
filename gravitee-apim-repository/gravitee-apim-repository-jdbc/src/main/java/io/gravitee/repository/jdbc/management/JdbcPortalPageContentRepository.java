@@ -32,7 +32,8 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 public class JdbcPortalPageContentRepository
     extends JdbcAbstractCrudRepository<PortalPageContent, String>
-    implements PortalPageContentRepository {
+    implements PortalPageContentRepository
+{
 
     private static final ObjectMapper JSON = new ObjectMapper();
 

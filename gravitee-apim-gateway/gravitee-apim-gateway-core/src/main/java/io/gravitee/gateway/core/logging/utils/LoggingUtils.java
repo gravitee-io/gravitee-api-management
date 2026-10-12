@@ -117,7 +117,7 @@ public final class LoggingUtils {
     }
 
     private static LoggingContext getLoggingContext(final ExecutionContext executionContext) {
-        return ((LoggingContext) executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE));
+        return (LoggingContext) executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE);
     }
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {

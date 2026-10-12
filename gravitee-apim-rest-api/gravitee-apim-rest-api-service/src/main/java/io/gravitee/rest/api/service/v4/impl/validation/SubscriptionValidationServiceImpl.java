@@ -112,10 +112,10 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
             .map(constraints ->
                 GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())
                     ? subscriptionFormElResolver.resolveConstraints(
-                        constraints,
-                        genericPlanEntity.getEnvironmentId(),
-                        genericPlanEntity.getReferenceId()
-                    )
+                          constraints,
+                          genericPlanEntity.getEnvironmentId(),
+                          genericPlanEntity.getReferenceId()
+                      )
                     : subscriptionFormElResolver.resolveConstraints(constraints)
             )
             .map(SubscriptionFormSubmissionValidator::new)
@@ -126,9 +126,9 @@ public class SubscriptionValidationServiceImpl extends TransactionalService impl
         // Only an API has a dedicated form: an API Product subscription skips the form, as it does in the portal.
         return GenericPlanEntity.ReferenceType.API.equals(genericPlanEntity.getReferenceType())
             ? subscriptionFormResolutionDomainService.resolveForApi(
-                genericPlanEntity.getEnvironmentId(),
-                genericPlanEntity.getReferenceId()
-            )
+                  genericPlanEntity.getEnvironmentId(),
+                  genericPlanEntity.getReferenceId()
+              )
             : Optional.empty();
     }
 

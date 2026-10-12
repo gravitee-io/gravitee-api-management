@@ -24,7 +24,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SharedPolicyGroupMongoRepository
-    extends MongoRepository<SharedPolicyGroupMongo, String>, SharedPolicyGroupMongoRepositoryCustom {
+    extends MongoRepository<SharedPolicyGroupMongo, String>, SharedPolicyGroupMongoRepositoryCustom
+{
     @Query(value = "{ 'environmentId': ?0, 'crossId': ?1 }")
     Optional<SharedPolicyGroupMongo> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 

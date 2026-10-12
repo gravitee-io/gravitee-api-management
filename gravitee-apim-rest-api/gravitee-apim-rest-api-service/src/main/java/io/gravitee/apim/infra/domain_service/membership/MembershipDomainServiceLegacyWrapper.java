@@ -62,9 +62,10 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
                 GraviteeContext.getExecutionContext().getOrganizationId()
             )
             .ifPresent(newRoles::add);
-        MembershipMemberType memberType = transferOwnership.getMemberType() != null
-            ? MembershipMemberType.valueOf(transferOwnership.getMemberType().name())
-            : MembershipMemberType.USER;
+        MembershipMemberType memberType =
+            transferOwnership.getMemberType() != null
+                ? MembershipMemberType.valueOf(transferOwnership.getMemberType().name())
+                : MembershipMemberType.USER;
         MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
             transferOwnership.getNewPrimaryOwnerId(),
             transferOwnership.getUserReference(),

@@ -290,7 +290,10 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
         );
 
-        final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
+        final Response response = target(SUBSCRIPTION)
+            .path("keys/" + KEY + "/_revoke")
+            .request()
+            .post(null);
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
@@ -315,9 +318,13 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
                 eq(APPLICATION),
                 eq(RolePermissionAction.UPDATE)
             );
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.FORBIDDEN_403
-        );
+        assertThat(
+            target(SUBSCRIPTION)
+                .path("keys/" + KEY + "/_revoke")
+                .request()
+                .post(null)
+                .getStatus()
+        ).isEqualTo(HttpStatusCode.FORBIDDEN_403);
     }
 
     @Test
@@ -360,9 +367,13 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
         );
 
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.NO_CONTENT_204
-        );
+        assertThat(
+            target(SUBSCRIPTION)
+                .path("keys/" + KEY + "/_revoke")
+                .request()
+                .post(null)
+                .getStatus()
+        ).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 
     @Test
@@ -405,8 +416,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
         );
 
-        assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus()).isEqualTo(
-            HttpStatusCode.NO_CONTENT_204
-        );
+        assertThat(
+            target(SUBSCRIPTION)
+                .path("keys/" + KEY + "/_revoke")
+                .request()
+                .post(null)
+                .getStatus()
+        ).isEqualTo(HttpStatusCode.NO_CONTENT_204);
     }
 }

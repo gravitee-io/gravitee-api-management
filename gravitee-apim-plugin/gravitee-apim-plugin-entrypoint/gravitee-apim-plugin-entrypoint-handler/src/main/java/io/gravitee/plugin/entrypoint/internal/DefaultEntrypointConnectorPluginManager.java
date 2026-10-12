@@ -37,7 +37,8 @@ import lombok.CustomLog;
 @SuppressWarnings("unchecked")
 public class DefaultEntrypointConnectorPluginManager
     extends AbstractConfigurablePluginManager<EntrypointConnectorPlugin<?, ?>>
-    implements EntrypointConnectorPluginManager {
+    implements EntrypointConnectorPluginManager
+{
 
     private final EntrypointConnectorClassLoaderFactory classLoaderFactory;
     private final PluginConfigurationHelper pluginConfigurationHelper;

@@ -86,13 +86,13 @@ public class ApiStateServiceImpl_DeployTest {
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
     private static final String ENCRYPTED_PROPERTY_DEFINITION = """
-        {"properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
+    {"properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
     private static final String NATIVE_ENCRYPTED_PROPERTY_DEFINITION = """
-        {"type":"native","properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
+    {"type":"native","properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
     private static final String ACCESS_PATCH = """
-        [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:c806cd9c716cfbfdb4763c71dd1394b3e602fce81291a0338bf8e3225416ac32>","encrypted":true}}]""";
+    [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:c806cd9c716cfbfdb4763c71dd1394b3e602fce81291a0338bf8e3225416ac32>","encrypted":true}}]""";
     private static final String PLAIN_PROPERTY_DEFINITION = """
-        {"properties":[{"key":"plain","value":"value","encrypted":false}]}""";
+    {"properties":[{"key":"plain","value":"value","encrypted":false}]}""";
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock

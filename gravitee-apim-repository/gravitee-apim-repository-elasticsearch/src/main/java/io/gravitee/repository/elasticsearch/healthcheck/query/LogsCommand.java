@@ -70,12 +70,13 @@ public class LogsCommand extends AbstractElasticsearchQueryCommand<LogsResponse>
 
         try {
             final long to = queryTo > 0 ? queryTo : System.currentTimeMillis();
-            final long from = queryFrom > 0
-                ? queryFrom
-                : ZonedDateTime.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
-                    .minus(1, ChronoUnit.MONTHS)
-                    .toInstant()
-                    .toEpochMilli();
+            final long from =
+                queryFrom > 0
+                    ? queryFrom
+                    : ZonedDateTime.ofInstant(Instant.ofEpochMilli(to), ZoneId.systemDefault())
+                          .minus(1, ChronoUnit.MONTHS)
+                          .toInstant()
+                          .toEpochMilli();
 
             final Single<SearchResponse> result = this.client.search(
                 this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.HEALTH_CHECK, from, to, clusters),

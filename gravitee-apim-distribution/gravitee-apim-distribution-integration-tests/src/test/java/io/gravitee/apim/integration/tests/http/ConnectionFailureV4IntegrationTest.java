@@ -158,13 +158,11 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
         assertThat(json).contains("\"message\": \"\"");
 
         // {#error.cause} equals the Diagnostic message reported to analytics (Elasticsearch).
-        reportedMetrics
-            .awaitDone(30, TimeUnit.SECONDS)
-            .assertValue(metrics -> {
-                String esDetail = metrics.getFailure().getMessage();
-                assertThat(json).contains("\"detail\": \"" + esDetail + "\"");
-                return true;
-            });
+        reportedMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+            String esDetail = metrics.getFailure().getMessage();
+            assertThat(json).contains("\"detail\": \"" + esDetail + "\"");
+            return true;
+        });
     }
 
     @Test
@@ -241,25 +239,21 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
                 .assertValue(statuses -> statuses.stream().allMatch(status -> status == 504));
 
             // The queued requests never acquired a connection → CONNECT_TIMEOUT.
-            connectTimeoutMetrics
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.getStatus()).isEqualTo(504);
-                    assertThat(metrics.getFailure()).isNotNull();
-                    assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECT_TIMEOUT");
-                    assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
-                    return true;
-                });
+            connectTimeoutMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.getStatus()).isEqualTo(504);
+                assertThat(metrics.getFailure()).isNotNull();
+                assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECT_TIMEOUT");
+                assertThat(metrics.getFailure().getComponentType()).isEqualTo("ENDPOINT");
+                return true;
+            });
 
             // The request that held the single connection read-timed-out on the silent backend → READ_TIMEOUT.
-            readTimeoutMetrics
-                .awaitDone(30, TimeUnit.SECONDS)
-                .assertValue(metrics -> {
-                    assertThat(metrics.getStatus()).isEqualTo(504);
-                    assertThat(metrics.getFailure()).isNotNull();
-                    assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
-                    return true;
-                });
+            readTimeoutMetrics.awaitDone(30, TimeUnit.SECONDS).assertValue(metrics -> {
+                assertThat(metrics.getStatus()).isEqualTo(504);
+                assertThat(metrics.getFailure()).isNotNull();
+                assertThat(metrics.getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_READ_TIMEOUT");
+                return true;
+            });
 
             synchronized (held) {
                 for (Socket socket : held) {

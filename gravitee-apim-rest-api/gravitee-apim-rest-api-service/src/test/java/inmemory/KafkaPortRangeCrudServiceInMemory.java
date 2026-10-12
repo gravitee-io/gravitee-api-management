@@ -82,8 +82,7 @@ public class KafkaPortRangeCrudServiceInMemory implements KafkaPortRangeCrudServ
                     // existing bootstrap inside new range
                     (r.getBootstrapPort() >= rangeStart && r.getBootstrapPort() <= rangeEnd) ||
                     // bootstrap collision
-                    r.getBootstrapPort() ==
-                    bootstrapPort
+                    r.getBootstrapPort() == bootstrapPort
             )
             .toList();
     }

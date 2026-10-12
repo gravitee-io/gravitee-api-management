@@ -108,7 +108,7 @@ public class SubscriptionProcessor implements Processor {
                 requestClientIdentifier = ctxClientIdentifier;
             } else {
                 // Make sure given ClientIdentifier header, is ctx from subscription
-                if ((!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId))) {
+                if (!requestClientIdentifier.endsWith(subscriptionId) && !requestClientIdentifier.endsWith(transactionId)) {
                     ctxClientIdentifier = requestClientIdentifier + "-" + computeCtxClientIdentifier(ctx, subscriptionId, transactionId);
                 } else {
                     ctxClientIdentifier = requestClientIdentifier;
@@ -130,13 +130,11 @@ public class SubscriptionProcessor implements Processor {
 
             Subscription subscription = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION);
             if (subscription == null) {
-                ctx
-                    .withLogger(log)
-                    .debug(
-                        "No subscription resolved for request, creating anonymous subscription for API [{}] with plan [{}]",
-                        ctx.getAttribute(ATTR_API),
-                        planId
-                    );
+                ctx.withLogger(log).debug(
+                    "No subscription resolved for request, creating anonymous subscription for API [{}] with plan [{}]",
+                    ctx.getAttribute(ATTR_API),
+                    planId
+                );
                 subscription = new Subscription();
                 subscription.setId(subscriptionId);
                 subscription.setApi(ctx.getAttribute(ATTR_API));
@@ -153,8 +151,7 @@ public class SubscriptionProcessor implements Processor {
                 ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
                 metrics.setApiProductId(subscription.getApiProductId());
             }
-            ctx
-                .getTemplateEngine()
+            ctx.getTemplateEngine()
                 .getTemplateContext()
                 .setVariable(SUBSCRIPTION_CONTEXT_ATTRIBUTE, new SubscriptionVariable(subscription));
         });

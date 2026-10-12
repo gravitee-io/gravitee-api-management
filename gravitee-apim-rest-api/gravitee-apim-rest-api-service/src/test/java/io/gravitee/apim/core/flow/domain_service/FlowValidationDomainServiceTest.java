@@ -166,7 +166,9 @@ public class FlowValidationDomainServiceTest {
 
         @Test
         public void should_accept_flow_with_only_steps() {
-            var flow = Flow.builder().request(List.of(Step.builder().policy("policy").configuration("configuration").build())).build();
+            var flow = Flow.builder()
+                .request(List.of(Step.builder().policy("policy").configuration("configuration").build()))
+                .build();
 
             var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
 
@@ -289,7 +291,13 @@ public class FlowValidationDomainServiceTest {
         public void should_throw_exception_with_invalid_entrypoints() {
             var flow = Flow.builder()
                 .name("bad_flow")
-                .selectors(List.of(ChannelSelector.builder().entrypoints(Set.of(SSE_CONNECTOR_ID, "unknown", "unknown2")).build()))
+                .selectors(
+                    List.of(
+                        ChannelSelector.builder()
+                            .entrypoints(Set.of(SSE_CONNECTOR_ID, "unknown", "unknown2"))
+                            .build()
+                    )
+                )
                 .build();
 
             var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.MESSAGE, List.of(flow)));
@@ -493,19 +501,16 @@ public class FlowValidationDomainServiceTest {
                     .isInstanceOf(ValidationDomainException.class)
                     .hasMessage("Some path parameters are used at different position across different flows.")
                     .is(
-                        new Condition<>(
-                            error -> {
-                                final ValidationDomainException pathParamException = (ValidationDomainException) error;
-                                assertThat(pathParamException.getParameters()).containsOnlyKeys(expectedOverlaps.keySet());
-                                expectedOverlaps.forEach((key, value) ->
-                                    value.forEach(expectedPath ->
-                                        assertThat(pathParamException.getParameters().get(key)).contains(expectedPath)
-                                    )
-                                );
-                                return true;
-                            },
-                            ""
-                        )
+                        new Condition<>(error -> {
+                            final ValidationDomainException pathParamException = (ValidationDomainException) error;
+                            assertThat(pathParamException.getParameters()).containsOnlyKeys(expectedOverlaps.keySet());
+                            expectedOverlaps.forEach((key, value) ->
+                                value.forEach(expectedPath ->
+                                    assertThat(pathParamException.getParameters().get(key)).contains(expectedPath)
+                                )
+                            );
+                            return true;
+                        }, "")
                     );
             }
         }

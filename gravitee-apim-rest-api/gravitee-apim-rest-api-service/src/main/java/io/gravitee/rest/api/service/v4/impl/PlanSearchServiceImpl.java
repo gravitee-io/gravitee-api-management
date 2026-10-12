@@ -244,9 +244,8 @@ public class PlanSearchServiceImpl extends TransactionalService implements PlanS
         if (plan.getReferenceType() == Plan.PlanReferenceType.API_PRODUCT) {
             return mapToGenericForApiProduct(plan);
         }
-        String apiId = plan.getReferenceType() == Plan.PlanReferenceType.API && plan.getReferenceId() != null
-            ? plan.getReferenceId()
-            : null;
+        String apiId =
+            plan.getReferenceType() == Plan.PlanReferenceType.API && plan.getReferenceId() != null ? plan.getReferenceId() : null;
         if (apiId == null) {
             throw new TechnicalManagementException(
                 "Plan " + plan.getId() + " has no API reference (referenceId is null). The plan data may be corrupted."

@@ -62,15 +62,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @ComponentScan(basePackages = { "io.gravitee.rest.api.service" })
 @EnableTransactionManagement
-@Import(
-    {
-        FetcherConfigurationConfiguration.class,
-        SearchEngineConfiguration.class,
-        UpgraderConfiguration.class,
-        InitializerConfiguration.class,
-        InfraServiceSpringConfiguration.class,
-    }
-)
+@Import({
+    FetcherConfigurationConfiguration.class,
+    SearchEngineConfiguration.class,
+    UpgraderConfiguration.class,
+    InitializerConfiguration.class,
+    InfraServiceSpringConfiguration.class,
+})
 public class ServiceConfiguration {
 
     @Autowired

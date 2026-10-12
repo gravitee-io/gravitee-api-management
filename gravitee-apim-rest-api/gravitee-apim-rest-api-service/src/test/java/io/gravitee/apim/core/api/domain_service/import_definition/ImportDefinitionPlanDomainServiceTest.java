@@ -154,17 +154,15 @@ class ImportDefinitionPlanDomainServiceTest {
         assertThat(apiPlans)
             .hasSize(1)
             .first()
-            .satisfies(
-                (createdPlan -> {
-                        assertThat(createdPlan.getApiId()).isEqualTo(API_ID);
-                        assertThat(createdPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
-                        assertThat(createdPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-                        assertThat(createdPlan.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
-                        assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows()).isNullOrEmpty();
-                        assertThat(createdPlan.getName()).isEqualTo("plan to create");
-                        assertThat(createdPlan.getCrossId()).isEqualTo("plan-to-create");
-                    })
-            );
+            .satisfies(createdPlan -> {
+                assertThat(createdPlan.getApiId()).isEqualTo(API_ID);
+                assertThat(createdPlan.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                assertThat(createdPlan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+                assertThat(createdPlan.getPlanDefinitionHttpV4().getSecurity().getType()).isEqualTo("api-key");
+                assertThat(createdPlan.getPlanDefinitionHttpV4().getFlows()).isNullOrEmpty();
+                assertThat(createdPlan.getName()).isEqualTo("plan to create");
+                assertThat(createdPlan.getCrossId()).isEqualTo("plan-to-create");
+            });
     }
 
     @Test

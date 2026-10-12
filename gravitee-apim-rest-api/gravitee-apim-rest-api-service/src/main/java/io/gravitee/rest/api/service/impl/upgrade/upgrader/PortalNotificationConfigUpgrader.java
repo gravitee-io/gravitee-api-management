@@ -81,19 +81,17 @@ public class PortalNotificationConfigUpgrader implements Upgrader {
         Set<Environment> environments,
         PortalNotificationConfig portalNotificationConfig
     ) {
-        Stream<PortalNotificationConfig> stream = environments
-            .stream()
-            .map(environment -> {
-                PortalNotificationConfig portalNotificationConfigToCreate = duplicate(environment, portalNotificationConfig);
-                try {
-                    return portalNotificationConfigRepository.create(portalNotificationConfigToCreate);
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(
-                        "Failed to duplicate portalNotificationConfig " + portalNotificationConfig + " to " + environment,
-                        e
-                    );
-                }
-            });
+        Stream<PortalNotificationConfig> stream = environments.stream().map(environment -> {
+            PortalNotificationConfig portalNotificationConfigToCreate = duplicate(environment, portalNotificationConfig);
+            try {
+                return portalNotificationConfigRepository.create(portalNotificationConfigToCreate);
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(
+                    "Failed to duplicate portalNotificationConfig " + portalNotificationConfig + " to " + environment,
+                    e
+                );
+            }
+        });
         try {
             portalNotificationConfigRepository.delete(portalNotificationConfig);
         } catch (TechnicalException e) {

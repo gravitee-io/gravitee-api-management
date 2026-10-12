@@ -63,8 +63,8 @@ public interface ApiAdapter {
             case V4 -> ApiType.NATIVE == source.getType()
                 ? deserialize(source, NativeApi.class)
                 : ApiType.EDGE == source.getType()
-                    ? deserialize(source, EdgeApi.class)
-                    : deserialize(source, io.gravitee.definition.model.v4.Api.class);
+                  ? deserialize(source, EdgeApi.class)
+                  : deserialize(source, io.gravitee.definition.model.v4.Api.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
             case FEDERATED_AGENT -> null; // TODO ???
             case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);

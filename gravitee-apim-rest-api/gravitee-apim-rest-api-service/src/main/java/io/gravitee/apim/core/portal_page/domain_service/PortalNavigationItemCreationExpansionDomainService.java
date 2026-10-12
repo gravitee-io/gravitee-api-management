@@ -144,9 +144,8 @@ public class PortalNavigationItemCreationExpansionDomainService {
 
             var parent = resolvedParents.get(currentId);
             for (var node : ancestors.reversed()) {
-                var reference = node.pending() && isDocumentation(node.type())
-                    ? inheritReference(node.reference(), parent)
-                    : node.reference();
+                var reference =
+                    node.pending() && isDocumentation(node.type()) ? inheritReference(node.reference(), parent) : node.reference();
                 parent = new ParentContext(
                     node.type(),
                     reference,

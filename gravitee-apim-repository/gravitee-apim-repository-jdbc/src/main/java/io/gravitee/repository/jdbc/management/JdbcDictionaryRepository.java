@@ -102,7 +102,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
             String providerType = rs.getString("provider_type");
             String providerConfiguration = rs.getString("provider_configuration");
-            if ((providerType != null) || (providerConfiguration != null)) {
+            if (providerType != null || providerConfiguration != null) {
                 DictionaryProvider provider = new DictionaryProvider();
                 provider.setType(providerType);
                 provider.setConfiguration(providerConfiguration);
@@ -111,7 +111,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
             int triggerRate = rs.getInt("trigger_rate");
             String triggerUnit = rs.getString("trigger_unit");
-            if ((triggerUnit != null) || (triggerRate != 0)) {
+            if (triggerUnit != null || triggerRate != 0) {
                 DictionaryTrigger trigger = new DictionaryTrigger();
                 trigger.setRate(triggerRate);
                 trigger.setUnit(TimeUnit.valueOf(triggerUnit));

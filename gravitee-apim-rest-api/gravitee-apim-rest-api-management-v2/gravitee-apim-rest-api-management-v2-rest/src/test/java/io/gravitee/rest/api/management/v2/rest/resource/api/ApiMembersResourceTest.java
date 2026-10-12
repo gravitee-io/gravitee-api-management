@@ -131,7 +131,12 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Member.class)
-                .isEqualTo(new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
+                .isEqualTo(
+                    new Member()
+                        .id("userId")
+                        .displayName("John Doe")
+                        .roles(List.of(new Role().name("OWNER")))
+                );
         }
     }
 
@@ -330,7 +335,12 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(OK_200)
                 .asEntity(Member.class)
-                .isEqualTo(new Member().id(MEMBER_ID).displayName("John Doe").roles(List.of(new Role().name("OWNER"))));
+                .isEqualTo(
+                    new Member()
+                        .id(MEMBER_ID)
+                        .displayName("John Doe")
+                        .roles(List.of(new Role().name("OWNER")))
+                );
         }
     }
 }

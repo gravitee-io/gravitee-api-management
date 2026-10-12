@@ -129,7 +129,9 @@ class SearchEnvironmentTopHitsApisCountUseCaseTest {
 
         when(analyticsQueryService.searchTopHitsApis(any(), any())).thenReturn(
             Optional.of(
-                TopHitsApis.builder().data(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build())).build()
+                TopHitsApis.builder()
+                    .data(List.of(TopHitsApis.TopHitApi.builder().id("message-api-v4-id").count(17L).build()))
+                    .build()
             )
         );
 

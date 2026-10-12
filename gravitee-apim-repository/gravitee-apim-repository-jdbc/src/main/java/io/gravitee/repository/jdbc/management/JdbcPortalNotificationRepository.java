@@ -36,7 +36,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcPortalNotificationRepository
     extends JdbcAbstractCrudRepository<PortalNotification, String>
-    implements PortalNotificationRepository {
+    implements PortalNotificationRepository
+{
 
     JdbcPortalNotificationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_notifications");

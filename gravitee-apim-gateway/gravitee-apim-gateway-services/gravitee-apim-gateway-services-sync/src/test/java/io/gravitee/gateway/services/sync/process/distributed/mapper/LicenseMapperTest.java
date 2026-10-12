@@ -60,8 +60,7 @@ public class LicenseMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(deployable -> {
                 assertThat(deployable).isEqualTo(licenseDeployable);
@@ -71,8 +70,7 @@ public class LicenseMapperTest {
 
     @Test
     void should_map_license_deployable() {
-        cut
-            .to(licenseDeployable)
+        cut.to(licenseDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

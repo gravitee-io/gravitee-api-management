@@ -90,9 +90,10 @@ public class CreateSubscriptionUseCase {
     }
 
     private void validatePlanBelongsToReference(Plan plan, String referenceId, SubscriptionReferenceType referenceType) {
-        GenericPlanEntity.ReferenceType expectedReferenceType = referenceType == SubscriptionReferenceType.API
-            ? GenericPlanEntity.ReferenceType.API
-            : GenericPlanEntity.ReferenceType.API_PRODUCT;
+        GenericPlanEntity.ReferenceType expectedReferenceType =
+            referenceType == SubscriptionReferenceType.API
+                ? GenericPlanEntity.ReferenceType.API
+                : GenericPlanEntity.ReferenceType.API_PRODUCT;
 
         if (
             plan.getReferenceType() == null ||

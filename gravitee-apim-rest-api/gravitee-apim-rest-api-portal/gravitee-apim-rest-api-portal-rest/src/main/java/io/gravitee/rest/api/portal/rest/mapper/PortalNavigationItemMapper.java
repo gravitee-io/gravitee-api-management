@@ -159,11 +159,12 @@ public interface PortalNavigationItemMapper {
         }
         return includes
             .stream()
-            .map(i ->
-                switch (i) {
-                    case API -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API;
-                    case API_PRODUCT -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API_PRODUCT;
-                }
+            .map(
+                i ->
+                    switch (i) {
+                        case API -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API;
+                        case API_PRODUCT -> io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude.API_PRODUCT;
+                    }
             )
             .collect(Collectors.toSet());
     }

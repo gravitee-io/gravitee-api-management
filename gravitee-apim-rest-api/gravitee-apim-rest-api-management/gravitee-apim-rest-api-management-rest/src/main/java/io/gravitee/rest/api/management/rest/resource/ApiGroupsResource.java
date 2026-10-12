@@ -51,17 +51,15 @@ public class ApiGroupsResource extends AbstractResource {
         summary = "Get API groups mapped to members",
         description = "User must have the MANAGE_MEMBERS permission to use this service"
     )
-    @ApiResponses(
-        {
-            @ApiResponse(
-                responseCode = "200",
-                description = "API groups with members",
-                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiGroupsWithMembersMap.class))
-            ),
-            @ApiResponse(responseCode = "403", description = "Forbidden"),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error"),
-        }
-    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "API groups with members",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiGroupsWithMembersMap.class))
+        ),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "500", description = "Internal Server Error"),
+    })
     @Permissions({ @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.READ) })
     public ApiGroupsWithMembersMap getApiGroupsWithMembers() {
         return new ApiGroupsWithMembersMap(apiGroupService.getGroupsWithMembers(GraviteeContext.getExecutionContext(), apiId));

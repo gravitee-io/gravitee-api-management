@@ -68,8 +68,7 @@ class ApiKeyMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(singleApiKeyDeployable -> {
                 assertThat(singleApiKeyDeployable).isEqualTo(apiKeyDeployable);
@@ -84,8 +83,7 @@ class ApiKeyMapperTest {
 
     @Test
     void should_map_api_key_deployable() {
-        cut
-            .to(apiKeyDeployable)
+        cut.to(apiKeyDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

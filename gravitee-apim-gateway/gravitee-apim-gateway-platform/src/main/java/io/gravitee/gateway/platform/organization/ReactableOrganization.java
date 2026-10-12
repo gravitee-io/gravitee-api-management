@@ -75,12 +75,10 @@ public class ReactableOrganization implements Reactable, Serializable {
 
         // Load policies from flows
         if (definition.getFlows() != null) {
-            definition
-                .getFlows()
-                .forEach(flow -> {
-                    policies.addAll(getPolicies(flow.getPre()));
-                    policies.addAll(getPolicies(flow.getPost()));
-                });
+            definition.getFlows().forEach(flow -> {
+                policies.addAll(getPolicies(flow.getPre()));
+                policies.addAll(getPolicies(flow.getPost()));
+            });
         }
 
         return policies;

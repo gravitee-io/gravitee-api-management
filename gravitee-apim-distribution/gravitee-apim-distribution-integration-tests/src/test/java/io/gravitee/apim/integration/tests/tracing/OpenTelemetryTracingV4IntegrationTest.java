@@ -220,11 +220,10 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, chunk -> {
-                assertRetry(chunk);
-                return true;
-            })
+        obs.assertValueAt(0, chunk -> {
+            assertRetry(chunk);
+            return true;
+        })
             .assertValueAt(1, chunk -> {
                 assertOnMessage(chunk, 0L, MESSAGE);
                 return true;

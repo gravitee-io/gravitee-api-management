@@ -31,7 +31,7 @@ public class WebsocketRejectTest extends AbstractWebsocketV4GatewayTest {
     @Test
     @DeployApi({ "/apis/v4/http/api.json" })
     public void websocket_rejected_request(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
-        websocketHandshakeHandler = (handshake -> handshake.reject(UNAUTHORIZED_401).subscribe());
+        websocketHandshakeHandler = handshake -> handshake.reject(UNAUTHORIZED_401).subscribe();
 
         webSocketClient
             .connect("/test")

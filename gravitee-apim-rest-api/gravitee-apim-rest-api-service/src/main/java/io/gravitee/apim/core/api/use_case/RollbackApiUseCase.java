@@ -206,9 +206,8 @@ public class RollbackApiUseCase {
             .collect(toMap(io.gravitee.apim.core.plan.model.Plan::getId, Function.identity()));
 
         for (AbstractPlan apiDefinitionPlan : apiDefinitionPlans) {
-            io.gravitee.apim.core.plan.model.Plan existingPlan = apiDefinitionPlan.getId() != null
-                ? existingPlans.get(apiDefinitionPlan.getId())
-                : null;
+            io.gravitee.apim.core.plan.model.Plan existingPlan =
+                apiDefinitionPlan.getId() != null ? existingPlans.get(apiDefinitionPlan.getId()) : null;
 
             if (existingPlan == null) {
                 // If plan not exist create new plan from API definition plan
@@ -316,28 +315,23 @@ public class RollbackApiUseCase {
         if (
             Stream.of(ROLLBACK, REOPEN)
                 .mapToInt(c -> size(existingPlansMustBeRollbackOrClose.get(c)))
-                .sum() <
-            apiDefinitionPlans.size()
+                .sum() < apiDefinitionPlans.size()
         ) {
             throw new IllegalStateException("Cannot rollback plans because some plans have been removed");
         }
 
         // Close plans
-        existingPlansMustBeRollbackOrClose
-            .getOrDefault(CLOSE, List.of())
-            .forEach(plan -> {
-                if (plan.getPlanStatus() != PlanStatus.CLOSED) {
-                    closePlanDomainService.close(plan.getId(), auditInfo);
-                }
-            });
+        existingPlansMustBeRollbackOrClose.getOrDefault(CLOSE, List.of()).forEach(plan -> {
+            if (plan.getPlanStatus() != PlanStatus.CLOSED) {
+                closePlanDomainService.close(plan.getId(), auditInfo);
+            }
+        });
 
         // Rollback plans
-        existingPlansMustBeRollbackOrClose
-            .getOrDefault(ROLLBACK, List.of())
-            .forEach(planToUpdate -> {
-                var plan = plansToUpdateById.get(planToUpdate.getId());
-                planCrudService.update(ROLLBACK_OPERATOR.rollback(planToUpdate, plan));
-            });
+        existingPlansMustBeRollbackOrClose.getOrDefault(ROLLBACK, List.of()).forEach(planToUpdate -> {
+            var plan = plansToUpdateById.get(planToUpdate.getId());
+            planCrudService.update(ROLLBACK_OPERATOR.rollback(planToUpdate, plan));
+        });
 
         // Reopen plans
         existingPlansMustBeRollbackOrClose.getOrDefault(REOPEN, List.of()).forEach(planCrudService::update);

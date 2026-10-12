@@ -170,7 +170,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull())
         ).thenReturn(new Page<>(emptyList(), 0, 0, 0));
 
-        final Response response = envTarget(API + "/state").request().get();
+        final Response response = envTarget(API + "/state")
+            .request()
+            .get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 
@@ -187,7 +189,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             )
         ).thenReturn(Sets.newSet(membershipEntity));
 
-        final Response response = envTarget(API + "/state").request().get();
+        final Response response = envTarget(API + "/state")
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -228,7 +232,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
             apiService.searchIds(eq(GraviteeContext.getExecutionContext()), any(ApiQuery.class), any(PageableImpl.class), isNull())
         ).thenReturn(new Page<>(Collections.singletonList(mockApi.getId()), 0, 1, 1));
 
-        final Response response = envTarget(API + "/state").request().get();
+        final Response response = envTarget(API + "/state")
+            .request()
+            .get();
 
         assertEquals(OK_200, response.getStatus());
         ApiStateEntity stateEntity = response.readEntity(ApiStateEntity.class);
@@ -265,7 +271,9 @@ public class ApiResourceNotAdminTest extends AbstractResourceTest {
 
         when(roleService.findById(eq(roleId))).thenReturn(role);
 
-        final Response response = envTarget(API + "/state").request().get();
+        final Response response = envTarget(API + "/state")
+            .request()
+            .get();
         assertEquals(FORBIDDEN_403, response.getStatus());
     }
 }

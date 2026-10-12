@@ -109,9 +109,10 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             details.setOrganizationId(createdUser.getOrganizationId());
 
             if (!addDefaultRole) {
-                String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                    ? GraviteeContext.getCurrentEnvironment()
-                    : GraviteeContext.getDefaultEnvironment();
+                String environmentId =
+                    GraviteeContext.getCurrentEnvironment() != null
+                        ? GraviteeContext.getCurrentEnvironment()
+                        : GraviteeContext.getDefaultEnvironment();
                 addRoles(RoleScope.ENVIRONMENT, environmentId, createdUser.getId(), event.getAuthentication().getAuthorities());
                 addRoles(
                     RoleScope.ORGANIZATION,

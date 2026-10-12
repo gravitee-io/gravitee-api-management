@@ -37,7 +37,8 @@ import org.slf4j.Logger;
  */
 public abstract class PolicyChain
     extends BufferedReadWriteStream
-    implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
+    implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer>
+{
 
     protected final Logger logger = NodeLoggerFactory.getLogger(this.getClass());
 

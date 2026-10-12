@@ -68,8 +68,7 @@ class NodeMetadataMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(nodeMetadataDeployable -> {
                 assertThat(nodeMetadataDeployable.organizationIds()).isEqualTo(this.nodeMetadataDeployable.organizationIds());
@@ -85,8 +84,7 @@ class NodeMetadataMapperTest {
 
     @Test
     void should_map_node_metadata_deployable() {
-        cut
-            .to(nodeMetadataDeployable)
+        cut.to(nodeMetadataDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getType()).isEqualTo(this.distributedEvent.getType());

@@ -131,7 +131,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [invalid>path] is invalid")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [invalid>path] is invalid")));
     }
 
     @ParameterizedTest
@@ -145,7 +147,9 @@ class VerifyApiPathDomainServiceTest {
 
         var paths = res.value().map(VerifyApiPathDomainService.Input::paths);
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(expectedHost).overrideAccess(true).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host(expectedHost).overrideAccess(true).build()));
     }
 
     @ParameterizedTest
@@ -159,7 +163,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Domain [%s] is invalid", host)));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Domain [%s] is invalid", host)));
     }
 
     @Test
@@ -180,7 +186,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] is duplicated")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] is duplicated")));
     }
 
     @Test
@@ -193,7 +201,9 @@ class VerifyApiPathDomainServiceTest {
             .validateAndSanitize(new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, null, List.of(Path.builder().path("/path/").build())))
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -208,7 +218,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -228,7 +240,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -249,7 +263,9 @@ class VerifyApiPathDomainServiceTest {
             .map(VerifyApiPathDomainService.Input::paths)
             .value();
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
     }
 
     @Test
@@ -265,7 +281,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -285,7 +303,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -300,7 +320,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -318,7 +340,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path2/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path2/] already exists")));
     }
 
     @Test
@@ -334,7 +358,9 @@ class VerifyApiPathDomainServiceTest {
             .map(VerifyApiPathDomainService.Input::paths)
             .value();
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(null).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host(null).build()));
     }
 
     @Test
@@ -357,7 +383,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -380,7 +408,9 @@ class VerifyApiPathDomainServiceTest {
             .map(VerifyApiPathDomainService.Input::paths)
             .value();
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
     }
 
     @Test
@@ -404,7 +434,9 @@ class VerifyApiPathDomainServiceTest {
             .map(VerifyApiPathDomainService.Input::paths)
             .value();
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host("domain.com").overrideAccess(true).build()));
     }
 
     @Test
@@ -420,7 +452,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -443,7 +477,9 @@ class VerifyApiPathDomainServiceTest {
             )
             .severe();
 
-        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+        assertThat(errors)
+            .isPresent()
+            .hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
     }
 
     @Test
@@ -459,7 +495,9 @@ class VerifyApiPathDomainServiceTest {
             .map(VerifyApiPathDomainService.Input::paths)
             .value();
 
-        assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(null).build()));
+        assertThat(paths)
+            .isPresent()
+            .hasValue(List.of(Path.builder().path("/path/").host(null).build()));
     }
 
     private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {
@@ -469,9 +507,9 @@ class VerifyApiPathDomainServiceTest {
             .thenReturn(
                 domainRestrictions != null
                     ? domainRestrictions
-                        .stream()
-                        .map(domain -> RestrictedDomain.builder().domain(domain).build())
-                        .toList()
+                          .stream()
+                          .map(domain -> RestrictedDomain.builder().domain(domain).build())
+                          .toList()
                     : List.of()
             );
     }
@@ -519,7 +557,7 @@ class VerifyApiPathDomainServiceTest {
     private Api buildApiHttpV4WithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
         io.gravitee.definition.model.v4.Api apiDefV4 = ApiDefinitionFixtures.anApiV4()
             .toBuilder()
-            .id((apiId))
+            .id(apiId)
             .listeners(
                 List.of(
                     HttpListener.builder()
@@ -545,7 +583,7 @@ class VerifyApiPathDomainServiceTest {
     private Api buildApiNativeV4(String environmentId, String apiId) {
         io.gravitee.definition.model.v4.nativeapi.NativeApi apiDefV4 = ApiDefinitionFixtures.aNativeApiV4()
             .toBuilder()
-            .id((apiId))
+            .id(apiId)
             .listeners(List.of(KafkaListener.builder().build()))
             .build();
         return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionNativeV4(apiDefV4).build();

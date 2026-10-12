@@ -88,7 +88,8 @@ public record SubscriptionFormSchema(List<Field> fields) {
      */
     public sealed interface Field
         extends RequiredAttribute
-        permits InputField, TextareaField, SelectField, RadioField, CheckboxField, CheckboxGroupField {
+        permits InputField, TextareaField, SelectField, RadioField, CheckboxField, CheckboxGroupField
+    {
         String fieldKey();
     }
 
@@ -105,13 +106,22 @@ public record SubscriptionFormSchema(List<Field> fields) {
 
     /** Multi-line textarea — supports required, readonly, minLength, maxLength. */
     @Builder
-    public record TextareaField(String fieldKey, boolean required, String readonlyValue, Integer minLength, Integer maxLength) implements
-        Field, RequiredValueAttribute, ReadOnlyValueAttribute, MinLengthAttribute, MaxLengthAttribute {}
+    public record TextareaField(
+        String fieldKey,
+        boolean required,
+        String readonlyValue,
+        Integer minLength,
+        Integer maxLength
+    ) implements Field, RequiredValueAttribute, ReadOnlyValueAttribute, MinLengthAttribute, MaxLengthAttribute {}
 
     /** Single-value dropdown — supports required, static options, or dynamic EL options. No readonly (not supported by the GMD component). */
     @Builder
-    public record SelectField(String fieldKey, boolean required, List<String> options, DynamicOptions dynamicOptions) implements
-        Field, RequiredValueAttribute, SingleValueOptionsField {
+    public record SelectField(
+        String fieldKey,
+        boolean required,
+        List<String> options,
+        DynamicOptions dynamicOptions
+    ) implements Field, RequiredValueAttribute, SingleValueOptionsField {
         public SelectField {
             if (options != null && dynamicOptions != null) {
                 throw new IllegalArgumentException("SelectField cannot define both static options and dynamic options");
@@ -137,13 +147,20 @@ public record SubscriptionFormSchema(List<Field> fields) {
 
     /** Boolean checkbox — supports required, readonly. Value is "true"/"false". */
     @Builder
-    public record CheckboxField(String fieldKey, boolean required, String readonlyValue) implements
-        Field, RequiredTrueAttribute, ReadOnlyValueAttribute {}
+    public record CheckboxField(
+        String fieldKey,
+        boolean required,
+        String readonlyValue
+    ) implements Field, RequiredTrueAttribute, ReadOnlyValueAttribute {}
 
     /** Multi-value checkbox group — supports required, static options, or dynamic EL options. No readonly (not supported by the GMD component). */
     @Builder
-    public record CheckboxGroupField(String fieldKey, boolean required, List<String> options, DynamicOptions dynamicOptions) implements
-        Field, RequiredSelectionAttribute, MultiValueOptionsField {
+    public record CheckboxGroupField(
+        String fieldKey,
+        boolean required,
+        List<String> options,
+        DynamicOptions dynamicOptions
+    ) implements Field, RequiredSelectionAttribute, MultiValueOptionsField {
         public CheckboxGroupField {
             if (options != null && dynamicOptions != null) {
                 throw new IllegalArgumentException("CheckboxGroupField cannot define both static options and dynamic options");

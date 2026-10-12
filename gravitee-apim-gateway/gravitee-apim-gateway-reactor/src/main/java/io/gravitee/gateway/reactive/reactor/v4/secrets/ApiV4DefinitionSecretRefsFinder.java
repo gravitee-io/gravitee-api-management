@@ -96,8 +96,7 @@ public class ApiV4DefinitionSecretRefsFinder extends AbstractV4APISecretRefFinde
                 if (services.getHealthCheck() != null) {
                     list.add(services.getHealthCheck());
                 }
-                list
-                    .stream()
+                list.stream()
                     .filter(Service::isEnabled)
                     .forEach(service -> processService(listener, service));
                 return processEndpointGroup(listener, endpointGroup);

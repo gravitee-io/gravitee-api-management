@@ -181,18 +181,16 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     ) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
-            query
-                .getIds()
-                .forEach(id -> {
-                    BooleanQuery.Builder idQuery = new BooleanQuery.Builder();
-                    // Explicitly add a filter on the environment id to be sure that the query will not return APIs from another environment based on the ids
-                    if (executionContext.hasEnvironmentId()) {
-                        idQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
-                    }
-                    idQuery.add(new TermQuery(new Term(FIELD_ID, id)), BooleanClause.Occur.FILTER);
+            query.getIds().forEach(id -> {
+                BooleanQuery.Builder idQuery = new BooleanQuery.Builder();
+                // Explicitly add a filter on the environment id to be sure that the query will not return APIs from another environment based on the ids
+                if (executionContext.hasEnvironmentId()) {
+                    idQuery.add(buildEnvCriteria(executionContext), BooleanClause.Occur.FILTER);
+                }
+                idQuery.add(new TermQuery(new Term(FIELD_ID, id)), BooleanClause.Occur.FILTER);
 
-                    mainQuery.add(idQuery.build(), BooleanClause.Occur.SHOULD);
-                });
+                mainQuery.add(idQuery.build(), BooleanClause.Occur.SHOULD);
+            });
 
             return Optional.of(mainQuery.build());
         }

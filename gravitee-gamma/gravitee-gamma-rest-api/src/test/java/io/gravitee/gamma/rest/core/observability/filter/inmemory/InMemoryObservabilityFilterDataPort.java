@@ -100,6 +100,6 @@ public class InMemoryObservabilityFilterDataPort implements ObservabilityFilterD
     }
 
     private static boolean matches(FilterValue value, String needle) {
-        return (value.value().toLowerCase().contains(needle) || (value.label() != null && value.label().toLowerCase().contains(needle)));
+        return value.value().toLowerCase().contains(needle) || (value.label() != null && value.label().toLowerCase().contains(needle));
     }
 }

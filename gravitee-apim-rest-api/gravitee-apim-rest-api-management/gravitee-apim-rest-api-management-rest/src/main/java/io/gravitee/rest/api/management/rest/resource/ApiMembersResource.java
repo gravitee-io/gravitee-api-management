@@ -150,12 +150,10 @@ public class ApiMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "201", description = "Member has been added or updated successfully")
     @ApiResponse(responseCode = "400", description = "Membership parameter is not valid")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.API_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
     public Response addOrUpdateApiMember(@Valid @NotNull ApiMembership apiMembership) {
         if (PRIMARY_OWNER.name().equals(apiMembership.getRole())) {
             throw new SinglePrimaryOwnerException(RoleScope.API);

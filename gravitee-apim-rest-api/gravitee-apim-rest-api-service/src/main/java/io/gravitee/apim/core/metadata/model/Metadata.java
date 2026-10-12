@@ -39,6 +39,7 @@ public class Metadata {
     public enum ReferenceType {
         @Deprecated
         DEFAULT,
+
         API,
         APPLICATION,
         ENVIRONMENT,

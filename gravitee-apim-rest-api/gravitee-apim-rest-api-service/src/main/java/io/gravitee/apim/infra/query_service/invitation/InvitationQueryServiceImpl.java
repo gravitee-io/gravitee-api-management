@@ -73,7 +73,10 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
                     criteria != null ? criteria.email().orElse(null) : null
                 ),
                 new SortableBuilder().field("email").order(Order.ASC).build(),
-                new PageableBuilder().pageNumber(resolvedPageable.getPageNumber() - 1).pageSize(resolvedPageable.getPageSize()).build()
+                new PageableBuilder()
+                    .pageNumber(resolvedPageable.getPageNumber() - 1)
+                    .pageSize(resolvedPageable.getPageSize())
+                    .build()
             );
 
             var content = repositoryPage.getContent().stream().map(InvitationAdapter.INSTANCE::toApplicationInvitation).toList();

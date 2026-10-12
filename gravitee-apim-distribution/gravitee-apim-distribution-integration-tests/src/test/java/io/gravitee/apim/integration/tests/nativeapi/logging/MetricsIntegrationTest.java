@@ -249,8 +249,7 @@ class MetricsIntegrationTest {
 
         @Override
         protected void configureGateway(GatewayConfigurationBuilder cfg) {
-            cfg
-                .set("kafka.enabled", true)
+            cfg.set("kafka.enabled", true)
                 .set("kafka.secured", true)
                 .set("kafka.host", "0.0.0.0")
                 .set("kafka.port", GATEWAY_KAFKA_PORT)

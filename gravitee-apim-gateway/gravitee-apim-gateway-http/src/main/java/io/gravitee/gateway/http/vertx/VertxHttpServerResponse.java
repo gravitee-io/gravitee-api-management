@@ -111,7 +111,7 @@ public class VertxHttpServerResponse implements Response {
 
     @Override
     public WriteStream<Buffer> drainHandler(Handler<Void> drainHandler) {
-        serverResponse.drainHandler((aVoid -> drainHandler.handle(null)));
+        serverResponse.drainHandler(aVoid -> drainHandler.handle(null));
         return this;
     }
 
@@ -127,13 +127,11 @@ public class VertxHttpServerResponse implements Response {
                 writeHeaders();
             }
 
-            serverResponse
-                .end()
-                .onComplete(event -> {
-                    if (this.endHandler != null) {
-                        this.endHandler.handle(null);
-                    }
-                });
+            serverResponse.end().onComplete(event -> {
+                if (this.endHandler != null) {
+                    this.endHandler.handle(null);
+                }
+            });
         } else {
             if (this.endHandler != null) {
                 this.endHandler.handle(null);

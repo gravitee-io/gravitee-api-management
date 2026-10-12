@@ -174,13 +174,10 @@ public class SearchIndexInitializer implements Initializer {
 
         CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-        future.whenCompleteAsync(
-            (unused, throwable) -> {
-                executorService.shutdown();
-                searchEngineService.commit();
-            },
-            executorService
-        );
+        future.whenCompleteAsync((unused, throwable) -> {
+            executorService.shutdown();
+            searchEngineService.commit();
+        }, executorService);
 
         return true;
     }
@@ -238,40 +235,37 @@ public class SearchIndexInitializer implements Initializer {
         Indexable indexable,
         ExecutorService executorService
     ) {
-        return CompletableFuture.runAsync(
-            () -> {
-                try {
-                    // API
-                    searchEngineService.index(executionContext, indexable, true, false);
+        return CompletableFuture.runAsync(() -> {
+            try {
+                // API
+                searchEngineService.index(executionContext, indexable, true, false);
 
-                    // Pages
-                    GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(api, primaryOwnerEntity);
-                    List<PageEntity> apiPages = pageService.search(
-                        executionContext.getEnvironmentId(),
-                        new PageQuery.Builder().api(api.getId()).published(true).build(),
-                        true
-                    );
-                    apiPages.forEach(page -> {
-                        try {
-                            if (
-                                !PageType.FOLDER.name().equals(page.getType()) &&
-                                !PageType.ROOT.name().equals(page.getType()) &&
-                                !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                !PageType.LINK.name().equals(page.getType())
-                            ) {
-                                pageService.transformSwagger(executionContext, page, genericApiEntity);
-                                searchEngineService.index(executionContext, page, true, false);
-                            }
-                        } catch (Exception ignored) {
-                            log.debug("Exception ignored in SearchIndexInitializer");
+                // Pages
+                GenericApiEntity genericApiEntity = genericApiMapper.toGenericApi(api, primaryOwnerEntity);
+                List<PageEntity> apiPages = pageService.search(
+                    executionContext.getEnvironmentId(),
+                    new PageQuery.Builder().api(api.getId()).published(true).build(),
+                    true
+                );
+                apiPages.forEach(page -> {
+                    try {
+                        if (
+                            !PageType.FOLDER.name().equals(page.getType()) &&
+                            !PageType.ROOT.name().equals(page.getType()) &&
+                            !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                            !PageType.LINK.name().equals(page.getType())
+                        ) {
+                            pageService.transformSwagger(executionContext, page, genericApiEntity);
+                            searchEngineService.index(executionContext, page, true, false);
                         }
-                    });
-                } finally {
-                    GraviteeContext.cleanContext();
-                }
-            },
-            executorService
-        );
+                    } catch (Exception ignored) {
+                        log.debug("Exception ignored in SearchIndexInitializer");
+                    }
+                });
+            } finally {
+                GraviteeContext.cleanContext();
+            }
+        }, executorService);
     }
 
     protected List<CompletableFuture<?>> runApiProductsIndexationAsync(ExecutorService executorService) throws TechnicalException {
@@ -301,16 +295,13 @@ public class SearchIndexInitializer implements Initializer {
                 new Indexer.IndexationContext(organizationId, environmentId),
                 ApiProductAdapter.INSTANCE.toModel(repoProduct)
             );
-            return CompletableFuture.runAsync(
-                () -> {
-                    try {
-                        searchEngineService.index(executionContext, indexable, true, false);
-                    } finally {
-                        GraviteeContext.cleanContext();
-                    }
-                },
-                executorService
-            );
+            return CompletableFuture.runAsync(() -> {
+                try {
+                    searchEngineService.index(executionContext, indexable, true, false);
+                } finally {
+                    GraviteeContext.cleanContext();
+                }
+            }, executorService);
         } catch (Exception e) {
             log.error("Failed to convert API Product {} to indexable", repoProduct.getId(), e);
             return CompletableFuture.failedFuture(e);
@@ -330,18 +321,15 @@ public class SearchIndexInitializer implements Initializer {
     }
 
     private CompletableFuture<?> runUserIndexationAsync(ExecutorService executorService, User user) {
-        return CompletableFuture.runAsync(
-            () -> {
-                ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
-                searchEngineService.index(
-                    executionContext,
-                    userConverter.toUserEntity(user, userMetadataService.findAllByUserId(user.getId())),
-                    true,
-                    false
-                );
-            },
-            executorService
-        );
+        return CompletableFuture.runAsync(() -> {
+            ExecutionContext executionContext = new ExecutionContext(user.getOrganizationId(), null);
+            searchEngineService.index(
+                executionContext,
+                userConverter.toUserEntity(user, userMetadataService.findAllByUserId(user.getId())),
+                true,
+                false
+            );
+        }, executorService);
     }
 
     @Override

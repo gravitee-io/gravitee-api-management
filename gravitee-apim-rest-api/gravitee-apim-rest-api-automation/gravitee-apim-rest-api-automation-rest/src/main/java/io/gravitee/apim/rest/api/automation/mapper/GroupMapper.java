@@ -153,7 +153,10 @@ public interface GroupMapper {
         if (roles == null) {
             return null;
         }
-        return roles.entrySet().stream().collect(Collectors.toMap(e -> RoleScope.valueOf(e.getKey()), Map.Entry::getValue));
+        return roles
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> RoleScope.valueOf(e.getKey()), Map.Entry::getValue));
     }
 
     @Named("roleScopeMapToStringMap")
@@ -161,6 +164,9 @@ public interface GroupMapper {
         if (roles == null) {
             return null;
         }
-        return roles.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+        return roles
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
     }
 }

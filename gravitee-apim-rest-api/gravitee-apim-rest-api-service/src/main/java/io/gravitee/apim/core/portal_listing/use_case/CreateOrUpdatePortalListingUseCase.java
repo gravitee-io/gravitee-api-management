@@ -47,11 +47,9 @@ public class CreateOrUpdatePortalListingUseCase {
             new ValidatePortalListingDomainService.Input(input.auditInfo(), input.listingId(), input.portalId(), input.apis())
         );
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
 

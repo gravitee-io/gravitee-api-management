@@ -223,11 +223,12 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             var savedFlows = new ArrayList<io.gravitee.repository.management.model.flow.Flow>();
             for (int order = 0; order < flows.size(); ++order) {
                 var flow = flows.get(order);
-                var dbFlow = (flow.getId() == null || !dbFlowsById.containsKey(flow.getId()))
-                    ? flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order))
-                    : flowRepository.update(
-                        FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
-                    );
+                var dbFlow =
+                    flow.getId() == null || !dbFlowsById.containsKey(flow.getId())
+                        ? flowRepository.create(FlowAdapter.INSTANCE.toRepositoryFromAbstract(flow, flowReferenceType, referenceId, order))
+                        : flowRepository.update(
+                              FlowAdapter.INSTANCE.toRepositoryUpdateFromAbstract(dbFlowsById.get(flow.getId()), flow, order)
+                          );
                 savedFlows.add(dbFlow);
             }
             return savedFlows;

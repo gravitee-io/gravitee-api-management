@@ -53,6 +53,6 @@ public class TicketsParam {
     }
 
     public OrderParam.Order getOrder() {
-        return (order == null) ? null : order.getValue();
+        return order == null ? null : order.getValue();
     }
 }

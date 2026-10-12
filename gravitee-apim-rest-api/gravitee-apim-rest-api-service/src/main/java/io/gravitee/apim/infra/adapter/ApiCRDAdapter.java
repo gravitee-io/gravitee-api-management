@@ -142,12 +142,12 @@ public interface ApiCRDAdapter {
     default Map<String, PageCRD> mapPages(ExportApiEntity definition) {
         return definition.getPages() != null
             ? definition
-                .getPages()
-                .stream()
-                .map(this::clearAutoFetchedContent)
-                .filter(Objects::nonNull)
-                .map(this::toCRDPage)
-                .collect(toMap(this::pageKey, identity(), (a, b) -> a, LinkedHashMap::new))
+                  .getPages()
+                  .stream()
+                  .map(this::clearAutoFetchedContent)
+                  .filter(Objects::nonNull)
+                  .map(this::toCRDPage)
+                  .collect(toMap(this::pageKey, identity(), (a, b) -> a, LinkedHashMap::new))
             : null;
     }
 
@@ -193,10 +193,10 @@ public interface ApiCRDAdapter {
     default SequencedSet<MemberCRD> mapMembers(ExportApiEntity definition) {
         return definition.getMembers() != null
             ? definition
-                .getMembers()
-                .stream()
-                .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().getFirst().getName()))
-                .collect(Collectors.toCollection(LinkedHashSet::new))
+                  .getMembers()
+                  .stream()
+                  .map(me -> new MemberCRD(me.getId(), null, null, me.getRoles().getFirst().getName()))
+                  .collect(Collectors.toCollection(LinkedHashSet::new))
             : null;
     }
 

@@ -252,18 +252,18 @@ public class ImportDefinitionUpdateDomainService {
                 .apiDefinitionValue(
                     currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
                         ? nativeApi
-                            .toBuilder()
-                            .name(apiExport.getName())
-                            .apiVersion(apiExport.getApiVersion())
-                            .tags(apiExport.getTags())
-                            .resources(apiExport.getResources())
-                            .listeners(apiExport.getListeners() != null ? (List<NativeListener>) apiExport.getListeners() : null)
-                            .endpointGroups(
-                                apiExport.getEndpointGroups() != null ? (List<NativeEndpointGroup>) apiExport.getEndpointGroups() : null
-                            )
-                            .flows(apiExport.getFlows() != null ? (List<NativeFlow>) apiExport.getFlows() : null)
-                            .properties(apiExport.getProperties())
-                            .build()
+                              .toBuilder()
+                              .name(apiExport.getName())
+                              .apiVersion(apiExport.getApiVersion())
+                              .tags(apiExport.getTags())
+                              .resources(apiExport.getResources())
+                              .listeners(apiExport.getListeners() != null ? (List<NativeListener>) apiExport.getListeners() : null)
+                              .endpointGroups(
+                                  apiExport.getEndpointGroups() != null ? (List<NativeEndpointGroup>) apiExport.getEndpointGroups() : null
+                              )
+                              .flows(apiExport.getFlows() != null ? (List<NativeFlow>) apiExport.getFlows() : null)
+                              .properties(apiExport.getProperties())
+                              .build()
                         : null
                 )
                 .build();

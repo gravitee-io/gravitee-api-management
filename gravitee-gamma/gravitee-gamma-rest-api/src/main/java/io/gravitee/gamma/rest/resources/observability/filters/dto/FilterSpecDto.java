@@ -55,10 +55,10 @@ public record FilterSpecDto(
             spec.enumValues() == null
                 ? null
                 : spec
-                    .enumValues()
-                    .stream()
-                    .map(v -> new EnumValueDto(v.value(), v.label()))
-                    .toList(),
+                      .enumValues()
+                      .stream()
+                      .map(v -> new EnumValueDto(v.value(), v.label()))
+                      .toList(),
             spec.range() == null ? null : new RangeDto(spec.range().min(), spec.range().max()),
             sortedNames(spec.signals()),
             sortedNames(spec.apiTypes())

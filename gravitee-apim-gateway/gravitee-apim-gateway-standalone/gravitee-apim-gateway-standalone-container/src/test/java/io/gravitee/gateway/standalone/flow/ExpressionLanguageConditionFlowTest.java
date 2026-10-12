@@ -66,6 +66,6 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
     }
 
     private boolean emulateV4Engine() {
-        return (api.getExecutionMode() == ExecutionMode.V4_EMULATION_ENGINE);
+        return api.getExecutionMode() == ExecutionMode.V4_EMULATION_ENGINE;
     }
 }

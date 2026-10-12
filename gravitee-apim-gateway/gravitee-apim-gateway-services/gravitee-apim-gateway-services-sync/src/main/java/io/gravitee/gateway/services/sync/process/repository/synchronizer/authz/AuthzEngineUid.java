@@ -24,9 +24,12 @@ public final class AuthzEngineUid {
 
     public static String of(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
         // Explicit entityType wins so GAPL policies match verbatim; legacy publishers fall back to the kind default.
-        String type = (entityType != null && !entityType.isBlank())
-            ? entityType
-            : (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL ? ENGINE_TYPE_PRINCIPAL : ENGINE_TYPE_RESOURCE);
+        String type =
+            entityType != null && !entityType.isBlank()
+                ? entityType
+                : kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL
+                  ? ENGINE_TYPE_PRINCIPAL
+                  : ENGINE_TYPE_RESOURCE;
         return type + "::\"" + entityId + "\"";
     }
 }

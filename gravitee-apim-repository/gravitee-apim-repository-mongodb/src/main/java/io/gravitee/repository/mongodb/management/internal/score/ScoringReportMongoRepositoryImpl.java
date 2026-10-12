@@ -107,7 +107,7 @@ public class ScoringReportMongoRepositoryImpl implements ScoringReportMongoRepos
         aggregations.add(sort(new Document(ofEntries(entry("summary.score", -1)))));
         aggregations.add(
             facet(
-                new Facet("data", Arrays.asList(skip((pageable.pageNumber()) * pageable.pageSize()), limit(pageable.pageSize()))),
+                new Facet("data", Arrays.asList(skip(pageable.pageNumber() * pageable.pageSize()), limit(pageable.pageSize()))),
                 new Facet("totalCount", List.of(count("count")))
             )
         );

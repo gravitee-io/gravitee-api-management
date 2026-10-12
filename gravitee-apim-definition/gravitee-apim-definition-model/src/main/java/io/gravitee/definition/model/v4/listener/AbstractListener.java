@@ -52,18 +52,16 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode
 @SuperBuilder(toBuilder = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = HttpListener.class, name = "HTTP"),
-        @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = "SUBSCRIPTION"),
-        @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
-        @JsonSubTypes.Type(value = TcpListener.class, name = "TCP"),
-        @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
-        @JsonSubTypes.Type(value = KafkaListener.class, name = "KAFKA"),
-        @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = HttpListener.class, name = "HTTP"),
+    @JsonSubTypes.Type(value = HttpListener.class, name = HTTP_LABEL),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = "SUBSCRIPTION"),
+    @JsonSubTypes.Type(value = SubscriptionListener.class, name = SUBSCRIPTION_LABEL),
+    @JsonSubTypes.Type(value = TcpListener.class, name = "TCP"),
+    @JsonSubTypes.Type(value = TcpListener.class, name = TCP_LABEL),
+    @JsonSubTypes.Type(value = KafkaListener.class, name = "KAFKA"),
+    @JsonSubTypes.Type(value = KafkaListener.class, name = KAFKA_LABEL),
+})
 public class AbstractListener<E extends AbstractEntrypoint> implements Serializable {
 
     @JsonProperty(required = true)

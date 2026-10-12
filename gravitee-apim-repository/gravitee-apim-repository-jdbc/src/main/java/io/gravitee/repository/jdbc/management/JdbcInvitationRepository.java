@@ -200,9 +200,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     private void applySortable(Sortable sortable, StringBuilder query) {
-        var field = sortable != null && StringUtils.hasText(sortable.field())
-            ? FieldUtils.toSnakeCase(sortable.field())
-            : DEFAULT_SORT_FIELD;
+        var field =
+            sortable != null && StringUtils.hasText(sortable.field()) ? FieldUtils.toSnakeCase(sortable.field()) : DEFAULT_SORT_FIELD;
 
         if (!SORTABLE_COLUMNS.contains(field)) {
             field = DEFAULT_SORT_FIELD;

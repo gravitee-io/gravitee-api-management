@@ -109,8 +109,8 @@ public class GetTraceFilterValuesUseCase {
             .map(v -> new TraceFilterValue(v, null))
             .toList();
 
-        int page = (input.page() != null && input.page() > 0) ? input.page() : 1;
-        int perPage = (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
+        int page = input.page() != null && input.page() > 0 ? input.page() : 1;
+        int perPage = input.perPage() != null && input.perPage() > 0 ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
         int fromIndex = Math.min((page - 1) * perPage, matching.size());
         int toIndex = Math.min(fromIndex + perPage, matching.size());
 

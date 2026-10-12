@@ -79,9 +79,10 @@ import org.slf4j.LoggerFactory;
 class SharedPolicyGroupV4IntegrationTest {
 
     @Nested
-    @DeploySharedPolicyGroups(
-        { "/sharedpolicygroups/spg-two-headers-on-request.json", "/sharedpolicygroups/spg-two-headers-on-response.json" }
-    )
+    @DeploySharedPolicyGroups({
+        "/sharedpolicygroups/spg-two-headers-on-request.json",
+        "/sharedpolicygroups/spg-two-headers-on-response.json",
+    })
     class GeneralCases extends TestPreparer {
 
         private ListAppender<ILoggingEvent> listAppender;
@@ -275,9 +276,10 @@ class SharedPolicyGroupV4IntegrationTest {
     }
 
     @Nested
-    @DeploySharedPolicyGroups(
-        { "/sharedpolicygroups/spg-two-headers-on-response.json", "/sharedpolicygroups/spg-conditional-two-headers-on-response.json" }
-    )
+    @DeploySharedPolicyGroups({
+        "/sharedpolicygroups/spg-two-headers-on-response.json",
+        "/sharedpolicygroups/spg-conditional-two-headers-on-response.json",
+    })
     class Conditions extends TestPreparer {
 
         @Test
@@ -536,12 +538,10 @@ class SharedPolicyGroupV4IntegrationTest {
     class MultiEnvironment extends TestPreparer {
 
         @Test
-        @DeployApi(
-            {
-                "/apis/v4/http/sharedpolicygroup/api-shared-policy-group-env-dev.json",
-                "/apis/v4/http/sharedpolicygroup/api-shared-policy-group-env-prod.json",
-            }
-        )
+        @DeployApi({
+            "/apis/v4/http/sharedpolicygroup/api-shared-policy-group-env-dev.json",
+            "/apis/v4/http/sharedpolicygroup/api-shared-policy-group-env-prod.json",
+        })
         @DeploySharedPolicyGroups({ "/sharedpolicygroups/spg-env-dev.json", "/sharedpolicygroups/spg-env-prod.json" })
         void should_use_correct_shared_policy_group_depending_on_environment(HttpClient httpClient) throws InterruptedException {
             wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));

@@ -201,8 +201,7 @@ public class OrganizationCommandHandlerTest {
             return new OrganizationEntity();
         });
 
-        cut
-            .handle(new OrganizationCommand(payload))
+        cut.handle(new OrganizationCommand(payload))
             .test()
             .await()
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
@@ -230,8 +229,7 @@ public class OrganizationCommandHandlerTest {
         when(organizationService.findByCockpitId("org#cockpit-1")).thenReturn(existing);
         when(organizationService.createOrUpdate(eq("ACME"), any(UpdateOrganizationEntity.class))).thenThrow(new RuntimeException("boom"));
 
-        cut
-            .handle(new OrganizationCommand(payload))
+        cut.handle(new OrganizationCommand(payload))
             .test()
             .await()
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));

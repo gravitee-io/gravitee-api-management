@@ -64,19 +64,19 @@ class EdgeApiTest {
     void should_deserialize_a_definition_stored_before_routes_carried_api_plan_and_subscription() throws Exception {
         // Given
         var json = """
-            {
-              "id": "edge-api",
-              "name": "Edge",
-              "type": "edge",
-              "proxy": {
-                "apps": [
-                  {
-                    "name": "Claude Code",
-                    "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }]
-                  }
-                ]
+        {
+          "id": "edge-api",
+          "name": "Edge",
+          "type": "edge",
+          "proxy": {
+            "apps": [
+              {
+                "name": "Claude Code",
+                "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }]
               }
-            }""";
+            ]
+          }
+        }""";
 
         // When
         var edgeApi = objectMapper.readValue(json, EdgeApi.class);

@@ -84,16 +84,14 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        environmentRepository
-            .findAll()
-            .forEach(environment -> {
-                ExecutionContext executionContext = new ExecutionContext(environment);
-                try {
-                    setPrimaryOwnersForIntegrations(executionContext);
-                } catch (TechnicalException e) {
-                    log.error("An error occurs while updating primary owner for integrations", e);
-                }
-            });
+        environmentRepository.findAll().forEach(environment -> {
+            ExecutionContext executionContext = new ExecutionContext(environment);
+            try {
+                setPrimaryOwnersForIntegrations(executionContext);
+            } catch (TechnicalException e) {
+                log.error("An error occurs while updating primary owner for integrations", e);
+            }
+        });
         return true;
     }
 

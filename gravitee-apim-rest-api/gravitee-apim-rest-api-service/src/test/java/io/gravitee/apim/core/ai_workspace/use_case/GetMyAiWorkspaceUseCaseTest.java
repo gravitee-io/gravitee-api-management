@@ -111,8 +111,14 @@ class GetMyAiWorkspaceUseCaseTest {
             )
         );
 
-        var caller = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().key();
-        var other = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-2"), "ws-1")).details().key();
+        var caller = useCase
+            .execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+            .details()
+            .key();
+        var other = useCase
+            .execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-2"), "ws-1"))
+            .details()
+            .key();
 
         assertThat(caller.value()).isEqualTo("paused-key");
         assertThat(caller.status()).isEqualTo("PAUSED");
@@ -148,7 +154,10 @@ class GetMyAiWorkspaceUseCaseTest {
             )
         );
 
-        var models = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().models();
+        var models = useCase
+            .execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1"))
+            .details()
+            .models();
 
         assertThat(models).containsExactly(new io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel("gpt-4o", 1.5, null));
     }
@@ -211,7 +220,11 @@ class GetMyAiWorkspaceUseCaseTest {
 
     private static Api proxy(String id, String environmentId, String path, String configuration) {
         var definition = io.gravitee.definition.model.v4.Api.builder().listeners(
-            List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build())
+            List.of(
+                HttpListener.builder()
+                    .paths(List.of(Path.builder().path(path).build()))
+                    .build()
+            )
         );
         if (configuration != null) {
             definition.endpointGroups(

@@ -76,9 +76,10 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getLifecycleState().name())));
         }
 
-        String portalStatus = api.getApiLifecycleState() == Api.ApiLifecycleState.PUBLISHED
-            ? Api.ApiLifecycleState.PUBLISHED.name()
-            : Api.ApiLifecycleState.UNPUBLISHED.name();
+        String portalStatus =
+            api.getApiLifecycleState() == Api.ApiLifecycleState.PUBLISHED
+                ? Api.ApiLifecycleState.PUBLISHED.name()
+                : Api.ApiLifecycleState.UNPUBLISHED.name();
         doc.add(new StringField(FIELD_PORTAL_STATUS, portalStatus, Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_PORTAL_STATUS_SORTED, toSortedValue(portalStatus)));
 
@@ -147,12 +148,10 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
 
         // metadata
         if (metadata != null) {
-            metadata
-                .values()
-                .forEach(metadataValue -> {
-                    doc.add(new StringField(FIELD_METADATA, metadataValue, Field.Store.NO));
-                    doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue, Field.Store.NO));
-                });
+            metadata.values().forEach(metadataValue -> {
+                doc.add(new StringField(FIELD_METADATA, metadataValue, Field.Store.NO));
+                doc.add(new TextField(FIELD_METADATA_SPLIT, metadataValue, Field.Store.NO));
+            });
         }
 
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
@@ -186,7 +185,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         switch (apiDefinitionV4) {
             case io.gravitee.definition.model.v4.Api v4Api -> transformV4ApiHttpListeners(doc, v4Api);
             case NativeApi v4NativeApi -> transformV4ApiNativeListeners(doc, v4NativeApi);
-            default -> {}
+            default -> {
+            }
         }
 
         // allowedInApiProducts - only for V4 HTTP Proxy APIs; null is normalized to false so existing APIs are

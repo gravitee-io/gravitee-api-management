@@ -46,7 +46,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcSharedPolicyGroupHistoryRepository
     extends JdbcAbstractCrudRepository<SharedPolicyGroup, String>
-    implements SharedPolicyGroupHistoryRepository {
+    implements SharedPolicyGroupHistoryRepository
+{
 
     JdbcSharedPolicyGroupHistoryRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "sharedpolicygrouphistories");

@@ -61,8 +61,14 @@ public class PortalApiProductAccessDomainService {
             .map(PortalNavigationApiProduct.class::cast)
             .filter(item -> !viewerContext.shouldNotShow(item))
             .filter(item -> !apiProductVisibilityDomainService.isApiProductItemHidden(item, viewerContext, accessibleApiProductIds))
-            .filter(item ->
-                !apiProductVisibilityDomainService.hasHiddenApiProductAncestor(environmentId, item, viewerContext, accessibleApiProductIds)
+            .filter(
+                item ->
+                    !apiProductVisibilityDomainService.hasHiddenApiProductAncestor(
+                        environmentId,
+                        item,
+                        viewerContext,
+                        accessibleApiProductIds
+                    )
             )
             .filter(item -> !apiVisibilityDomainService.hasHiddenApiAncestor(environmentId, item, viewerContext))
             .findFirst()

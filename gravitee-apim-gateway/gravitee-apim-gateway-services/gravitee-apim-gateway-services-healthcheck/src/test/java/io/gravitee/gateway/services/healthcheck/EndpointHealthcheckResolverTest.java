@@ -78,7 +78,9 @@ public class EndpointHealthcheckResolverTest {
 
         lenient().when(mockProxy.getGroups()).thenReturn(Collections.singleton(mockEndpointGroup));
 
-        lenient().when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
+        lenient()
+            .when(mockEndpointGroup.getEndpoints())
+            .thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
 
         lenient().when(mockEndpoint.getType()).thenReturn("http");
         lenient()

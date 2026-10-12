@@ -565,7 +565,8 @@ class RollbackApiUseCaseTest {
                     Entrypoint.builder().type("http-proxy").configuration("{}").build()
                 );
                 assertThat(
-                    ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst()).getPaths()
+                    ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst())
+                        .getPaths()
                         .getFirst()
                         .getPath()
                 ).isEqualTo("/api-previous-path");
@@ -630,20 +631,21 @@ class RollbackApiUseCaseTest {
     void should_rollback_api_with_null_resources_and_responseTemplates() throws JsonProcessingException {
         // Given — an event whose definition has no resources and no responseTemplates (as created by
         // the original deploy before any management-API update touched those fields)
-        var eventApiDefinition = io.gravitee.definition.model.v4.Api.builder()
-            .id(existingApi.getId())
-            .name("api-previous-name")
-            .apiVersion("api-previous-version")
-            .listeners(
-                List.of(
-                    io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
-                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/api-previous-path").build()))
-                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
-                        .build()
+        var eventApiDefinition =
+            io.gravitee.definition.model.v4.Api.builder()
+                .id(existingApi.getId())
+                .name("api-previous-name")
+                .apiVersion("api-previous-version")
+                .listeners(
+                    List.of(
+                        io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
+                            .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/api-previous-path").build()))
+                            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                            .build()
+                    )
                 )
-            )
-            // resources and responseTemplates intentionally absent (null in definition)
-            .build();
+                // resources and responseTemplates intentionally absent (null in definition)
+                .build();
 
         var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
             .id(eventApiDefinition.getId())

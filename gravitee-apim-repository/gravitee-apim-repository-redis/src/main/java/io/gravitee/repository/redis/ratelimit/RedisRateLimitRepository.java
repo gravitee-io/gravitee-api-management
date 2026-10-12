@@ -98,13 +98,11 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                                 log.debug(
                                     "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node"
                                 );
-                                return redisAPI
-                                    .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
-                                    .recover(evalError -> {
-                                        // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
-                                        evalError.addSuppressed(t);
-                                        return Future.failedFuture(evalError);
-                                    });
+                                return redisAPI.eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate)).recover(evalError -> {
+                                    // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
+                                    evalError.addSuppressed(t);
+                                    return Future.failedFuture(evalError);
+                                });
                             })
                             .timeout(operationTimeout, TimeUnit.MILLISECONDS)
                             .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout));

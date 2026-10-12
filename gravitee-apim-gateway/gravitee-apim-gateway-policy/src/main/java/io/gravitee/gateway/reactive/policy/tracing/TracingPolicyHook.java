@@ -53,13 +53,11 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
 
     @Override
     public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        return super
-            .pre(id, ctx, executionPhase)
-            .doOnComplete(() -> {
-                if (isVerboseEnabled(ctx)) {
-                    addPreExecutionEvent(id, ctx, executionPhase);
-                }
-            });
+        return super.pre(id, ctx, executionPhase).doOnComplete(() -> {
+            if (isVerboseEnabled(ctx)) {
+                addPreExecutionEvent(id, ctx, executionPhase);
+            }
+        });
     }
 
     @Override

@@ -163,8 +163,7 @@ class HttpDynamicPropertiesServiceTest {
             api.getServices().getDynamicProperty().setConfiguration("invalid configuration");
             final HttpDynamicPropertiesService cut = buildServiceFor(api);
 
-            cut
-                .start()
+            cut.start()
                 .test()
                 .assertError(
                     e ->

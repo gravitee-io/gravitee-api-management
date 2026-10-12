@@ -57,11 +57,9 @@ public class SourcedItemReadOnlyRule implements CreatePortalNavigationItemValida
             }
             parentId = pendingParent.getParentId();
         }
-        sourcedAncestorFinder
-            .findSourcedAncestorFrom(environmentId, parentId)
-            .ifPresent(ancestor -> {
-                throw InvalidPortalNavigationItemDataException.cannotCreateBelowSourcedItem(ancestor.getId().json());
-            });
+        sourcedAncestorFinder.findSourcedAncestorFrom(environmentId, parentId).ifPresent(ancestor -> {
+            throw InvalidPortalNavigationItemDataException.cannotCreateBelowSourcedItem(ancestor.getId().json());
+        });
     }
 
     @Override
@@ -80,11 +78,9 @@ public class SourcedItemReadOnlyRule implements CreatePortalNavigationItemValida
 
         // The target position matters as much as the current one
         if (toUpdate.getParentId() != null && !Objects.equals(toUpdate.getParentId(), existingItem.getParentId())) {
-            sourcedAncestorFinder
-                .findSourcedAncestorFrom(existingItem.getEnvironmentId(), toUpdate.getParentId())
-                .ifPresent(ancestor -> {
-                    throw InvalidPortalNavigationItemDataException.cannotMoveBelowSourcedItem(ancestor.getId().json());
-                });
+            sourcedAncestorFinder.findSourcedAncestorFrom(existingItem.getEnvironmentId(), toUpdate.getParentId()).ifPresent(ancestor -> {
+                throw InvalidPortalNavigationItemDataException.cannotMoveBelowSourcedItem(ancestor.getId().json());
+            });
         }
 
         if (existingItem.getSource() == null || toUpdate.getSource() == null) {

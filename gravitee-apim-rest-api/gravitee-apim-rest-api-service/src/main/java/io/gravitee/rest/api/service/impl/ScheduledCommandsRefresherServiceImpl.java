@@ -48,7 +48,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduledCommandsRefresherServiceImpl
     extends AbstractService<ScheduledCommandsRefresherServiceImpl>
-    implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
+    implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable
+{
 
     // We exclude the DATA_TO_INDEX tag because it is processed by another service
     public static final List<CommandTags> SUPPORTED_COMMAND_TAGS = Arrays.stream(CommandTags.values())

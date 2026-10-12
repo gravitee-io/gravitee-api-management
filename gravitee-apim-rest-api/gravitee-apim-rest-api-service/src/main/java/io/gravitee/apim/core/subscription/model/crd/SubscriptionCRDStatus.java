@@ -41,9 +41,9 @@ public class SubscriptionCRDStatus {
             return errors == null
                 ? null
                 : new Errors(
-                    errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().toList(),
-                    errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().toList()
-                );
+                      errors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).sorted().toList(),
+                      errors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).sorted().toList()
+                  );
         }
     }
 

@@ -330,7 +330,12 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
         }
 
         private SharedPolicyGroupState putAndReadEntity(String spec, boolean dryRun) {
-            try (var response = rootTarget().queryParam("dryRun", dryRun).request().put(Entity.json(readJSON(spec)))) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .put(Entity.json(readJSON(spec)))
+            ) {
                 return response.readEntity(SharedPolicyGroupState.class);
             }
         }

@@ -113,23 +113,21 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
             additionalInformation.put(AdditionalInfoConstants.AUTH_PATH, buildAuthPath);
             if (installationType == InstallationType.MULTI_TENANT) {
                 Map<AccessPoint.Type, List<AccessPoint>> accessPointTemplates = new EnumMap<>(AccessPoint.Type.class);
-                cockpitAccessService
-                    .getAccessPointsTemplate()
-                    .forEach((type, accessPoints) ->
-                        accessPointTemplates.put(
-                            AccessPoint.Type.valueOf(type.name()),
-                            accessPoints
-                                .stream()
-                                .map(accessPoint ->
-                                    AccessPoint.builder()
-                                        .host(accessPoint.getHost())
-                                        .secured(accessPoint.isSecured())
-                                        .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
-                                        .build()
-                                )
-                                .toList()
-                        )
-                    );
+                cockpitAccessService.getAccessPointsTemplate().forEach((type, accessPoints) ->
+                    accessPointTemplates.put(
+                        AccessPoint.Type.valueOf(type.name()),
+                        accessPoints
+                            .stream()
+                            .map(accessPoint ->
+                                AccessPoint.builder()
+                                    .host(accessPoint.getHost())
+                                    .secured(accessPoint.isSecured())
+                                    .target(AccessPoint.Target.valueOf(accessPoint.getTarget().name()))
+                                    .build()
+                            )
+                            .toList()
+                    )
+                );
                 payloadBuilder.accessPointsTemplate(accessPointTemplates);
             } else {
                 additionalInformation.put(AdditionalInfoConstants.AUTH_BASE_URL, configuration.getApiURL());

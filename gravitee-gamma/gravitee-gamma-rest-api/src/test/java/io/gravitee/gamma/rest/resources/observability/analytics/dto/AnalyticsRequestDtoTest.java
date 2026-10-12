@@ -30,13 +30,13 @@ class AnalyticsRequestDtoTest {
     @Test
     void should_deserialize_facets_request_with_by_clause() throws Exception {
         var json = """
-            {
-              "filters": [],
-              "by": ["MCP_PROXY_PROMPT"],
-              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}],
-              "limit": 5
-            }
-            """;
+        {
+          "filters": [],
+          "by": ["MCP_PROXY_PROMPT"],
+          "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}],
+          "limit": 5
+        }
+        """;
 
         var request = objectMapper.readValue(json, AnalyticsFacetsRequestDto.class);
 
@@ -47,13 +47,13 @@ class AnalyticsRequestDtoTest {
     @Test
     void should_deserialize_time_series_request_with_by_clause() throws Exception {
         var json = """
-            {
-              "interval": 60000,
-              "by": ["API"],
-              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}],
-              "facetSize": 5
-            }
-            """;
+        {
+          "interval": 60000,
+          "by": ["API"],
+          "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}],
+          "facetSize": 5
+        }
+        """;
 
         var request = objectMapper.readValue(json, AnalyticsTimeSeriesRequestDto.class);
 

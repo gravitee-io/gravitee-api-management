@@ -73,8 +73,7 @@ class ApiProductMapperTest {
 
     @Test
     void should_return_deployable_from_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(deployable -> {
                 assertThat(deployable.apiProductId()).isEqualTo(apiProductDeployable.apiProductId());
@@ -94,8 +93,7 @@ class ApiProductMapperTest {
             .updatedAt(new Date())
             .build();
 
-        cut
-            .to(undeployEvent)
+        cut.to(undeployEvent)
             .test()
             .assertValue(deployable -> {
                 assertThat(deployable.apiProductId()).isEqualTo("product-id");
@@ -124,8 +122,7 @@ class ApiProductMapperTest {
 
     @Test
     void should_map_deployable_to_distributed_event() {
-        cut
-            .to(apiProductDeployable)
+        cut.to(apiProductDeployable)
             .test()
             .assertValue(event -> {
                 assertThat(event.getId()).isEqualTo(distributedEvent.getId());
@@ -143,8 +140,7 @@ class ApiProductMapperTest {
             .syncAction(SyncAction.UNDEPLOY)
             .build();
 
-        cut
-            .to(undeployDeployable)
+        cut.to(undeployDeployable)
             .test()
             .assertValue(event -> {
                 assertThat(event.getId()).isEqualTo("product-id");

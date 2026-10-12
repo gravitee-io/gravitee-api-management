@@ -60,7 +60,10 @@ public class GetUserGroupsUseCase {
 
         // Build role map: roleId -> Role (resolved in one pass)
         Set<String> roleIds = memberships.stream().map(Membership::getRoleId).filter(Objects::nonNull).collect(Collectors.toSet());
-        Map<String, Role> rolesById = roleQueryService.findByIds(roleIds).stream().collect(Collectors.toMap(Role::getId, r -> r));
+        Map<String, Role> rolesById = roleQueryService
+            .findByIds(roleIds)
+            .stream()
+            .collect(Collectors.toMap(Role::getId, r -> r));
 
         // Build roles per group: groupId -> (scope -> roleName)
         Map<String, Map<String, String>> rolesByGroupId = new HashMap<>();

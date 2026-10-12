@@ -54,11 +54,12 @@ public class ApplicationPrimaryOwnerDomainService {
         throws ApiPrimaryOwnerNotFoundException {
         return findPrimaryOwnerRole(organizationId)
             .flatMap(role ->
-                findApplicationPrimaryOwnerMembership(applicationId, role).flatMap(membership ->
-                    switch (membership.getMemberType()) {
-                        case USER -> findUserPrimaryOwner(membership);
-                        case GROUP -> findGroupPrimaryOwner(membership, role.getId());
-                    }
+                findApplicationPrimaryOwnerMembership(applicationId, role).flatMap(
+                    membership ->
+                        switch (membership.getMemberType()) {
+                            case USER -> findUserPrimaryOwner(membership);
+                            case GROUP -> findGroupPrimaryOwner(membership, role.getId());
+                        }
                 )
             )
             .orElseThrow(() -> new ApplicationPrimaryOwnerNotFoundException(applicationId));

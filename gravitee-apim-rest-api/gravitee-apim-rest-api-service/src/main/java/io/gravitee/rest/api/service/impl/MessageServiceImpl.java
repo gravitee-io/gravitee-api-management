@@ -250,7 +250,7 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
                             .noneMatch(whitelistUrl ->
                                 whitelistUrl.endsWith("/")
                                     ? url.startsWith(whitelistUrl)
-                                    : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
+                                    : url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')
                             )
                     ) {
                         throw new MessageUrlForbiddenException();

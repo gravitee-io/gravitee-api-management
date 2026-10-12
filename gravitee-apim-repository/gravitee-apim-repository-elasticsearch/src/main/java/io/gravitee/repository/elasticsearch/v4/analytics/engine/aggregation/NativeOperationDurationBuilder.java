@@ -38,8 +38,8 @@ public class NativeOperationDurationBuilder {
 
     /** Nanoseconds to milliseconds; the reactor reports {@code Duration#toNanos}. */
     private static final String SCRIPT_SOURCE = """
-        params.count > 0 ? params.duration / params.count / 1000000 : 0
-        """;
+    params.count > 0 ? params.duration / params.count / 1000000 : 0
+    """;
 
     private static final String DURATION_SUM_AGG = "_duration_sum";
     private static final String SAMPLE_COUNT_SUM_AGG = "_sample_count_sum";
@@ -49,7 +49,9 @@ public class NativeOperationDurationBuilder {
     public Map<String, JsonObject> build(String aggName, String durationField, String sampleCountField) {
         return Map.of(
             "_" + aggName,
-            json().put("date_histogram", singleBucketBuilder.build()).put("aggs", aggs(aggName, durationField, sampleCountField))
+            json()
+                .put("date_histogram", singleBucketBuilder.build())
+                .put("aggs", aggs(aggName, durationField, sampleCountField))
         );
     }
 

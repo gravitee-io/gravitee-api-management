@@ -29,8 +29,7 @@ public class AttributesToHeaderPolicy implements Policy {
 
     @OnResponse
     public void onResponse(final Request request, final Response response, ExecutionContext ctx, final PolicyChain policyChain) {
-        ctx
-            .getAttributeNames()
+        ctx.getAttributeNames()
             .asIterator()
             .forEachRemaining(attribute ->
                 response.headers().add(attribute, Optional.ofNullable(ctx.getAttribute(attribute)).map(Object::toString).orElse("null"))
@@ -46,14 +45,12 @@ public class AttributesToHeaderPolicy implements Policy {
     @Override
     public Completable onResponse(HttpExecutionContext ctx) {
         return Completable.fromRunnable(() ->
-            ctx
-                .getAttributeNames()
-                .forEach(attribute ->
-                    ctx
-                        .response()
-                        .headers()
-                        .add(attribute, Optional.ofNullable(ctx.getAttribute(attribute)).map(Object::toString).orElse("null"))
-                )
+            ctx.getAttributeNames().forEach(attribute ->
+                ctx
+                    .response()
+                    .headers()
+                    .add(attribute, Optional.ofNullable(ctx.getAttribute(attribute)).map(Object::toString).orElse("null"))
+            )
         );
     }
 }

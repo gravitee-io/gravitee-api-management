@@ -583,8 +583,7 @@ class CreatePlanDomainServiceTest {
                 soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
                 soft.assertThat(result.getType()).isEqualTo(Plan.PlanType.API);
-                soft
-                    .assertThat(result.getPlanSecurity())
+                soft.assertThat(result.getPlanSecurity())
                     .usingRecursiveComparison()
                     .isEqualTo(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build());
             });

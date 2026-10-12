@@ -82,33 +82,31 @@ public class EndpointInvoker implements Invoker {
                     proxyRequest.headers().set(HttpHeaderNames.TRANSFER_ENCODING, "chunked");
                 }
 
-                endpoint
-                    .connector()
-                    .request(proxyRequest, context, proxyConnection -> {
-                        final ProxyConnection decoratedProxyConnection = LoggableProxyConnectionDecorator.decorate(
-                            proxyConnection,
-                            proxyRequest,
-                            context
-                        );
+                endpoint.connector().request(proxyRequest, context, proxyConnection -> {
+                    final ProxyConnection decoratedProxyConnection = LoggableProxyConnectionDecorator.decorate(
+                        proxyConnection,
+                        proxyRequest,
+                        context
+                    );
 
-                        // Plug underlying stream to connection stream
-                        stream
-                            .bodyHandler(buffer -> {
-                                decoratedProxyConnection.write(buffer);
+                    // Plug underlying stream to connection stream
+                    stream
+                        .bodyHandler(buffer -> {
+                            decoratedProxyConnection.write(buffer);
 
-                                if (decoratedProxyConnection.writeQueueFull()) {
-                                    context.request().pause();
-                                    decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
-                                }
-                            })
-                            .endHandler(aVoid -> decoratedProxyConnection.end());
+                            if (decoratedProxyConnection.writeQueueFull()) {
+                                context.request().pause();
+                                decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
+                            }
+                        })
+                        .endHandler(aVoid -> decoratedProxyConnection.end());
 
-                        connectionHandler.handle(decoratedProxyConnection);
+                    connectionHandler.handle(decoratedProxyConnection);
 
-                        // Inbound request could only be resume once we succeed to connect to the underlying backend
-                        // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)
-                        context.request().resume();
-                    });
+                    // Inbound request could only be resume once we succeed to connect to the underlying backend
+                    // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)
+                    context.request().resume();
+                });
             } catch (Exception ex) {
                 context.request().metrics().setMessage(NestedExceptionUtils.getMostSpecificCause(ex).getMessage());
 
@@ -124,7 +122,7 @@ public class EndpointInvoker implements Invoker {
         io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod) context.getAttribute(
             ExecutionContext.ATTR_REQUEST_METHOD
         );
-        return (overrideMethod == null) ? context.request().method() : overrideMethod;
+        return overrideMethod == null ? context.request().method() : overrideMethod;
     }
 
     private static boolean isGrpcRequest(ProxyRequest request) {

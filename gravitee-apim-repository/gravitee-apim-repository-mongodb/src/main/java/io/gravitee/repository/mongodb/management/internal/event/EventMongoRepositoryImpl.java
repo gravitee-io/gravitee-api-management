@@ -91,7 +91,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
 
-        return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
+        return new Page<>(events, pageable != null ? pageable.pageNumber() : 0, events.size(), total);
     }
 
     @Override
@@ -139,15 +139,13 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
         if (!isEmpty(criteria.getProperties())) {
             // set criteria query
-            criteria
-                .getProperties()
-                .forEach((k, v) -> {
-                    if (v instanceof Collection) {
-                        criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
-                    } else {
-                        criteriaList.add(Criteria.where("properties." + k).is(v));
-                    }
-                });
+            criteria.getProperties().forEach((k, v) -> {
+                if (v instanceof Collection) {
+                    criteriaList.add(Criteria.where("properties." + k).in((Collection<?>) v));
+                } else {
+                    criteriaList.add(Criteria.where("properties." + k).is(v));
+                }
+            });
         }
 
         // set range query

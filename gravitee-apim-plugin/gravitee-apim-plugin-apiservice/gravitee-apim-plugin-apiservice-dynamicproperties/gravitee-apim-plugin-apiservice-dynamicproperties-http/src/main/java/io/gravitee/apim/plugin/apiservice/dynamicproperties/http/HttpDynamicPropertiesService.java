@@ -209,7 +209,7 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     private Completable logOnError(AtomicLong errorCount, Throwable throwable) {
         if (errorCount.incrementAndGet() == 1) {
             log.warn("Unable to run dynamic properties for api [{}] on URL [{}].", api.getId(), configuration.getUrl(), throwable);
-        } else if ((errorCount.get() % LOG_ERROR_COUNT == 0)) {
+        } else if (errorCount.get() % LOG_ERROR_COUNT == 0) {
             log.warn(
                 "Unable to run dynamic properties for api [{}] on URL [{}] (times: {}, see previous log report for details).",
                 api.getId(),

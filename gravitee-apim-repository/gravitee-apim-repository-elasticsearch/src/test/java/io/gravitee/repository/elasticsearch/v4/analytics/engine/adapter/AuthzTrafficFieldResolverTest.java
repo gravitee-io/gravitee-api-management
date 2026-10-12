@@ -148,7 +148,9 @@ class AuthzTrafficFieldResolverTest {
             Filter.Name.AUTHZ_RESOURCE_ID
         )) {
             var filter = new Filter(name, Filter.Operator.EQ, "x");
-            assertThat(resolver.fromFilter(filter)).as("filter %s", name).isEqualTo(resolver.fromFacet(Facet.valueOf(name.name())));
+            assertThat(resolver.fromFilter(filter))
+                .as("filter %s", name)
+                .isEqualTo(resolver.fromFacet(Facet.valueOf(name.name())));
         }
     }
 }

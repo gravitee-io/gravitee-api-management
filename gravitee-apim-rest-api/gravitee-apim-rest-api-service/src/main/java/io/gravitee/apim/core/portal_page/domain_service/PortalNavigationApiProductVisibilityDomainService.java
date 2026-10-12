@@ -62,8 +62,11 @@ public class PortalNavigationApiProductVisibilityDomainService implements Portal
         }
         return viewerContext
             .userId()
-            .map(userId ->
-                !apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(environmentId, userId).contains(item.getApiProductId())
+            .map(
+                userId ->
+                    !apiProductAccessibleIdsDomainService
+                        .findAccessibleApiProductIds(environmentId, userId)
+                        .contains(item.getApiProductId())
             )
             .orElse(true);
     }

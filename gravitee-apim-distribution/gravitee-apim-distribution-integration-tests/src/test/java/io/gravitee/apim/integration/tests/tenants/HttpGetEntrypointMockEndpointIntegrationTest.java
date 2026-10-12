@@ -105,11 +105,9 @@ class HttpGetEntrypointMockEndpointIntegrationTest extends AbstractGatewayTest {
 
     @NonNull
     private Single<HttpClientResponse> createGetRequest(String path, String accept, HttpClient httpClient) {
-        return httpClient
-            .rxRequest(HttpMethod.GET, path)
-            .flatMap(request -> {
-                request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
-                return request.rxSend();
-            });
+        return httpClient.rxRequest(HttpMethod.GET, path).flatMap(request -> {
+            request.putHeader(HttpHeaderNames.ACCEPT.toString(), accept);
+            return request.rxSend();
+        });
     }
 }

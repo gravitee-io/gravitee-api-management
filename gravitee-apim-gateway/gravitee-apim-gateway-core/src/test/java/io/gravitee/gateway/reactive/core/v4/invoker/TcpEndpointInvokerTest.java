@@ -60,8 +60,7 @@ class TcpEndpointInvokerTest {
     @Test
     void should_not_connect_to_endpoint_connector_not_resolved() {
         when(endpointManager.next()).thenReturn(null);
-        cut
-            .invoke(ctx)
+        cut.invoke(ctx)
             .test()
             .awaitDone(10, TimeUnit.SECONDS)
             .assertError(t -> {

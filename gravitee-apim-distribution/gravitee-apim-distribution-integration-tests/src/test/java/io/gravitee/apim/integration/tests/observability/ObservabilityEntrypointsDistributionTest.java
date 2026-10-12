@@ -123,8 +123,7 @@ class ObservabilityEntrypointsDistributionTest {
         var installed = new LinkedHashMap<String, InstalledEntrypoint>();
         for (var pluginsDir : assembledPluginDirectories()) {
             try (Stream<Path> zips = Files.list(pluginsDir)) {
-                zips
-                    .filter(zip -> zip.getFileName().toString().endsWith(".zip"))
+                zips.filter(zip -> zip.getFileName().toString().endsWith(".zip"))
                     .sorted()
                     .map(ObservabilityEntrypointsDistributionTest::readEntrypoint)
                     .flatMap(Optional::stream)

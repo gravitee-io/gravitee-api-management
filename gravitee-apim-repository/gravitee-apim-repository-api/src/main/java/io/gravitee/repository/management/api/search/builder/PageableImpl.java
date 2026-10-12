@@ -43,12 +43,12 @@ class PageableImpl implements Pageable {
 
     @Override
     public int from() {
-        return (pageNumber) * pageSize;
+        return pageNumber * pageSize;
     }
 
     @Override
     public int to() {
-        return ((pageNumber + 1) * pageSize) - 1;
+        return (pageNumber + 1) * pageSize - 1;
     }
 
     @Override

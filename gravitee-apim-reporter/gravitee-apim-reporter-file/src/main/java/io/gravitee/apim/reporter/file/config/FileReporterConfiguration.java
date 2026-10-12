@@ -108,7 +108,7 @@ public class FileReporterConfiguration {
 
         while (found) {
             String property = environment.getProperty(prefix + '[' + idx++ + ']');
-            found = (property != null && !property.isEmpty());
+            found = property != null && !property.isEmpty();
 
             if (found) {
                 properties.add(property);

@@ -28,12 +28,12 @@ class DictionaryPropertiesSerializationTest {
     @Test
     void should_deserialize_a_payload_without_property_options() throws Exception {
         String json = """
-            {
-              "name": "My Dictionary",
-              "type": "MANUAL",
-              "properties": { "hostname": "api.example.com" }
-            }
-            """;
+        {
+          "name": "My Dictionary",
+          "type": "MANUAL",
+          "properties": { "hostname": "api.example.com" }
+        }
+        """;
 
         UpdateDictionaryEntity entity = objectMapper.readValue(json, UpdateDictionaryEntity.class);
 
@@ -44,16 +44,16 @@ class DictionaryPropertiesSerializationTest {
     @Test
     void should_deserialize_property_options() throws Exception {
         String json = """
-            {
-              "name": "My Dictionary",
-              "type": "MANUAL",
-              "properties": { "url": "https://backend", "apiKey": "cipher==", "renewed": "plaintext" },
-              "propertyOptions": {
-                "apiKey": { "encrypted": true, "encryptable": false },
-                "renewed": { "encryptable": true }
-              }
-            }
-            """;
+        {
+          "name": "My Dictionary",
+          "type": "MANUAL",
+          "properties": { "url": "https://backend", "apiKey": "cipher==", "renewed": "plaintext" },
+          "propertyOptions": {
+            "apiKey": { "encrypted": true, "encryptable": false },
+            "renewed": { "encryptable": true }
+          }
+        }
+        """;
 
         UpdateDictionaryEntity entity = objectMapper.readValue(json, UpdateDictionaryEntity.class);
 
@@ -66,13 +66,13 @@ class DictionaryPropertiesSerializationTest {
     @Test
     void should_read_an_omitted_flag_as_null_rather_than_false() throws Exception {
         String json = """
-            {
-              "name": "My Dictionary",
-              "type": "MANUAL",
-              "properties": { "apiKey": "cipher==" },
-              "propertyOptions": { "apiKey": { } }
-            }
-            """;
+        {
+          "name": "My Dictionary",
+          "type": "MANUAL",
+          "properties": { "apiKey": "cipher==" },
+          "propertyOptions": { "apiKey": { } }
+        }
+        """;
 
         UpdateDictionaryEntity entity = objectMapper.readValue(json, UpdateDictionaryEntity.class);
 

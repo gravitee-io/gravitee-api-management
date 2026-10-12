@@ -77,7 +77,7 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
             log.debug(String.format("ReCaptchaService success: %s score: %s", success, score));
 
             // Result should be successful and score above 0.5.
-            return (success && score >= minScore());
+            return success && score >= minScore();
         } catch (IOException e) {
             log.error("An error occurred when trying to validate ReCaptcha token.", e);
             return false;

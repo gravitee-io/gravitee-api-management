@@ -430,9 +430,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
         return Completable.fromRunnable(() -> {
             String phaseSpanAttribute = getExecutionPhaseSpanAttribute(executionPhase);
             if (phaseSpanAttribute != null) {
-                Span executionPhaseSpan = ctx
-                    .getTracer()
-                    .startSpanFrom(InternalRequest.builder().name(executionPhase == REQUEST ? "Request phase" : "Response phase").build());
+                Span executionPhaseSpan = ctx.getTracer().startSpanFrom(
+                    InternalRequest.builder()
+                        .name(executionPhase == REQUEST ? "Request phase" : "Response phase")
+                        .build()
+                );
                 ctx.putInternalAttribute(phaseSpanAttribute, executionPhaseSpan);
             }
         }).onErrorComplete();
@@ -630,7 +632,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected List<HttpAcceptor> prepareHttpAcceptors(Listener listener) {
-        return ((HttpListener) listener).getPaths()
+        return ((HttpListener) listener)
+            .getPaths()
             .stream()
             .map(path -> {
                 if (path.getHost() != null) {
@@ -710,7 +713,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         lifecycleState = Lifecycle.State.STARTED;
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        log.debug("API reactor started in {} ms", (endTime - startTime));
+        log.debug("API reactor started in {} ms", endTime - startTime);
 
         dumpAcceptors();
     }

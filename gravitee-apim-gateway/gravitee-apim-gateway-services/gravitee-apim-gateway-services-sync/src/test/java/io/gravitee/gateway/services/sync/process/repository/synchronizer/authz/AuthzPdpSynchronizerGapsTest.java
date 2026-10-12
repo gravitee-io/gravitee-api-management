@@ -97,12 +97,18 @@ class AuthzPdpSynchronizerGapsTest {
         vertx = Vertx.vertx();
         lenient().when(node.id()).thenReturn("ephemeral-node-id");
         lenient().when(fetcher.bulkItems()).thenReturn(10);
-        lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
-        lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("eu")));
+        lenient()
+            .when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+            .thenReturn(Flowable.empty());
+        lenient()
+            .when(gatewayConfiguration.shardingTags())
+            .thenReturn(java.util.Optional.of(java.util.List.of("eu")));
         lenient()
             .when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
             .thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient()
+            .when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong()))
+            .thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         consumer = registerReplyingConsumer();
@@ -175,12 +181,10 @@ class AuthzPdpSynchronizerGapsTest {
     }
 
     private MessageConsumer<JsonObject> registerReplyingConsumer() {
-        return vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
+        return vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
     }
 
     // ---------------------------------------------------------------------
@@ -434,12 +438,10 @@ class AuthzPdpSynchronizerGapsTest {
         // Cycle 2: the PDP service is healthy again and the incremental event window is EMPTY
         // (no new AUTHZ_PDP events). The pending scope must still be re-driven and hydrated.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
 
         synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
@@ -457,17 +459,15 @@ class AuthzPdpSynchronizerGapsTest {
         // First scope's relay fails, second scope is published in the same batch.
         // The failure is swallowed per-deployable, so the healthy scope must still be hydrated.
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                JsonObject body = message.body();
-                if ("scope-bad".equals(body.getString("targetPdpId"))) {
-                    message.fail(500, "down");
-                } else {
-                    received.add(body);
-                    message.reply(new JsonObject().put("ok", true));
-                }
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            JsonObject body = message.body();
+            if ("scope-bad".equals(body.getString("targetPdpId"))) {
+                message.fail(500, "down");
+            } else {
+                received.add(body);
+                message.reply(new JsonObject().put("ok", true));
+            }
+        });
 
         Event bad = pdpEvent("evt-bad", EventType.PUBLISH_AUTHZ_PDP, "scope-bad", "eu");
         Event good = pdpEvent("evt-good", EventType.PUBLISH_AUTHZ_PDP, "scope-good", "eu");
@@ -498,16 +498,14 @@ class AuthzPdpSynchronizerGapsTest {
         // Cycle 1: env-A relay fails (kept pending), env-B relay confirms in the same batch.
         // The env-B confirmation must NOT remove env-A's pending entry (runtime-key isolation).
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                if ("env-A".equals(message.body().getString("environmentId"))) {
-                    message.fail(500, "down");
-                } else {
-                    received.add(message.body());
-                    message.reply(new JsonObject().put("ok", true));
-                }
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            if ("env-A".equals(message.body().getString("environmentId"))) {
+                message.fail(500, "down");
+            } else {
+                received.add(message.body());
+                message.reply(new JsonObject().put("ok", true));
+            }
+        });
 
         Event publishEnvA = pdpEvent("evt-a", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "eu", "env-A");
         Event publishEnvB = pdpEvent("evt-b", EventType.PUBLISH_AUTHZ_PDP, "scope-x", "eu", "env-B");
@@ -520,12 +518,10 @@ class AuthzPdpSynchronizerGapsTest {
         // Cycle 2: window empty, all relays healthy. env-A must still be re-driven from pending.
         received.clear();
         consumer.unregister();
-        consumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                received.add(message.body());
-                message.reply(new JsonObject().put("ok", true));
-            });
+        consumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            received.add(message.body());
+            message.reply(new JsonObject().put("ok", true));
+        });
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
 
         synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-A", "env-B")).test().await().assertComplete();
@@ -664,7 +660,11 @@ class AuthzPdpSynchronizerGapsTest {
         // Subsequent cycles only ever re-drive from the pending set (window empty).
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(Flowable.empty());
         for (int i = 0; i < AuthzPdpSynchronizer.MAX_PENDING_ATTEMPTS + 2; i++) {
-            synchronizer.synchronize((long) (i + 1), Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+            synchronizer
+                .synchronize((long) (i + 1), Instant.now().toEpochMilli(), Set.of("env-1"))
+                .test()
+                .await()
+                .assertComplete();
         }
 
         // Now register a healthy consumer and run one more cycle. The scope must have been abandoned,

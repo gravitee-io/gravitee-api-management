@@ -30,13 +30,11 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    {
-        GammaTracingConfiguration.class,
-        GammaObservabilityFilterConfiguration.class,
-        GammaLogsConfiguration.class,
-        GammaAnalyticsConfiguration.class,
-        GammaDashboardsConfiguration.class,
-    }
-)
+@Import({
+    GammaTracingConfiguration.class,
+    GammaObservabilityFilterConfiguration.class,
+    GammaLogsConfiguration.class,
+    GammaAnalyticsConfiguration.class,
+    GammaDashboardsConfiguration.class,
+})
 public class GammaObservabilityConfiguration {}

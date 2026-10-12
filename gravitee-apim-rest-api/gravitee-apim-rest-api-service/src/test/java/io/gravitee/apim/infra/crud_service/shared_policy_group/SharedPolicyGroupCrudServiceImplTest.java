@@ -118,14 +118,12 @@ public class SharedPolicyGroupCrudServiceImplTest {
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
                 soft.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
-                soft
-                    .assertThat(result.getSteps())
-                    .isEqualTo(
-                        List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
-                        )
-                    );
+                soft.assertThat(result.getSteps()).isEqualTo(
+                    List.of(
+                        Step.builder().policy("my-policy").name("my-step-1").build(),
+                        Step.builder().policy("my-policy").name("my-step-2").build()
+                    )
+                );
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
                 soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -287,14 +285,12 @@ public class SharedPolicyGroupCrudServiceImplTest {
                 soft.assertThat(result.getDescription()).isEqualTo("sharedPolicyGroup-description");
                 soft.assertThat(result.getVersion()).isEqualTo(1);
                 soft.assertThat(result.getApiType()).isEqualTo(ApiType.PROXY);
-                soft
-                    .assertThat(result.getSteps())
-                    .isEqualTo(
-                        List.of(
-                            Step.builder().policy("my-policy").name("my-step-1").build(),
-                            Step.builder().policy("my-policy").name("my-step-2").build()
-                        )
-                    );
+                soft.assertThat(result.getSteps()).isEqualTo(
+                    List.of(
+                        Step.builder().policy("my-policy").name("my-step-1").build(),
+                        Step.builder().policy("my-policy").name("my-step-2").build()
+                    )
+                );
                 soft.assertThat(result.getPhase()).isEqualTo(FlowPhase.REQUEST);
                 soft.assertThat(result.getDeployedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(result.getCreatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));

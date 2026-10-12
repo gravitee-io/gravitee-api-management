@@ -44,7 +44,7 @@ public class DefaultClassLoader extends ClassLoader {
         super(parent);
         delegates = new ConcurrentHashMap<>();
         orderedDelegates = new CopyOnWriteArrayList<>();
-        mParentLoader = (parent != null) ? parent : getSystemClassLoader();
+        mParentLoader = parent != null ? parent : getSystemClassLoader();
     }
 
     @Override

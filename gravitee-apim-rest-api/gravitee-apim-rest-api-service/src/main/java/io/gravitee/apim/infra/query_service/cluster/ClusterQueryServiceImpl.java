@@ -45,7 +45,10 @@ public class ClusterQueryServiceImpl implements ClusterQueryService {
     public Page<Cluster> search(ClusterSearchCriteria criteria, Pageable pageable, Optional<Sortable> sortableOpt) {
         var result = clusterRepository.search(
             ClusterSearchCriteriaAdapter.INSTANCE.toCriteriaForRepository(criteria),
-            new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build(),
+            new PageableBuilder()
+                .pageNumber(pageable.getPageNumber() - 1)
+                .pageSize(pageable.getPageSize())
+                .build(),
             sortableOpt.map(sortable -> new SortableBuilder().field(sortable.getField()).setAsc(sortable.isAscOrder()).build())
         );
 

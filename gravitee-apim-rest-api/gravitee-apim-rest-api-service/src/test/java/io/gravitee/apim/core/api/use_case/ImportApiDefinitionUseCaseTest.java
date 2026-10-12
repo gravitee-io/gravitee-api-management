@@ -365,16 +365,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -401,16 +399,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -437,16 +433,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -488,16 +482,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -542,8 +534,7 @@ class ImportApiDefinitionUseCaseTest {
                     .stream()
                     .filter(metadata -> metadata.getReferenceId().equals(API_ID))
                     .collect(Collectors.toSet());
-                soft
-                    .assertThat(apiMetadataCreated)
+                soft.assertThat(apiMetadataCreated)
                     .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
                     .contains(
                         tuple(
@@ -801,16 +792,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -830,16 +819,14 @@ class ImportApiDefinitionUseCaseTest {
                 soft.assertThat(createdApi.getCreatedAt()).isNotNull();
                 soft.assertThat(createdApi.getUpdatedAt()).isNotNull();
 
-                soft
-                    .assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage())
-                    .containsExactly(
-                        new IndexableApi(
-                            expected,
-                            new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
-                            Collections.emptySet()
-                        )
-                    );
+                soft.assertThat(importDefinitionCreateDomainServiceTestInitializer.indexer.storage()).containsExactly(
+                    new IndexableApi(
+                        expected,
+                        new PrimaryOwnerEntity(USER_ID, USER_EMAIL, "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", USER_EMAIL)),
+                        Collections.emptySet()
+                    )
+                );
             });
         }
 
@@ -884,8 +871,7 @@ class ImportApiDefinitionUseCaseTest {
                     .stream()
                     .filter(metadata -> metadata.getReferenceId().equals(API_ID))
                     .collect(Collectors.toSet());
-                soft
-                    .assertThat(apiMetadataCreated)
+                soft.assertThat(apiMetadataCreated)
                     .extracting(Metadata::getKey, Metadata::getFormat, Metadata::getName, Metadata::getValue)
                     .contains(
                         tuple(

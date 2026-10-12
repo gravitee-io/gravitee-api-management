@@ -175,7 +175,7 @@ public class VertxHttpServerRequest implements Request {
         //TODO: To be removed
         int ipv6Idx = address.host().indexOf("%");
 
-        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+        return ipv6Idx != -1 ? address.host().substring(0, ipv6Idx) : address.host();
     }
 
     @Override
@@ -188,7 +188,7 @@ public class VertxHttpServerRequest implements Request {
         //TODO: To be removed
         int ipv6Idx = address.host().indexOf("%");
 
-        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+        return ipv6Idx != -1 ? address.host().substring(0, ipv6Idx) : address.host();
     }
 
     @Override

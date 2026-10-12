@@ -61,7 +61,9 @@ class MsgPackFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.REQUEST);
 
-        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test
@@ -71,7 +73,9 @@ class MsgPackFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.NODE_MONITOR);
 
-        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test
@@ -81,6 +85,8 @@ class MsgPackFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.HEALTH_CHECK);
 
-        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(MESSAGE_PACK.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 }

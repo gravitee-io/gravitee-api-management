@@ -80,8 +80,8 @@ public class DeployModelToApiCreateUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String SHARED_CONFIGURATION = """
-            { "description": "this is a dumb shared configuration" }
-        """;
+        { "description": "this is a dumb shared configuration" }
+    """;
     private static final String USER_ID = "user-id";
     private static final String USER_EMAIL = "jane.doe@gravitee.io";
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
@@ -261,12 +261,10 @@ public class DeployModelToApiCreateUseCaseTest {
             .containsExactly(RANDOM_ID, "Swagger", Page.Visibility.PUBLIC, Page.Type.SWAGGER);
 
         assertThat(importDefinitionCreateDomainServiceTestInitializer.flowCrudService.storage()).hasSize(4);
-        importDefinitionCreateDomainServiceTestInitializer.flowCrudService
-            .getApiV4Flows(RANDOM_ID)
-            .forEach(flow -> {
-                assertThat(flow.getRequest()).isEmpty();
-                assertThat(flow.getResponse()).isEmpty();
-            });
+        importDefinitionCreateDomainServiceTestInitializer.flowCrudService.getApiV4Flows(RANDOM_ID).forEach(flow -> {
+            assertThat(flow.getRequest()).isEmpty();
+            assertThat(flow.getResponse()).isEmpty();
+        });
 
         verify(apiStateDomainService, lifecycleState == Api.LifecycleState.STOPPED ? never() : times(1)).start(any(), eq(AUDIT_INFO));
         verify(apiStateDomainService, times(1)).deploy(any(), any(), eq(AUDIT_INFO));

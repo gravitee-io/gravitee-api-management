@@ -183,9 +183,10 @@ public class ApisResource extends AbstractResource {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         AuditInfo audit = getAuditInfo();
 
-        var createdApi = api.getType() == ApiType.NATIVE
-            ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
-            : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
+        var createdApi =
+            api.getType() == ApiType.NATIVE
+                ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
+                : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
         GenericApi.DeploymentStateEnum deploymentState = isSynchronized

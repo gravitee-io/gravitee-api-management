@@ -74,7 +74,7 @@ public final class SecureHttpClientUtils {
         KeyStore loadedKeyStore = KeyStore.getInstance(type);
 
         try (
-            InputStream inputStream = (trustStore.getPath() != null && !trustStore.getPath().isEmpty())
+            InputStream inputStream = trustStore.getPath() != null && !trustStore.getPath().isEmpty()
                 ? new FileInputStream(new File(trustStore.getPath()))
                 : new ByteArrayInputStream(Base64.getDecoder().decode(trustStore.getContent()))
         ) {
@@ -90,7 +90,7 @@ public final class SecureHttpClientUtils {
         KeyStore loadedKeyStore = KeyStore.getInstance(type);
 
         try (
-            InputStream inputStream = (keyStore.getPath() != null && !keyStore.getPath().isEmpty())
+            InputStream inputStream = keyStore.getPath() != null && !keyStore.getPath().isEmpty()
                 ? new FileInputStream(new File(keyStore.getPath()))
                 : new ByteArrayInputStream(Base64.getDecoder().decode(keyStore.getContent()))
         ) {

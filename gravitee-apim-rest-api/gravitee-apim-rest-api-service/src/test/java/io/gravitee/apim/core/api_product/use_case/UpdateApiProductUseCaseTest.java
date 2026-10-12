@@ -255,7 +255,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(allowedApi, notAllowedApi, nullAllowedApi));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-allowed", "api-not-allowed", "api-null-allowed")).build();
+        var toUpdate = UpdateApiProduct.builder()
+            .apiIds(Set.of("api-allowed", "api-not-allowed", "api-null-allowed"))
+            .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var throwable = Assertions.catchThrowable(() -> updateApiProductUseCase.execute(input));
@@ -306,7 +308,9 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
 
         apiCrudService.initWith(List.of(api1, api2, api3));
 
-        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2", "api-3")).build();
+        var toUpdate = UpdateApiProduct.builder()
+            .apiIds(Set.of("api-1", "api-2", "api-3"))
+            .build();
 
         var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
         var output = updateApiProductUseCase.execute(input);

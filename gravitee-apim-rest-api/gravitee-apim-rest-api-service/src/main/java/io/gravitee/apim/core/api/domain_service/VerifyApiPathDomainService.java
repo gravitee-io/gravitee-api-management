@@ -235,13 +235,11 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private static boolean isValidPort(final String port, final List<RestrictedDomain> restrictedDomainEntities) {
-        return restrictedDomainEntities
-            .stream()
-            .anyMatch(restrictedDomainEntity -> {
-                String restrictedDomain = restrictedDomainEntity.getDomain();
-                String restrictedPort = extractPort(restrictedDomain);
-                return isValidPort(port, restrictedPort);
-            });
+        return restrictedDomainEntities.stream().anyMatch(restrictedDomainEntity -> {
+            String restrictedDomain = restrictedDomainEntity.getDomain();
+            String restrictedPort = extractPort(restrictedDomain);
+            return isValidPort(port, restrictedPort);
+        });
     }
 
     private static boolean isValidPort(String port, String restrictedPort) {

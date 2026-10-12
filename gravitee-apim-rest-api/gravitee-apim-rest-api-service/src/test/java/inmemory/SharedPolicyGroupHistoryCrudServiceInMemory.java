@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class SharedPolicyGroupHistoryCrudServiceInMemory
-    implements SharedPolicyGroupHistoryCrudService, InMemoryAlternative<SharedPolicyGroup> {
+    implements SharedPolicyGroupHistoryCrudService, InMemoryAlternative<SharedPolicyGroup>
+{
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 

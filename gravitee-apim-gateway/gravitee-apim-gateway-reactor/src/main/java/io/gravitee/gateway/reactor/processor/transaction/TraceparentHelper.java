@@ -51,7 +51,7 @@ public class TraceparentHelper {
             isHexString(array[0], 2, 'f') && // 1 byte arr => 2 hex char
             isHexString(array[1], 32, '0') && // 16 bytes arr => 32 hex char
             isHexString(array[2], 16, '0') && // 8 bytes arr => 16 hex char
-            (array[3].length() == 2)
+            array[3].length() == 2
         );
     }
 
@@ -69,7 +69,7 @@ public class TraceparentHelper {
             if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
                 return false;
             }
-            sameCharForbidden = sameCharForbidden && (c == notAll);
+            sameCharForbidden = sameCharForbidden && c == notAll;
             --expectedLength;
         }
         return 0 == expectedLength && !sameCharForbidden;

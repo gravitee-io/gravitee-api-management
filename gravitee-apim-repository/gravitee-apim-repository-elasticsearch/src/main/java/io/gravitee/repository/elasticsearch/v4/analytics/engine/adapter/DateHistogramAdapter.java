@@ -33,7 +33,10 @@ public class DateHistogramAdapter {
     private static JsonObject fixedDateHistogram(Long interval, TimeRange timeRange) {
         return json().put(
             "date_histogram",
-            field().put("fixed_interval", interval + "ms").put("min_doc_count", 0).put("extended_bounds", extendedBounds(timeRange))
+            field()
+                .put("fixed_interval", interval + "ms")
+                .put("min_doc_count", 0)
+                .put("extended_bounds", extendedBounds(timeRange))
         );
     }
 

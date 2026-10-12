@@ -241,12 +241,12 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
     @Test
     void post_measures_returns_400_for_unknown_filter_shape() {
         final var json = """
-            {
-              "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
-              "filters": [{"name": "API", "operator": "UNKNOWN_OP", "value": "abc"}],
-              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
-            }
-            """;
+        {
+          "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
+          "filters": [{"name": "API", "operator": "UNKNOWN_OP", "value": "abc"}],
+          "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
+        }
+        """;
 
         final var response = target().path("measures").request().post(Entity.json(json));
 
@@ -273,12 +273,12 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         when(computeTimeSeriesUseCase.execute(any())).thenReturn(new ComputeTimeSeriesUseCase.Output(new TimeSeriesResponse(List.of())));
 
         final var json = """
-            {
-              "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
-              "interval": "1h",
-              "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
-            }
-            """;
+        {
+          "timeRange": {"from": "2026-01-01T00:00:00Z", "to": "2026-01-02T00:00:00Z"},
+          "interval": "1h",
+          "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}]
+        }
+        """;
 
         final var response = target().path("time-series").request().post(Entity.json(json));
 

@@ -178,7 +178,10 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_invalid_api_key_pattern() {
-            Response response = rootTarget().path("_verify").request().post(json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
+            Response response = rootTarget()
+                .path("_verify")
+                .request()
+                .post(json(SubscriptionFixtures.aVerifySubscription().apiKey("###")));
             assertEquals(BAD_REQUEST_400, response.getStatus());
 
             Error error = response.readEntity(Error.class);
@@ -188,7 +191,10 @@ class ApiProductSubscriptionsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_when_missing_api_key() {
-            Response response = rootTarget().path("_verify").request().post(json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
+            Response response = rootTarget()
+                .path("_verify")
+                .request()
+                .post(json(SubscriptionFixtures.aVerifySubscription().apiKey(null)));
             assertEquals(BAD_REQUEST_400, response.getStatus());
 
             Error error = response.readEntity(Error.class);

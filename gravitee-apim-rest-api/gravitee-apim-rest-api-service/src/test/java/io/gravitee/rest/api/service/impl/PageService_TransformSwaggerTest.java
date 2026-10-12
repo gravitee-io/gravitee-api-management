@@ -54,16 +54,16 @@ class PageService_TransformSwaggerTest {
     private static final String PAGE_ID = "page-id";
     private static final String PARENT_PAGE_ID = "parent-page-id";
     private static final String OPENAPI_CONTENT = """
-        {
-          "openapi": "3.0.0",
-          "info": {
-            "title": "Rundeck API",
-            "version": "1.0.0",
-            "description": "-payload ${raw}"
-          },
-          "paths": {}
-        }
-        """;
+    {
+      "openapi": "3.0.0",
+      "info": {
+        "title": "Rundeck API",
+        "version": "1.0.0",
+        "description": "-payload ${raw}"
+      },
+      "paths": {}
+    }
+    """;
 
     @InjectMocks
     private PageServiceImpl pageService;

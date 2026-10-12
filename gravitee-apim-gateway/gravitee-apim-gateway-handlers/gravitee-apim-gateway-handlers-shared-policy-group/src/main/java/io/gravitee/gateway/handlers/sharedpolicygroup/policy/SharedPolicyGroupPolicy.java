@@ -96,13 +96,11 @@ public class SharedPolicyGroupPolicy implements HttpPolicy {
 
     protected Supplier<Completable> warnNotFoundAndComplete(HttpBaseExecutionContext ctx) {
         return () -> {
-            ctx
-                .withLogger(log)
-                .warn(
-                    "No Shared Policy Group found for id {} on environment {}",
-                    policyConfiguration.getSharedPolicyGroupId(),
-                    ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
-                );
+            ctx.withLogger(log).warn(
+                "No Shared Policy Group found for id {} on environment {}",
+                policyConfiguration.getSharedPolicyGroupId(),
+                ctx.getAttribute(ContextAttributes.ATTR_ENVIRONMENT)
+            );
             return Completable.complete();
         };
     }

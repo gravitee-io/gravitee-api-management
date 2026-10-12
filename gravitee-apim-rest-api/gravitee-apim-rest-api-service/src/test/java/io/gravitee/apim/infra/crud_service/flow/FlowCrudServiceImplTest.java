@@ -198,7 +198,11 @@ class FlowCrudServiceImplTest {
         void should_save_flows() {
             // Given
             List<NativeFlow> flows = List.of(
-                NativeFlow.builder().name("My flow").enabled(true).publish(List.of(Step.builder().name("step 1").build())).build()
+                NativeFlow.builder()
+                    .name("My flow")
+                    .enabled(true)
+                    .publish(List.of(Step.builder().name("step 1").build()))
+                    .build()
             );
 
             var repoFlow = io.gravitee.repository.management.model.flow.Flow.builder()

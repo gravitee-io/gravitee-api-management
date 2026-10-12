@@ -35,22 +35,22 @@ import org.springframework.core.env.MapPropertySource;
 class RateLimitRepositoryConfigurationTest {
 
     private static final String MINIMAL_HZ_XML = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <hazelcast xmlns="http://www.hazelcast.com/schema/config"
-                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                   xsi:schemaLocation="http://www.hazelcast.com/schema/config
-                   http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
-            <cluster-name>graviteeio-apim-ratelimit-spring-test</cluster-name>
-            <network>
-                <port auto-increment="true" port-count="100">5901</port>
-                <join>
-                    <auto-detection enabled="false"/>
-                    <multicast enabled="false"/>
-                    <tcp-ip enabled="false"/>
-                </join>
-            </network>
-        </hazelcast>
-        """;
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+        <cluster-name>graviteeio-apim-ratelimit-spring-test</cluster-name>
+        <network>
+            <port auto-increment="true" port-count="100">5901</port>
+            <join>
+                <auto-detection enabled="false"/>
+                <multicast enabled="false"/>
+                <tcp-ip enabled="false"/>
+            </join>
+        </network>
+    </hazelcast>
+    """;
 
     @Test
     void wires_HazelcastInstance_and_RateLimitRepository_beans(@TempDir Path tmp) throws IOException {
@@ -59,8 +59,7 @@ class RateLimitRepositoryConfigurationTest {
 
         try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext()) {
             String instanceName = "test-config-" + System.nanoTime();
-            ctx
-                .getEnvironment()
+            ctx.getEnvironment()
                 .getPropertySources()
                 .addFirst(
                     new MapPropertySource(

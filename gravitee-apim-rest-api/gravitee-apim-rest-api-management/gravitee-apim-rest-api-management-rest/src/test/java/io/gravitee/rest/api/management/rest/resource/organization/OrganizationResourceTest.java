@@ -105,9 +105,8 @@ public class OrganizationResourceTest extends AbstractResourceTest {
      * the endpoint declares is one it actually holds, so an acl the endpoint omits can never be granted.
      */
     private void givenUserHolds(RolePermissionAction... held) {
-        Set<RolePermissionAction> heldAcls = held.length == 0
-            ? EnumSet.noneOf(RolePermissionAction.class)
-            : EnumSet.copyOf(Arrays.asList(held));
+        Set<RolePermissionAction> heldAcls =
+            held.length == 0 ? EnumSet.noneOf(RolePermissionAction.class) : EnumSet.copyOf(Arrays.asList(held));
 
         when(
             permissionService.hasPermission(

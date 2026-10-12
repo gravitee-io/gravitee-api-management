@@ -48,7 +48,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcCustomDashboardRepository
     extends JdbcAbstractCrudRepository<CustomDashboard, String>
-    implements CustomDashboardRepository {
+    implements CustomDashboardRepository
+{
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -93,7 +94,10 @@ public class JdbcCustomDashboardRepository
     public Optional<CustomDashboard> findById(String id) throws TechnicalException {
         log.debug("JdbcCustomDashboardRepository.findById({})", id);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id).stream().findFirst();
+            return jdbcTemplate
+                .query(getOrm().getSelectAllSql() + " where id = ?", getRowMapper(), id)
+                .stream()
+                .findFirst();
         } catch (Exception ex) {
             log.error("Failed to find custom dashboard by id:", ex);
             throw new TechnicalException("Failed to find custom dashboard by id", ex);

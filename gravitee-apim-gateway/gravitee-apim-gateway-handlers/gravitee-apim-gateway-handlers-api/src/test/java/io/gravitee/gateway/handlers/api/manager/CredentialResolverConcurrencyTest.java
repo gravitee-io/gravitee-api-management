@@ -77,19 +77,20 @@ class CredentialResolverConcurrencyTest {
         ExecutorService pool = Executors.newFixedThreadPool(THREADS);
         try {
             List<Callable<List<String>>> tasks = IntStream.range(0, THREADS)
-                .mapToObj(thread ->
-                    (Callable<List<String>>) () -> {
-                        List<String> mismatches = new ArrayList<>();
-                        barrier.await();
-                        for (int i = 0; i < RESOLUTIONS_PER_THREAD; i++) {
-                            String id = ids.get((thread + i) % ids.size());
-                            String value = resolver.resolve("env-1", "api-1", id, "clientSecret", SECRET_FIELD);
-                            if (!secretsById.get(id).equals(value)) {
-                                mismatches.add(id + " resolved to " + value);
+                .mapToObj(
+                    thread ->
+                        (Callable<List<String>>) () -> {
+                            List<String> mismatches = new ArrayList<>();
+                            barrier.await();
+                            for (int i = 0; i < RESOLUTIONS_PER_THREAD; i++) {
+                                String id = ids.get((thread + i) % ids.size());
+                                String value = resolver.resolve("env-1", "api-1", id, "clientSecret", SECRET_FIELD);
+                                if (!secretsById.get(id).equals(value)) {
+                                    mismatches.add(id + " resolved to " + value);
+                                }
                             }
+                            return mismatches;
                         }
-                        return mismatches;
-                    }
                 )
                 .toList();
 

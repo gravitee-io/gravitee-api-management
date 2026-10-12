@@ -153,7 +153,9 @@ class TracingPolicyHookTest {
 
         when(ctx.getInternalAttribute("tracing-span-test-policy")).thenReturn(span);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED)).thenReturn(true);
-        lenient().when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId)).thenReturn(null);
+        lenient()
+            .when(ctx.getInternalAttribute("gravitee.policy.trigger.condition." + policyId))
+            .thenReturn(null);
         when(ctx.request()).thenReturn(request);
         when(request.headers()).thenReturn(httpHeaders);
         when(httpHeaders.toSingleValueMap()).thenReturn(headers);

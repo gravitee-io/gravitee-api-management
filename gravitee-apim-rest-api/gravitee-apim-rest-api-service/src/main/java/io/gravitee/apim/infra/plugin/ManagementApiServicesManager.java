@@ -68,14 +68,15 @@ public class ManagementApiServicesManager extends AbstractService {
     public void deployServices(Api api) {
         log.debug("Deploying services for api: {}", api.getId());
         final DefaultManagementDeploymentContext deploymentContext = deploymentContext(api);
-        List<ManagementApiService> services = deploymentContext == null
-            ? List.of()
-            : apiServicePluginManager
-                .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
-                .stream()
-                .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<ManagementApiService> services =
+            deploymentContext == null
+                ? List.of()
+                : apiServicePluginManager
+                      .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
+                      .stream()
+                      .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toList());
         Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
             .blockingAwait();

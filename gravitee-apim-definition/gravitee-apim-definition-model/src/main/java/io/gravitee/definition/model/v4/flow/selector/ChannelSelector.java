@@ -105,8 +105,10 @@ public class ChannelSelector extends Selector {
         }
     }
 
-    public abstract static class ChannelSelectorBuilder<C extends ChannelSelector, B extends ChannelSelectorBuilder<C, B>>
-        extends SelectorBuilder<C, B> {
+    public abstract static class ChannelSelectorBuilder<
+        C extends ChannelSelector,
+        B extends ChannelSelectorBuilder<C, B>
+    > extends SelectorBuilder<C, B> {
 
         ChannelSelectorBuilder() {
             type(SelectorType.CHANNEL);

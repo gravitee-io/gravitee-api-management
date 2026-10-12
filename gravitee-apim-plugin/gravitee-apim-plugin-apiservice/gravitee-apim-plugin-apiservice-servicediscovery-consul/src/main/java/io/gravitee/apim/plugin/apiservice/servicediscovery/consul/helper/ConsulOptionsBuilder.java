@@ -45,7 +45,7 @@ public class ConsulOptionsBuilder {
         URI consulUri = URI.create(configuration.getUrl());
         var options = new ConsulClientOptions()
             .setHost(consulUri.getHost())
-            .setPort((consulUri.getPort() != -1) ? consulUri.getPort() : CONSUL_DEFAULT_PORT)
+            .setPort(consulUri.getPort() != -1 ? consulUri.getPort() : CONSUL_DEFAULT_PORT)
             .setDc(configuration.getDc())
             .setAclToken(configuration.getAcl());
 

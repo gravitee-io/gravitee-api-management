@@ -76,7 +76,9 @@ class PortalPageContentValidatorServiceTest {
     void should_not_check_the_size_on_update_validation() {
         // Automation API flows go through validateForUpdate: the cap must not apply to them
         PortalPageContent existingContent = GraviteeMarkdownPageContent.create("org", "env", "old");
-        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder().content("a".repeat(10 * 1024 * 1024 + 1)).build();
+        UpdatePortalPageContent updateContent = UpdatePortalPageContent.builder()
+            .content("a".repeat(10 * 1024 * 1024 + 1))
+            .build();
         when(mockValidator.appliesTo(existingContent)).thenReturn(true);
 
         // When

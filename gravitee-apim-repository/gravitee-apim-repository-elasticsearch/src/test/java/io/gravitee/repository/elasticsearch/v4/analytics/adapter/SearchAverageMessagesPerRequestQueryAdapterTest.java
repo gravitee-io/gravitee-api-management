@@ -33,49 +33,49 @@ import org.junit.jupiter.api.Test;
 class SearchAverageMessagesPerRequestQueryAdapterTest {
 
     public static final String QUERY_WITHOUT_FILTER = """
-        {
-          "size": 0,
+    {
+      "size": 0,
+      "aggs": {
+        "entrypoints_agg": {
           "aggs": {
-            "entrypoints_agg": {
-              "aggs": {
-                "avg_messages_per_request": {
-                  "bucket_script": {
-                    "buckets_path": {
-                      "msg_count": "messages_count",
-                      "req_count": "distinct_requests_count"
-                    },
-                    "script": "params.msg_count / params.req_count"
-                  }
+            "avg_messages_per_request": {
+              "bucket_script": {
+                "buckets_path": {
+                  "msg_count": "messages_count",
+                  "req_count": "distinct_requests_count"
                 },
-                "distinct_requests_count": {
-                  "cardinality": {
-                    "field": "request-id"
-                  }
-                },
-                "messages_count": {
-                  "sum": {
-                    "field": "count-increment"
-                  }
-                }
-              },
-              "terms": {
-                "field": "connector-id",
-                "size": 100
+                "script": "params.msg_count / params.req_count"
+              }
+            },
+            "distinct_requests_count": {
+              "cardinality": {
+                "field": "request-id"
+              }
+            },
+            "messages_count": {
+              "sum": {
+                "field": "count-increment"
               }
             }
           },
-          "query": {
-            "bool": {
-              "must": [
-                {
-                  "term": {
-                    "connector-type": "entrypoint"
-                  }
-                }
-              ]
-            }
+          "terms": {
+            "field": "connector-id",
+            "size": 100
           }
-        }""";
+        }
+      },
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "connector-type": "entrypoint"
+              }
+            }
+          ]
+        }
+      }
+    }""";
 
     @Test
     void should_build_query_without_filter() {

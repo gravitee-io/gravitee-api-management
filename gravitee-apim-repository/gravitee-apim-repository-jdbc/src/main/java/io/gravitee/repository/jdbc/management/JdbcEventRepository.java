@@ -501,21 +501,18 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             CHILD_ADDER,
             "id"
         );
-        jdbcTemplate.query(
-            (Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(sql);
-                int idx = 1;
-                for (final Object arg : args) {
-                    if (arg instanceof Date date) {
-                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                    } else {
-                        stmt.setObject(idx++, arg);
-                    }
+        jdbcTemplate.query((Connection cnctn) -> {
+            PreparedStatement stmt = cnctn.prepareStatement(sql);
+            int idx = 1;
+            for (final Object arg : args) {
+                if (arg instanceof Date date) {
+                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                } else {
+                    stmt.setObject(idx++, arg);
                 }
-                return stmt;
-            },
-            rowCallbackHandler
-        );
+            }
+            return stmt;
+        }, rowCallbackHandler);
         final List<Event> events = rowCallbackHandler.getRows();
         log.debug("Events found: {}", events);
         return events;

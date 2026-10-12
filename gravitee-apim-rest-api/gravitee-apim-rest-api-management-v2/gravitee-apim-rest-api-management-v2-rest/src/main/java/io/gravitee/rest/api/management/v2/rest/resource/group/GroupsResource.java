@@ -107,9 +107,8 @@ public class GroupsResource extends AbstractResource {
         Set<String> groupIds = searchParams.getIds();
         if (!canReadEnvironmentGroups(executionContext)) {
             Set<String> allowed = groupIdsAttachedToCaller(executionContext);
-            groupIds = groupIds == null || groupIds.isEmpty()
-                ? allowed
-                : groupIds.stream().filter(allowed::contains).collect(Collectors.toSet());
+            groupIds =
+                groupIds == null || groupIds.isEmpty() ? allowed : groupIds.stream().filter(allowed::contains).collect(Collectors.toSet());
         }
         Page<Group> pagedGroups = searchGroupsUseCase.execute(executionContext, groupIds, paginationParam.toPageable());
 

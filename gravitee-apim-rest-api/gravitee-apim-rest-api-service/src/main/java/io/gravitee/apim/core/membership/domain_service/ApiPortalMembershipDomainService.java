@@ -62,13 +62,13 @@ public class ApiPortalMembershipDomainService {
         Set<String> groupApiIds = userGroupIds.isEmpty()
             ? Set.of()
             : apiQueryService
-                .search(
-                    ApiSearchCriteria.builder().ids(List.copyOf(candidateApiIds)).groups(List.copyOf(userGroupIds)).build(),
-                    null,
-                    ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
-                )
-                .map(Api::getId)
-                .collect(toSet());
+                  .search(
+                      ApiSearchCriteria.builder().ids(List.copyOf(candidateApiIds)).groups(List.copyOf(userGroupIds)).build(),
+                      null,
+                      ApiFieldFilter.builder().pictureExcluded(true).definitionExcluded(true).build()
+                  )
+                  .map(Api::getId)
+                  .collect(toSet());
 
         Set<String> allowed = new HashSet<>(directApiIds);
         allowed.addAll(groupApiIds);

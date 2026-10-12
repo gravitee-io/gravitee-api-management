@@ -49,15 +49,13 @@ public class ApiDefaultSerializer extends ApiSerializer {
         // path mappings part
         if (apiEntity.getPathMappings() != null) {
             jsonGenerator.writeArrayFieldStart("path_mappings");
-            apiEntity
-                .getPathMappings()
-                .forEach(pathMapping -> {
-                    try {
-                        jsonGenerator.writeObject(pathMapping);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            apiEntity.getPathMappings().forEach(pathMapping -> {
+                try {
+                    jsonGenerator.writeObject(pathMapping);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
             jsonGenerator.writeEndArray();
         }
 

@@ -67,11 +67,12 @@ class SearchAverageMessagesPerRequestResponseAdapterTest {
             buckets
                 .entrySet()
                 .stream()
-                .map(bucket ->
-                    (JsonNode) objectMapper
-                        .createObjectNode()
-                        .put("key", bucket.getKey())
-                        .set(AVG_MESSAGES_PER_REQUEST, objectMapper.createObjectNode().put("value", bucket.getValue()))
+                .map(
+                    bucket ->
+                        (JsonNode) objectMapper
+                            .createObjectNode()
+                            .put("key", bucket.getKey())
+                            .set(AVG_MESSAGES_PER_REQUEST, objectMapper.createObjectNode().put("value", bucket.getValue()))
                 )
                 .toList()
         );

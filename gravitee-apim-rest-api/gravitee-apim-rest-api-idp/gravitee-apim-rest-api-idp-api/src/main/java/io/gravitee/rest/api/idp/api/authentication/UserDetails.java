@@ -156,7 +156,7 @@ public class UserDetails extends User implements org.springframework.security.co
 
         if ((firstname != null && !firstname.isEmpty()) || (lastname != null && !lastname.isEmpty())) {
             if (firstname != null && !firstname.isEmpty()) {
-                displayName = firstname + ((lastname != null && !lastname.isEmpty()) ? ' ' + lastname : "");
+                displayName = firstname + (lastname != null && !lastname.isEmpty() ? ' ' + lastname : "");
             } else {
                 displayName = lastname;
             }

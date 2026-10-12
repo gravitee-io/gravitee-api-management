@@ -42,14 +42,12 @@ import org.junit.jupiter.api.Test;
  * single-connection pool ({@code maxConcurrentConnections = 1}) and a slow backend so requests contend for the pool.
  */
 @GatewayTest
-@DeployApi(
-    {
-        "/apis/v4/http/api-mwq-unbounded.json",
-        "/apis/v4/http/api-mwq-absent.json",
-        "/apis/v4/http/api-mwq-null.json",
-        "/apis/v4/http/api-mwq-bounded.json",
-    }
-)
+@DeployApi({
+    "/apis/v4/http/api-mwq-unbounded.json",
+    "/apis/v4/http/api-mwq-absent.json",
+    "/apis/v4/http/api-mwq-null.json",
+    "/apis/v4/http/api-mwq-bounded.json",
+})
 class HttpProxyMaxWaitQueueEdgeCasesV4IntegrationTest extends AbstractGatewayTest {
 
     @Override

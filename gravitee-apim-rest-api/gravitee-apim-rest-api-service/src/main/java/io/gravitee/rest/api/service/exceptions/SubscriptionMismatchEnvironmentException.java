@@ -34,7 +34,7 @@ public class SubscriptionMismatchEnvironmentException extends AbstractManagement
 
     @Override
     public String getMessage() {
-        return ("Application [" + applicationId + "] and plan [" + planId + "] doesn't belong to the same environment");
+        return "Application [" + applicationId + "] and plan [" + planId + "] doesn't belong to the same environment";
     }
 
     @Override

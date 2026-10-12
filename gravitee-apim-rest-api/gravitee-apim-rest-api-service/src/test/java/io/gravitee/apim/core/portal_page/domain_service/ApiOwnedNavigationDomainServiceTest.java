@@ -141,7 +141,10 @@ class ApiOwnedNavigationDomainServiceTest {
             var items = new ArrayList<PortalNavigationItem>();
             PortalNavigationItemId parentId = null;
             for (int depth = 0; depth < 20_000; depth++) {
-                var folder = aFolder("Level " + depth, parentId).toBuilder().reference(ownedBy(API_ID)).build();
+                var folder = aFolder("Level " + depth, parentId)
+                    .toBuilder()
+                    .reference(ownedBy(API_ID))
+                    .build();
                 items.add(folder);
                 parentId = folder.getId();
             }

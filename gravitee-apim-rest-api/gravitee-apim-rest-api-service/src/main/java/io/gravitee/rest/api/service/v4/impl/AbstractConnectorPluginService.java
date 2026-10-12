@@ -47,7 +47,8 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugin<?>>
     extends AbstractPluginService<T, ConnectorPluginEntity>
-    implements ConnectorPluginService {
+    implements ConnectorPluginService
+{
 
     protected AbstractConnectorPluginService(final JsonSchemaService jsonSchemaService, final ConfigurablePluginManager<T> pluginManager) {
         super(jsonSchemaService, pluginManager);
@@ -152,7 +153,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             .list()
             .stream()
             .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
+                ((EntrypointConnectorPluginManager) pluginManager)
+                    .getFactoryById(plugin.id(), true)
                     .supportedApi()
                     .equals(io.gravitee.gateway.reactive.api.ApiType.fromLabel(apiType.getLabel()))
             )
@@ -166,7 +168,8 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
             .list()
             .stream()
             .filter(plugin ->
-                ((EntrypointConnectorPluginManager) pluginManager).getFactoryById(plugin.id(), true)
+                ((EntrypointConnectorPluginManager) pluginManager)
+                    .getFactoryById(plugin.id(), true)
                     .supportedModes()
                     .contains(io.gravitee.gateway.reactive.api.ConnectorMode.fromLabel(connectorMode.getLabel()))
             )

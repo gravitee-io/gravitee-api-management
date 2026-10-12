@@ -34,7 +34,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiServicePluginServiceImpl
     extends AbstractPluginService<ApiServicePlugin<?, ?>, ApiServicePluginEntity>
-    implements ApiServicePluginService {
+    implements ApiServicePluginService
+{
 
     public ApiServicePluginServiceImpl(
         JsonSchemaService jsonSchemaService,

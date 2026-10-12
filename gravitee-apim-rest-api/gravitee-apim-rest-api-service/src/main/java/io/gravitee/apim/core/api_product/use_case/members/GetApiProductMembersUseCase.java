@@ -52,13 +52,14 @@ public class GetApiProductMembersUseCase {
      * members, and stops a caller that reads the first role from picking one out of the other scope.
      */
     private static Member withApiProductRolesOnly(Member member) {
-        var roles = member.getRoles() == null
-            ? List.<Member.Role>of()
-            : member
-                .getRoles()
-                .stream()
-                .filter(role -> role.getScope() == RoleScope.API_PRODUCT)
-                .toList();
+        var roles =
+            member.getRoles() == null
+                ? List.<Member.Role>of()
+                : member
+                      .getRoles()
+                      .stream()
+                      .filter(role -> role.getScope() == RoleScope.API_PRODUCT)
+                      .toList();
         return member.toBuilder().roles(roles).build();
     }
 }

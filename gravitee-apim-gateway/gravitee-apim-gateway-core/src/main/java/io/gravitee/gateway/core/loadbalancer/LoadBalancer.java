@@ -63,7 +63,7 @@ public abstract class LoadBalancer implements LoadBalancerStrategy, EndpointAvai
     @Override
     public Endpoint next() {
         Endpoint endpoint = nextEndpoint();
-        return (endpoint != null) ? endpoint : nextSecondary();
+        return endpoint != null ? endpoint : nextSecondary();
     }
 
     private Endpoint nextSecondary() {

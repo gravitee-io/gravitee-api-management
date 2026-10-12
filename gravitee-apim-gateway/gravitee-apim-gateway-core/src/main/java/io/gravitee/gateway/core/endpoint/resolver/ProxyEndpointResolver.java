@@ -53,7 +53,7 @@ public class ProxyEndpointResolver implements EndpointResolver {
 
     @Override
     public ProxyEndpoint resolve(String reference) {
-        ProxyEndpoint result = (reference != null) ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
+        ProxyEndpoint result = reference != null ? selectUserDefinedEndpoint(reference) : selectLoadBalancedEndpoint();
         if (result == null) {
             log.debug("No endpoint resolved for reference [{}]", reference);
         } else {
@@ -74,7 +74,7 @@ public class ProxyEndpointResolver implements EndpointResolver {
         // Resolve to the next endpoint from group LB
         final Endpoint endpoint = group.next();
 
-        return (endpoint != null) ? new DefaultProxyEndpoint(endpoint) : null;
+        return endpoint != null ? new DefaultProxyEndpoint(endpoint) : null;
     }
 
     /**

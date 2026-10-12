@@ -44,7 +44,13 @@ class DistributedEventRepositorySearchAllTest {
             @Override
             public Flowable<DistributedEvent> search(DistributedEventCriteria criteria, Long page, Long size) {
                 searchCalls.incrementAndGet();
-                return Flowable.fromIterable(events.stream().skip(page * size).limit(size).toList());
+                return Flowable.fromIterable(
+                    events
+                        .stream()
+                        .skip(page * size)
+                        .limit(size)
+                        .toList()
+                );
             }
 
             @Override

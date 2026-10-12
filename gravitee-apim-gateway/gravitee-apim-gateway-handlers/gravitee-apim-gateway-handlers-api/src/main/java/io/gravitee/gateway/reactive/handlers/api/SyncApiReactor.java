@@ -261,34 +261,36 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private Completable handleRequest(final MutableExecutionContext ctx) {
         // Setup all processors before handling the request (ex: logging).
-        return executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
-            // Execute organization flow chain
-            .andThen(organizationFlowChain.execute(ctx, REQUEST))
-            // Before Security Chain.
-            .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
-            // Execute security chain.
-            .andThen(httpSecurityChain.execute(ctx))
-            // Execute before flows processors
-            .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
-            .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
-            .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
-            // All request flows have been executed. Invokes backend.
-            .andThen(invokeBackend(ctx))
-            // Execute response flows (api plan, api, platform).
-            .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
-            .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
-            // Execute after flows processors
-            .andThen(executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE))
-            .onErrorResumeNext(error -> processThrowable(ctx, error))
-            .compose(upstream -> timeout(upstream, ctx))
-            // Platform post flows must always be executed
-            .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
-            .onErrorResumeNext(error -> processOrganizationFlowError(ctx, error))
-            // Catch all possible unexpected errors.
-            .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
-            .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
-            // Finally, end the response.
-            .andThen(endResponse(ctx));
+        return (
+            executeProcessorChain(ctx, beforeHandleProcessors, REQUEST)
+                // Execute organization flow chain
+                .andThen(organizationFlowChain.execute(ctx, REQUEST))
+                // Before Security Chain.
+                .andThen(executeProcessorChain(ctx, beforeSecurityChainProcessors, REQUEST))
+                // Execute security chain.
+                .andThen(httpSecurityChain.execute(ctx))
+                // Execute before flows processors
+                .andThen(executeProcessorChain(ctx, beforeApiFlowsProcessors, REQUEST))
+                .andThen(executeFlowChain(ctx, apiPlanFlowChain, REQUEST))
+                .andThen(executeFlowChain(ctx, apiFlowChain, REQUEST))
+                // All request flows have been executed. Invokes backend.
+                .andThen(invokeBackend(ctx))
+                // Execute response flows (api plan, api, platform).
+                .andThen(executeFlowChain(ctx, apiPlanFlowChain, RESPONSE))
+                .andThen(executeFlowChain(ctx, apiFlowChain, RESPONSE))
+                // Execute after flows processors
+                .andThen(executeProcessorChain(ctx, afterApiFlowsProcessors, RESPONSE))
+                .onErrorResumeNext(error -> processThrowable(ctx, error))
+                .compose(upstream -> timeout(upstream, ctx))
+                // Platform post flows must always be executed
+                .andThen(executeFlowChain(ctx, organizationFlowChain, RESPONSE).compose(upstream -> timeout(upstream, ctx)))
+                .onErrorResumeNext(error -> processOrganizationFlowError(ctx, error))
+                // Catch all possible unexpected errors.
+                .onErrorResumeNext(t -> handleUnexpectedError(ctx, t))
+                .andThen(executeProcessorChain(ctx, afterHandleProcessors, RESPONSE))
+                // Finally, end the response.
+                .andThen(endResponse(ctx))
+        );
     }
 
     /**
@@ -362,7 +364,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
             return null;
         }
 
-        if ((invoker instanceof io.gravitee.gateway.api.Invoker) && !(invoker instanceof InvokerAdapter)) {
+        if (invoker instanceof io.gravitee.gateway.api.Invoker && !(invoker instanceof InvokerAdapter)) {
             return new InvokerAdapter((io.gravitee.gateway.api.Invoker) invoker);
         }
 
@@ -515,7 +517,7 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
         }
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        log.debug("API reactor started in {} ms", (endTime - startTime));
+        log.debug("API reactor started in {} ms", endTime - startTime);
     }
 
     @Override

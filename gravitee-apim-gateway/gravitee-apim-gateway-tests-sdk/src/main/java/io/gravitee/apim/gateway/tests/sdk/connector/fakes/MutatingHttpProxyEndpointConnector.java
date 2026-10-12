@@ -43,15 +43,13 @@ public class MutatingHttpProxyEndpointConnector extends HttpProxyEndpointConnect
         return ctx
             .request()
             .onBody(body ->
-                body
-                    .defaultIfEmpty(Buffer.buffer())
-                    .flatMapMaybe(b -> {
-                        Buffer transformed = Buffer.buffer("mutated-" + b.toString());
-                        ((MutableRequest) ctx.request()).pathInfo("/mutated-path");
-                        ctx.request().headers().set("X-Mutated", "true");
-                        ctx.request().contentLength(transformed.length());
-                        return Maybe.just(transformed);
-                    })
+                body.defaultIfEmpty(Buffer.buffer()).flatMapMaybe(b -> {
+                    Buffer transformed = Buffer.buffer("mutated-" + b.toString());
+                    ((MutableRequest) ctx.request()).pathInfo("/mutated-path");
+                    ctx.request().headers().set("X-Mutated", "true");
+                    ctx.request().contentLength(transformed.length());
+                    return Maybe.just(transformed);
+                })
             )
             .andThen(super.connect(ctx));
     }

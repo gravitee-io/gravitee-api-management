@@ -82,7 +82,10 @@ public abstract class AbstractTracingHook implements HttpHook {
         Tracer tracer = ctx.getTracer();
         if (tracer != null) {
             Span span = tracer.startSpanFrom(
-                InternalRequest.builder().name(spanName(id, executionPhase)).attributes(spanAttributes(id, ctx, executionPhase)).build()
+                InternalRequest.builder()
+                    .name(spanName(id, executionPhase))
+                    .attributes(spanAttributes(id, ctx, executionPhase))
+                    .build()
             );
             putSpan(id, ctx, span);
         }
@@ -131,8 +134,7 @@ public abstract class AbstractTracingHook implements HttpHook {
         if (span != null) {
             Tracer tracer = ctx.getTracer();
             if (tracer != null) {
-                span
-                    .withAttribute("gravitee.execution-failure.key", failure.key())
+                span.withAttribute("gravitee.execution-failure.key", failure.key())
                     .withAttribute("gravitee.execution-failure.status-code", failure.statusCode())
                     .withAttribute("gravitee.execution-failure.content-type", failure.contentType());
                 tracer.endOnError(span, failure.message());

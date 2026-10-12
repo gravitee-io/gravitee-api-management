@@ -26,9 +26,8 @@ public record ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long t
         this.apiIds = apiIds;
         this.from = from;
         this.to = to;
-        this.definitionVersions = definitionVersions == null || definitionVersions.isEmpty()
-            ? List.of(DefinitionVersion.V4)
-            : definitionVersions;
+        this.definitionVersions =
+            definitionVersions == null || definitionVersions.isEmpty() ? List.of(DefinitionVersion.V4) : definitionVersions;
     }
 
     public ResponseStatusQueryCriteria(List<String> apiIds, Long from, Long to) {

@@ -74,7 +74,9 @@ class GetPortalUseCaseTest {
         var unknownId = PortalId.of("00000000-0000-0000-0000-0000000000ff");
         var throwable = catchThrowable(() -> useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, unknownId)));
 
-        assertThat(throwable).isInstanceOf(PortalNotFoundException.class).hasMessage("Portal [ " + unknownId + " ] not found");
+        assertThat(throwable)
+            .isInstanceOf(PortalNotFoundException.class)
+            .hasMessage("Portal [ " + unknownId + " ] not found");
     }
 
     @Test

@@ -59,20 +59,16 @@ public class OrganizationFlowResolver extends AbstractFlowResolver<HttpBaseExecu
 
     @Override
     public Flowable<Flow> resolve(final HttpBaseExecutionContext ctx) {
-        return super
-            .resolve(ctx)
-            .compose(upstream -> {
-                if (isBestMatch()) {
-                    return upstream
-                        .toList()
-                        .flatMapMaybe(flowList ->
-                            Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flowList, ctx.request().pathInfo()))
-                        )
-                        .toFlowable();
-                } else {
-                    return upstream;
-                }
-            });
+        return super.resolve(ctx).compose(upstream -> {
+            if (isBestMatch()) {
+                return upstream
+                    .toList()
+                    .flatMapMaybe(flowList -> Maybe.fromCallable(() -> bestMatchFlowSelector.forPath(flowList, ctx.request().pathInfo())))
+                    .toFlowable();
+            } else {
+                return upstream;
+            }
+        });
     }
 
     private boolean isBestMatch() {

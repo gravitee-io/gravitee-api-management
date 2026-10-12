@@ -101,12 +101,10 @@ public class GroupResource extends AbstractResource {
         content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = GroupEntity.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
     public GroupEntity updateGroup(@Parameter(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         final GroupEntity groupEntity = checkRights();
         // check if user is a 'simple group admin' or a platform admin

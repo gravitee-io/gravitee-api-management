@@ -37,7 +37,9 @@ class GraviteeMarkdownValidatorTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "# Valid GMD Content\n\nSome markdown text", "<gmd-input name=\"test\" />\n\nSome content", "  \n  Valid content  \n  ",
+                "# Valid GMD Content\n\nSome markdown text",
+                "<gmd-input name=\"test\" />\n\nSome content",
+                "  \n  Valid content  \n  ",
             }
         )
         void should_accept_valid_content(String validContent) {

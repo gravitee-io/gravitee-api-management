@@ -92,52 +92,157 @@ class SearchResponseStatusRangesAdapterTest {
         }
 
         private static final String API_IDS_FILTERED_QUERY = """
-            {
-              "size": 0,
-              "track_total_hits": true,
-              "query": {
-                    "bool": {
-                        "filter": [
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "terms": {
-                                                "api-id": [
-                                                    "api-id"
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "terms": {
-                                                "api": [
-                                                    "api-id"
-                                                ]
-                                            }
+        {
+          "size": 0,
+          "track_total_hits": true,
+          "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "terms": {
+                                            "api-id": [
+                                                "api-id"
+                                            ]
                                         }
-                                    ]
+                                    },
+                                    {
+                                        "terms": {
+                                            "api": [
+                                                "api-id"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+          "aggs": {
+            "entrypoint_id_agg": {
+              "terms": { "field": "entrypoint-id", "size": 100 },
+              "aggs": {
+                "status_ranges": {
+                  "range": {
+                    "field": "status",
+                    "ranges": [
+                      { "from": 100.0, "to": 200.0 },
+                      { "from": 200.0, "to": 300.0 },
+                      { "from": 300.0, "to": 400.0 },
+                      { "from": 400.0, "to": 500.0 },
+                      { "from": 500.0, "to": 600.0 }
+                    ]
+                  }
+                }
+              }
+            },
+            "all_apis_status_ranges": {
+                "range": {
+                    "field": "status",
+                    "ranges": [
+                        {
+                            "from": 100.0,
+                            "to": 200.0
+                        },
+                        {
+                            "from": 200.0,
+                            "to": 300.0
+                        },
+                        {
+                            "from": 300.0,
+                            "to": 400.0
+                        },
+                        {
+                            "from": 400.0,
+                            "to": 500.0
+                        },
+                        {
+                            "from": 500.0,
+                            "to": 600.0
+                        }
+                    ]
+                }
+            }
+          }
+        }
+        """;
+
+        private static final String API_IDS_AND_TIME_FILTERED_QUERY = """
+        {
+            "size": 0,
+            "track_total_hits": true,
+            "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "terms": {
+                                            "api-id": [
+                                                "api-id"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "terms": {
+                                            "api": [
+                                                "api-id"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "range": {
+                                "@timestamp": {
+                                    "gte": 1728992401566,
+                                    "lte": 1729078801566
                                 }
                             }
-                        ]
-                    }
-                },
-              "aggs": {
+                        }
+                    ]
+                }
+            },
+            "aggs": {
                 "entrypoint_id_agg": {
-                  "terms": { "field": "entrypoint-id", "size": 100 },
-                  "aggs": {
-                    "status_ranges": {
-                      "range": {
-                        "field": "status",
-                        "ranges": [
-                          { "from": 100.0, "to": 200.0 },
-                          { "from": 200.0, "to": 300.0 },
-                          { "from": 300.0, "to": 400.0 },
-                          { "from": 400.0, "to": 500.0 },
-                          { "from": 500.0, "to": 600.0 }
-                        ]
-                      }
+                    "terms": {
+                        "field": "entrypoint-id",
+                        "size": 100
+                    },
+                    "aggs": {
+                        "status_ranges": {
+                            "range": {
+                                "field": "status",
+                                "ranges": [
+                                    {
+                                        "from": 100.0,
+                                        "to": 200.0
+                                    },
+                                    {
+                                        "from": 200.0,
+                                        "to": 300.0
+                                    },
+                                    {
+                                        "from": 300.0,
+                                        "to": 400.0
+                                    },
+                                    {
+                                        "from": 400.0,
+                                        "to": 500.0
+                                    },
+                                    {
+                                        "from": 500.0,
+                                        "to": 600.0
+                                    }
+                                ]
+                            }
+                        }
                     }
-                  }
                 },
                 "all_apis_status_ranges": {
                     "range": {
@@ -166,207 +271,102 @@ class SearchResponseStatusRangesAdapterTest {
                         ]
                     }
                 }
-              }
             }
-            """;
-
-        private static final String API_IDS_AND_TIME_FILTERED_QUERY = """
-            {
-                "size": 0,
-                "track_total_hits": true,
-                "query": {
-                    "bool": {
-                        "filter": [
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "terms": {
-                                                "api-id": [
-                                                    "api-id"
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "terms": {
-                                                "api": [
-                                                    "api-id"
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "range": {
-                                    "@timestamp": {
-                                        "gte": 1728992401566,
-                                        "lte": 1729078801566
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                },
-                "aggs": {
-                    "entrypoint_id_agg": {
-                        "terms": {
-                            "field": "entrypoint-id",
-                            "size": 100
-                        },
-                        "aggs": {
-                            "status_ranges": {
-                                "range": {
-                                    "field": "status",
-                                    "ranges": [
-                                        {
-                                            "from": 100.0,
-                                            "to": 200.0
-                                        },
-                                        {
-                                            "from": 200.0,
-                                            "to": 300.0
-                                        },
-                                        {
-                                            "from": 300.0,
-                                            "to": 400.0
-                                        },
-                                        {
-                                            "from": 400.0,
-                                            "to": 500.0
-                                        },
-                                        {
-                                            "from": 500.0,
-                                            "to": 600.0
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "all_apis_status_ranges": {
-                        "range": {
-                            "field": "status",
-                            "ranges": [
-                                {
-                                    "from": 100.0,
-                                    "to": 200.0
-                                },
-                                {
-                                    "from": 200.0,
-                                    "to": 300.0
-                                },
-                                {
-                                    "from": 300.0,
-                                    "to": 400.0
-                                },
-                                {
-                                    "from": 400.0,
-                                    "to": 500.0
-                                },
-                                {
-                                    "from": 500.0,
-                                    "to": 600.0
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-            """;
+        }
+        """;
 
         private static final String API_EMPTY_IDS_ARRAY = """
-            {
-                "size": 0,
-                "track_total_hits": true,
-                "query": {
-                    "bool": {
-                        "filter": [
-                            {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "terms": {
-                                                "api-id": []
-                                            }
-                                        },
-                                        {
-                                            "terms": {
-                                                "api": []
-                                            }
+        {
+            "size": 0,
+            "track_total_hits": true,
+            "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "terms": {
+                                            "api-id": []
                                         }
-                                    ]
-                                }
+                                    },
+                                    {
+                                        "terms": {
+                                            "api": []
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "entrypoint_id_agg": {
+                    "terms": {
+                        "field": "entrypoint-id",
+                        "size": 100
+                    },
+                    "aggs": {
+                        "status_ranges": {
+                            "range": {
+                                "field": "status",
+                                "ranges": [
+                                    {
+                                        "from": 100.0,
+                                        "to": 200.0
+                                    },
+                                    {
+                                        "from": 200.0,
+                                        "to": 300.0
+                                    },
+                                    {
+                                        "from": 300.0,
+                                        "to": 400.0
+                                    },
+                                    {
+                                        "from": 400.0,
+                                        "to": 500.0
+                                    },
+                                    {
+                                        "from": 500.0,
+                                        "to": 600.0
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "all_apis_status_ranges": {
+                    "range": {
+                        "field": "status",
+                        "ranges": [
+                            {
+                                "from": 100.0,
+                                "to": 200.0
+                            },
+                            {
+                                "from": 200.0,
+                                "to": 300.0
+                            },
+                            {
+                                "from": 300.0,
+                                "to": 400.0
+                            },
+                            {
+                                "from": 400.0,
+                                "to": 500.0
+                            },
+                            {
+                                "from": 500.0,
+                                "to": 600.0
                             }
                         ]
                     }
-                },
-                "aggs": {
-                    "entrypoint_id_agg": {
-                        "terms": {
-                            "field": "entrypoint-id",
-                            "size": 100
-                        },
-                        "aggs": {
-                            "status_ranges": {
-                                "range": {
-                                    "field": "status",
-                                    "ranges": [
-                                        {
-                                            "from": 100.0,
-                                            "to": 200.0
-                                        },
-                                        {
-                                            "from": 200.0,
-                                            "to": 300.0
-                                        },
-                                        {
-                                            "from": 300.0,
-                                            "to": 400.0
-                                        },
-                                        {
-                                            "from": 400.0,
-                                            "to": 500.0
-                                        },
-                                        {
-                                            "from": 500.0,
-                                            "to": 600.0
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "all_apis_status_ranges": {
-                        "range": {
-                            "field": "status",
-                            "ranges": [
-                                {
-                                    "from": 100.0,
-                                    "to": 200.0
-                                },
-                                {
-                                    "from": 200.0,
-                                    "to": 300.0
-                                },
-                                {
-                                    "from": 300.0,
-                                    "to": 400.0
-                                },
-                                {
-                                    "from": 400.0,
-                                    "to": 500.0
-                                },
-                                {
-                                    "from": 500.0,
-                                    "to": 600.0
-                                }
-                            ]
-                        }
-                    }
                 }
             }
-            """;
+        }
+        """;
     }
 
     @Nested

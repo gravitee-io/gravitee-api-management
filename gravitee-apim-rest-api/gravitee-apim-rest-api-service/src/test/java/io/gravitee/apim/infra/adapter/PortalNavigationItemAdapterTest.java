@@ -716,7 +716,7 @@ class PortalNavigationItemAdapterTest {
     class ConfigurationWithFetchState {
 
         private static final String STORED_CONFIGURATION = """
-            {"portalPageContentId":"550e8400-e29b-41d4-a716-446655440013","source":{"type":"github-fetcher","configuration":"{\\"repository\\":\\"docs\\"}","fetchCron":"0 */10 * * * *","lastFetchedAt":"2026-07-17T10:00:00Z","lastFetchAttemptAt":"2026-07-17T11:00:00Z","lastFetchError":"boom","subtreeImport":true}}""";
+        {"portalPageContentId":"550e8400-e29b-41d4-a716-446655440013","source":{"type":"github-fetcher","configuration":"{\\"repository\\":\\"docs\\"}","fetchCron":"0 */10 * * * *","lastFetchedAt":"2026-07-17T10:00:00Z","lastFetchAttemptAt":"2026-07-17T11:00:00Z","lastFetchError":"boom","subtreeImport":true}}""";
         private static final Instant FETCHED_AT = Instant.parse("2026-10-08T10:00:00Z");
 
         @Test

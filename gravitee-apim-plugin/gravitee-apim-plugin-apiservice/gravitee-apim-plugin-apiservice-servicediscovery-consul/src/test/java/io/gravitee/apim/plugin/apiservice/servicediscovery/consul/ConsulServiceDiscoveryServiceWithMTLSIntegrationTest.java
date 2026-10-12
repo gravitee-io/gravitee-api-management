@@ -428,7 +428,7 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
     }
 
     private static String consulUrl() {
-        return ("https://" + consulHost() + ":" + consulSecuredPort());
+        return "https://" + consulHost() + ":" + consulSecuredPort();
     }
 
     private static String consulHost() {
@@ -447,8 +447,7 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
     }
 
     private void configureDiscoveryInGroup(JsonObject configuration) {
-        api
-            .getDefinition()
+        api.getDefinition()
             .getEndpointGroups()
             .get(0)
             .getServices()
@@ -468,8 +467,7 @@ class ConsulServiceDiscoveryServiceWithMTLSIntegrationTest {
 
     private void startConsulServiceDiscovery(VertxTestContext testContext) throws InterruptedException {
         cut = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
-        cut
-            .start()
+        cut.start()
             .andThen(
                 Completable.create(emitter -> {
                     // Increased timeout to 10 seconds to accommodate mTLS handshake and service discovery

@@ -99,11 +99,9 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         final JsonNode tenantsNode = node.get("tenants");
         if (tenantsNode != null && tenantsNode.isArray()) {
             List<String> tenants = new ArrayList<>(tenantsNode.size());
-            tenantsNode
-                .elements()
-                .forEachRemaining(tenantNode -> {
-                    tenants.add(tenantNode.asText());
-                });
+            tenantsNode.elements().forEachRemaining(tenantNode -> {
+                tenants.add(tenantNode.asText());
+            });
 
             endpoint.setTenants(tenants);
         }
@@ -121,14 +119,12 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
                     .traverse(ctxt.getParser().getCodec())
                     .readValueAs(new TypeReference<HashMap<String, String>>() {});
                 ArrayNode headersUpdated = mapper.createArrayNode();
-                headers
-                    .keySet()
-                    .forEach(key -> {
-                        ObjectNode objectNode = mapper.createObjectNode();
-                        objectNode.put("name", key);
-                        objectNode.put("value", headers.get(key));
-                        headersUpdated.add(objectNode);
-                    });
+                headers.keySet().forEach(key -> {
+                    ObjectNode objectNode = mapper.createObjectNode();
+                    objectNode.put("name", key);
+                    objectNode.put("value", headers.get(key));
+                    headersUpdated.add(objectNode);
+                });
 
                 ((ObjectNode) node).set("headers", headersUpdated);
             }

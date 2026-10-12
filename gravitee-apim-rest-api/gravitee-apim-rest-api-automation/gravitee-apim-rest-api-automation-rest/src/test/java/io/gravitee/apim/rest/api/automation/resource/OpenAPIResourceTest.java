@@ -45,39 +45,39 @@ class OpenAPIResourceTest extends AbstractResourceTest {
     private static final String MODULE_PATH = "/organizations/{orgId}/environments/{envId}/aim/catalog/mcp-servers";
 
     private static final String AIM_FRAGMENT = """
-        openapi: 3.1.0
-        info:
-          title: aim automation
-          version: 1.0.0
-        tags:
-          - name: AI Catalog
-        paths:
-          /organizations/{orgId}/environments/{envId}/aim/catalog/mcp-servers:
-            put:
-              operationId: createOrUpdateAimCatalogMcpServer
-              responses:
-                "200":
-                  description: ok
-        components:
-          schemas:
-            AimCatalogMcpServerSpec:
-              type: object
-              properties:
-                hrid:
-                  type: string
-        """;
+    openapi: 3.1.0
+    info:
+      title: aim automation
+      version: 1.0.0
+    tags:
+      - name: AI Catalog
+    paths:
+      /organizations/{orgId}/environments/{envId}/aim/catalog/mcp-servers:
+        put:
+          operationId: createOrUpdateAimCatalogMcpServer
+          responses:
+            "200":
+              description: ok
+    components:
+      schemas:
+        AimCatalogMcpServerSpec:
+          type: object
+          properties:
+            hrid:
+              type: string
+    """;
 
     private static final String COLLIDING_FRAGMENT = """
-        openapi: 3.1.0
-        info:
-          title: broken
-          version: 1.0.0
-        paths: {}
-        components:
-          schemas:
-            BaseStatus:
-              type: object
-        """;
+    openapi: 3.1.0
+    info:
+      title: broken
+      version: 1.0.0
+    paths: {}
+    components:
+      schemas:
+        BaseStatus:
+          type: object
+    """;
 
     @Inject
     private GammaAutomationPorts gammaAutomationPorts;

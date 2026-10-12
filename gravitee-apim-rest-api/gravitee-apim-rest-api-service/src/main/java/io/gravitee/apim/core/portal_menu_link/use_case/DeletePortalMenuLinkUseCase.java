@@ -51,7 +51,8 @@ public class DeletePortalMenuLinkUseCase {
     private void updatePortalMenuLinkOrder(int oldOrder, String environmentId) {
         var orderIncrement = -1;
 
-        this.portalMenuLinkQueryService.findByEnvironmentIdSortByOrder(environmentId)
+        this.portalMenuLinkQueryService
+            .findByEnvironmentIdSortByOrder(environmentId)
             .stream()
             .filter(menuLink -> this.toBeMovedUp(oldOrder, menuLink.getOrder()))
             .forEach(menuLink -> {

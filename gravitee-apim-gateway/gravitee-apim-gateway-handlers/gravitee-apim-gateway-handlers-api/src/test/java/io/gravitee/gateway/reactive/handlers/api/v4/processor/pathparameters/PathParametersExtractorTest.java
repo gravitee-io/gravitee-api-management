@@ -78,7 +78,9 @@ class PathParametersExtractorTest {
     ) throws IOException {
         final PathParametersExtractor cut = new PathParametersExtractor(readApi(api));
         final Map<String, String> pathParams = cut.extract(method, path);
-        assertThat(pathParams).isEqualTo(expectedPathParam).doesNotContainKeys(excludedPathParam.toArray(new String[0]));
+        assertThat(pathParams)
+            .isEqualTo(expectedPathParam)
+            .doesNotContainKeys(excludedPathParam.toArray(new String[0]));
     }
 
     private static Api readApi(String name) throws IOException {

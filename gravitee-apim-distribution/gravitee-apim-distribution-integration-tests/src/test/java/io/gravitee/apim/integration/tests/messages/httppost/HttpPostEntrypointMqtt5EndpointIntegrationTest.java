@@ -84,21 +84,19 @@ class HttpPostEntrypointMqtt5EndpointIntegrationTest extends AbstractMqtt5Endpoi
             .test()
             .awaitDone(30, TimeUnit.SECONDS);
 
-        testSubscriber
-            .awaitDone(10, TimeUnit.SECONDS)
-            .assertValue(message -> {
-                assertThat(message.getTopic()).hasToString(TEST_TOPIC);
-                assertThat(message.getResponseTopic()).isEmpty();
-                assertThat(message.isRetain()).isFalse();
-                assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
+        testSubscriber.awaitDone(10, TimeUnit.SECONDS).assertValue(message -> {
+            assertThat(message.getTopic()).hasToString(TEST_TOPIC);
+            assertThat(message.getResponseTopic()).isEmpty();
+            assertThat(message.isRetain()).isFalse();
+            assertThat(message.getPayloadAsBytes()).isEqualTo(requestBody.toBuffer().getBytes());
 
-                assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
-                    "(content-length, " + requestBody.toString().length() + ")",
-                    "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
-                    "(X-Test-Header, header-value)"
-                );
-                return true;
-            });
+            assertThat(message.getUserProperties().asList().stream().map(Object::toString)).containsAnyOf(
+                "(content-length, " + requestBody.toString().length() + ")",
+                "(host, " + mqtt5.getHost() + ":" + mqtt5.getMqttPort() + ")",
+                "(X-Test-Header, header-value)"
+            );
+            return true;
+        });
 
         // Verify there is no message since retain is false
         subscribeToMqtt5(TEST_TOPIC).take(1, TimeUnit.SECONDS).test().awaitDone(10, TimeUnit.SECONDS).assertNoValues();

@@ -217,7 +217,10 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
                 .search(
                     criteria,
                     buildSortable(sortable),
-                    new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+                    new PageableBuilder()
+                        .pageNumber(pageable.getPageNumber() - 1)
+                        .pageSize(pageable.getPageSize())
+                        .build()
                 )
                 .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
                 .map(this::convert);
@@ -352,6 +355,9 @@ public class TicketServiceImpl extends AbstractService implements TicketService 
         if (sortable == null) {
             return null;
         }
-        return new SortableBuilder().field(sortable.getField()).order(sortable.isAscOrder() ? Order.ASC : Order.DESC).build();
+        return new SortableBuilder()
+            .field(sortable.getField())
+            .order(sortable.isAscOrder() ? Order.ASC : Order.DESC)
+            .build();
     }
 }

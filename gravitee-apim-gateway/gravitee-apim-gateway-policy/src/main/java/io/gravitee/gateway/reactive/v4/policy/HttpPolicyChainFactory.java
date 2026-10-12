@@ -100,8 +100,7 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
     private String getPolicyChainId(final String flowChainId, final Flow flow) {
         StringBuilder flowNameBuilder = new StringBuilder(flowChainId).append(ID_SEPARATOR);
         if (StringUtil.isNullOrEmpty(flow.getName())) {
-            flow
-                .selectorByType(SelectorType.HTTP)
+            flow.selectorByType(SelectorType.HTTP)
                 .map(HttpSelector.class::cast)
                 .ifPresent(httpSelector -> {
                     if (httpSelector.getMethods() == null || httpSelector.getMethods().isEmpty()) {

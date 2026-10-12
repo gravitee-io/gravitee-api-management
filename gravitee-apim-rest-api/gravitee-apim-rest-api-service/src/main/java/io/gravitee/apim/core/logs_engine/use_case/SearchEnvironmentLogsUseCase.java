@@ -154,10 +154,10 @@ public class SearchEnvironmentLogsUseCase {
         var planNameById = planIds.isEmpty()
             ? Map.<String, String>of()
             : planCrudService
-                .findByIds(planIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
+                  .findByIds(planIds)
+                  .stream()
+                  .filter(p -> p.getName() != null)
+                  .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
 
         var appIds = response
             .data()
@@ -172,20 +172,20 @@ public class SearchEnvironmentLogsUseCase {
         var applicationNameById = appIds.isEmpty()
             ? Map.<String, String>of()
             : applicationCrudService
-                .findByIds(appIds, executionContext.getEnvironmentId())
-                .stream()
-                .filter(a -> a.getName() != null)
-                .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
+                  .findByIds(appIds, executionContext.getEnvironmentId())
+                  .stream()
+                  .filter(a -> a.getName() != null)
+                  .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
 
         var gatewayIds = response.data().stream().map(ApiLog::gateway).filter(Objects::nonNull).distinct().toList();
 
         var gatewayHostnameById = gatewayIds.isEmpty()
             ? Map.<String, String>of()
             : instanceQueryService
-                .findByIds(executionContext, gatewayIds)
-                .stream()
-                .filter(i -> i.getHostname() != null)
-                .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
+                  .findByIds(executionContext, gatewayIds)
+                  .stream()
+                  .filter(i -> i.getHostname() != null)
+                  .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
 
         return userContext
             .withPlanNameById(planNameById)
@@ -266,7 +266,7 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private static boolean isTimeRangeInvalid(TimeRange timeRange) {
-        return (timeRange.from() != null && timeRange.to() != null && timeRange.from().isAfter(timeRange.to()));
+        return timeRange.from() != null && timeRange.to() != null && timeRange.from().isAfter(timeRange.to());
     }
 
     private void applyStringFilter(StringFilter filter, FilterContext filterContext) {
@@ -603,10 +603,10 @@ public class SearchEnvironmentLogsUseCase {
         var nameById = ids.isEmpty()
             ? Map.<String, String>of()
             : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
+                  .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), ids)
+                  .stream()
+                  .filter(p -> p.getName() != null)
+                  .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName));
 
         var enriched = response
             .data()

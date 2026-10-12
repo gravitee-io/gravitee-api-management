@@ -222,7 +222,7 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + PLAN_EXCLUDED_GROUPS + " where plan_id = ?", plan.getId());
         }
-        if ((plan.getExcludedGroups() != null) && !plan.getExcludedGroups().isEmpty()) {
+        if (plan.getExcludedGroups() != null && !plan.getExcludedGroups().isEmpty()) {
             List<String> excludedGroups = plan.getExcludedGroups();
             jdbcTemplate.batchUpdate(
                 "insert into " + PLAN_EXCLUDED_GROUPS + " ( plan_id, excluded_group ) values ( ?, ? )",

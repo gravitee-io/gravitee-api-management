@@ -29,32 +29,30 @@ class CsvFormatterTest extends AbstractFormatterTest {
         return Type.CSV;
     }
 
-    @CsvSource(
-        {
-            "log, log.Log, log.json, csv/log.csv",
-            "metrics, http.Metrics, metrics.json, csv/metrics.csv",
-            "metrics with additional, http.Metrics, metrics-with-additional.json, csv/metrics-with-additional.csv",
-            "metrics with invalid remote address, http.Metrics, metrics-with-invalid-remote-address.json, csv/metrics-with-invalid-remote-address.csv",
-            "endpoint status, health.EndpointStatus, endpoint-status.json, csv/endpoint-status.csv",
-            "monitor, monitor.Monitor, monitor.json, csv/monitor.csv",
-            "v4 log, v4.log.Log, v4/log.json, csv/v4/log.csv",
-            "v4 log with api product, v4.log.Log, v4/log-with-api-product.json, csv/v4/log-with-api-product.csv",
-            "metrics without security token, http.Metrics, metrics-without-security-token.json, csv/metrics-without-security-token.csv",
-            "v4 metrics, v4.metric.Metrics, v4/metrics.json, csv/v4/metrics.csv",
-            "v4 metrics with security token, v4.metric.Metrics, v4/metrics-with-security-token.json, csv/v4/metrics-with-security-token.csv",
-            "v4 metrics with api product, v4.metric.Metrics, v4/metrics-with-api-product.json, csv/v4/metrics-with-api-product.csv",
-            "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, csv/v4/metrics-with-additional.csv",
-            "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, csv/v4/metrics-with-invalid-remote-address.csv",
-            "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, csv/v4/message-metrics.csv",
-            "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
-            "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
-            "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, csv/v4/api-event-metrics.csv",
-            "decision report, v4.report.DecisionReport, v4/decision-report.json, csv/v4/decision-report.csv",
-            "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, csv/v4/application-event-metrics.csv",
-            "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, csv/v4/topic-event-metrics.csv",
-            "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, csv/v4/operation-event-metrics.csv",
-        }
-    )
+    @CsvSource({
+        "log, log.Log, log.json, csv/log.csv",
+        "metrics, http.Metrics, metrics.json, csv/metrics.csv",
+        "metrics with additional, http.Metrics, metrics-with-additional.json, csv/metrics-with-additional.csv",
+        "metrics with invalid remote address, http.Metrics, metrics-with-invalid-remote-address.json, csv/metrics-with-invalid-remote-address.csv",
+        "endpoint status, health.EndpointStatus, endpoint-status.json, csv/endpoint-status.csv",
+        "monitor, monitor.Monitor, monitor.json, csv/monitor.csv",
+        "v4 log, v4.log.Log, v4/log.json, csv/v4/log.csv",
+        "v4 log with api product, v4.log.Log, v4/log-with-api-product.json, csv/v4/log-with-api-product.csv",
+        "metrics without security token, http.Metrics, metrics-without-security-token.json, csv/metrics-without-security-token.csv",
+        "v4 metrics, v4.metric.Metrics, v4/metrics.json, csv/v4/metrics.csv",
+        "v4 metrics with security token, v4.metric.Metrics, v4/metrics-with-security-token.json, csv/v4/metrics-with-security-token.csv",
+        "v4 metrics with api product, v4.metric.Metrics, v4/metrics-with-api-product.json, csv/v4/metrics-with-api-product.csv",
+        "v4 metrics with additional, v4.metric.Metrics, v4/metrics-with-additional.json, csv/v4/metrics-with-additional.csv",
+        "v4 metrics with invalid remote address, v4.metric.Metrics, v4/metrics-with-invalid-remote-address.json, csv/v4/metrics-with-invalid-remote-address.csv",
+        "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, csv/v4/message-metrics.csv",
+        "message metrics with additional, v4.metric.MessageMetrics, v4/message-metrics-with-additional.json, csv/v4/message-metrics-with-additional.csv",
+        "message log, v4.log.MessageLog, v4/message-log.json, csv/v4/message-log.csv",
+        "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, csv/v4/api-event-metrics.csv",
+        "decision report, v4.report.DecisionReport, v4/decision-report.json, csv/v4/decision-report.csv",
+        "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, csv/v4/application-event-metrics.csv",
+        "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, csv/v4/topic-event-metrics.csv",
+        "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, csv/v4/operation-event-metrics.csv",
+    })
     @ParameterizedTest(name = "{0}")
     @SuppressWarnings("unused")
     void should_format(String testName, String className, String input, String output) {

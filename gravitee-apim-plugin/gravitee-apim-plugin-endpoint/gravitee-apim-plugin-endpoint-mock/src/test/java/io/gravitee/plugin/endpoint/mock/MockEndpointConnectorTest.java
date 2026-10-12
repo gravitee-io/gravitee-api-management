@@ -154,8 +154,7 @@ class MockEndpointConnectorTest {
         final TestSubscriber<Message> obs = messagesCaptor.getValue().test(3);
 
         testScheduler.triggerActions();
-        obs
-            .awaitCount(3)
+        obs.awaitCount(3)
             .assertValueCount(3)
             .assertValueAt(0, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("0"))
             .assertValueAt(1, message -> message.content().toString().equals(MESSAGE_CONTENT) && message.id().equals("1"))

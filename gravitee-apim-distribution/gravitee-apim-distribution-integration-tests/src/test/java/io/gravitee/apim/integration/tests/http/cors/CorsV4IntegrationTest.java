@@ -32,13 +32,11 @@ public class CorsV4IntegrationTest extends CorsV4EmulationIntegrationTest {
 
     @Nested
     @GatewayTest
-    @DeployApi(
-        {
-            "/apis/v4/http/cors-running-policies.json",
-            "/apis/v4/http/cors-not-running-policies.json",
-            "/apis/v4/http/cors-with-response-template.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/http/cors-running-policies.json",
+        "/apis/v4/http/cors-not-running-policies.json",
+        "/apis/v4/http/cors-with-response-template.json",
+    })
     class CheckingResponseStatus extends CorsV4EmulationIntegrationTest.CheckingResponseStatus {}
 
     @Nested

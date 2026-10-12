@@ -254,8 +254,7 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_with_interruption_failure_exception() {
-        cut
-            .interruptWith(new ExecutionFailure(404))
+        cut.interruptWith(new ExecutionFailure(404))
             .test()
             .assertError(throwable -> {
                 assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
@@ -274,8 +273,7 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_body_with_interruption_failure_exception() {
-        cut
-            .interruptBodyWith(new ExecutionFailure(404))
+        cut.interruptBodyWith(new ExecutionFailure(404))
             .test()
             .assertError(throwable -> {
                 assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
@@ -294,8 +292,7 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_messages_with_interruption_failure_exception() {
-        cut
-            .interruptMessagesWith(new ExecutionFailure(404))
+        cut.interruptMessagesWith(new ExecutionFailure(404))
             .test()
             .assertError(throwable -> {
                 assertThat(throwable).isInstanceOf(InterruptionFailureException.class);
@@ -312,8 +309,7 @@ class DefaultExecutionContextTest {
 
     @Test
     void should_interrupt_message_with_interruption_failure_exception() {
-        cut
-            .interruptMessageWith(new ExecutionFailure(404))
+        cut.interruptMessageWith(new ExecutionFailure(404))
             .test()
             .assertError(throwable -> {
                 assertThat(throwable).isInstanceOf(InterruptionFailureException.class);

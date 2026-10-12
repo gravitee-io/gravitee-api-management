@@ -94,22 +94,20 @@ public class NativeApi extends AbstractReactableApi<io.gravitee.definition.model
 
         // Load policies from Plans
         if (definition.getPlans() != null) {
-            definition
-                .getPlans()
-                .forEach(plan -> {
-                    PlanSecurity security = plan.getSecurity();
-                    Policy secPolicy = new Policy();
-                    secPolicy.setName(security.getType());
+            definition.getPlans().forEach(plan -> {
+                PlanSecurity security = plan.getSecurity();
+                Policy secPolicy = new Policy();
+                secPolicy.setName(security.getType());
 
-                    if (secPolicy.getName() != null) {
-                        policies.add(secPolicy);
-                    }
+                if (secPolicy.getName() != null) {
+                    policies.add(secPolicy);
+                }
 
-                    if (plan.getFlows() != null) {
-                        List<NativeFlow> flows = plan.getFlows();
-                        addFlowsPolicies(policies, flows);
-                    }
-                });
+                if (plan.getFlows() != null) {
+                    List<NativeFlow> flows = plan.getFlows();
+                    addFlowsPolicies(policies, flows);
+                }
+            });
         }
 
         // Load policies from flows

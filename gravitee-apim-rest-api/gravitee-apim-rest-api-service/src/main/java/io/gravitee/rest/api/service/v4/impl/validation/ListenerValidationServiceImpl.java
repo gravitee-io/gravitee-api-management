@@ -180,11 +180,9 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
             )
         );
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new InvalidPathsException(errors.iterator().next().getMessage());
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new InvalidPathsException(errors.iterator().next().getMessage());
+        });
 
         var sanitizedPaths = validationResult.map(VerifyApiPathDomainService.Input::paths).value().stream().flatMap(List::stream).toList();
 
@@ -266,17 +264,15 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private boolean checkEntrypointQosEndpoint(List<EndpointGroup> endpointGroups, Qos qos) {
-        return endpointGroups
-            .stream()
-            .allMatch(endpointGroup -> {
-                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
-                return (
-                    endpointConnectorPlugin != null &&
-                    endpointConnectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
-                    endpointConnectorPlugin.getSupportedQos() != null &&
-                    endpointConnectorPlugin.getSupportedQos().contains(qos)
-                );
-            });
+        return endpointGroups.stream().allMatch(endpointGroup -> {
+            final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+            return (
+                endpointConnectorPlugin != null &&
+                endpointConnectorPlugin.getSupportedApiType() == ApiType.MESSAGE &&
+                endpointConnectorPlugin.getSupportedQos() != null &&
+                endpointConnectorPlugin.getSupportedQos().contains(qos)
+            );
+        });
     }
 
     private void checkEntrypointDlq(
@@ -297,20 +293,18 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     }
 
     private boolean checkEntrypointDlqEndpoint(List<EndpointGroup> endpointGroups, Dlq dlq) {
-        return endpointGroups
-            .stream()
-            .anyMatch(endpointGroup -> {
-                final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
-                return (
-                    endpointConnectorPlugin != null &&
-                    endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
-                    (endpointGroup.getName().equals(dlq.getEndpoint()) ||
-                        endpointGroup
-                            .getEndpoints()
-                            .stream()
-                            .anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint())))
-                );
-            });
+        return endpointGroups.stream().anyMatch(endpointGroup -> {
+            final ConnectorPluginEntity endpointConnectorPlugin = endpointService.findById(endpointGroup.getType());
+            return (
+                endpointConnectorPlugin != null &&
+                endpointConnectorPlugin.getSupportedModes().contains(ConnectorMode.PUBLISH) &&
+                (endpointGroup.getName().equals(dlq.getEndpoint()) ||
+                    endpointGroup
+                        .getEndpoints()
+                        .stream()
+                        .anyMatch(endpoint -> endpoint.getName().equals(dlq.getEndpoint())))
+            );
+        });
     }
 
     private void checkEntrypointConfiguration(final AbstractEntrypoint entrypoint) {

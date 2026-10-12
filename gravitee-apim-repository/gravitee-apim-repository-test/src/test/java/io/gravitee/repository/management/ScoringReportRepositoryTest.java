@@ -87,7 +87,9 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             assertThat(report.get().getApiId()).isEqualTo("api2");
             assertThat(report.get().getEnvironmentId()).isEqualTo("env1");
             assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
+            assertThat(report.get().getSummary())
+                .usingRecursiveComparison()
+                .isEqualTo(new ScoringReport.Summary(0.74D, 1L, 2L, 3L, 4L));
             assertThat(report.get().getAssets()).contains(
                 new ScoringReport.Asset(null, "GRAVITEE_DEFINITION", List.of(), List.of()),
                 new ScoringReport.Asset("7f2ad639-3ac4-4517-8dbe-55f377e9118a", "ASYNCAPI", List.of(), List.of()),
@@ -118,7 +120,9 @@ public class ScoringReportRepositoryTest extends AbstractManagementRepositoryTes
             assertThat(report.get().getApiId()).isEqualTo("api6");
             assertThat(report.get().getEnvironmentId()).isEqualTo("env2");
             assertThat(report.get().getCreatedAt()).isEqualTo(new Date(1470157767000L));
-            assertThat(report.get().getSummary()).usingRecursiveComparison().isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
+            assertThat(report.get().getSummary())
+                .usingRecursiveComparison()
+                .isEqualTo(new ScoringReport.Summary(0.0D, 0L, 0L, 0L, 0L));
             assertThat(report.get().getAssets()).contains(
                 new ScoringReport.Asset(
                     null,

@@ -69,7 +69,9 @@ public class GetCategoryApisUseCase {
             apiCategoryOrderApiIds
         ).toList();
 
-        var results = mapToResult(apis, apiCategoryOrders).sorted(Comparator.comparingInt(o -> o.apiCategoryOrder.getOrder())).toList();
+        var results = mapToResult(apis, apiCategoryOrders)
+            .sorted(Comparator.comparingInt(o -> o.apiCategoryOrder.getOrder()))
+            .toList();
 
         return new Output(results);
     }

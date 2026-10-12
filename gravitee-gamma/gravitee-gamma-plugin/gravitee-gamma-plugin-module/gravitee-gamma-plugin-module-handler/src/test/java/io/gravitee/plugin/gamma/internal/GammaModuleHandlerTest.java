@@ -163,9 +163,9 @@ class GammaModuleHandlerTest {
         when(plugin.clazz()).thenReturn(AGammaModule.class.getName());
         when(manifest.version()).thenReturn("1.0.0");
         when(plugin.deployed()).thenReturn(true);
-        when(plugin.dependencies()).thenReturn(
-            new URL[] { GammaModuleHandlerTest.class.getProtectionDomain().getCodeSource().getLocation() }
-        );
+        when(plugin.dependencies()).thenReturn(new URL[] {
+            GammaModuleHandlerTest.class.getProtectionDomain().getCodeSource().getLocation(),
+        });
 
         ApplicationContext pluginCtx = mock(ApplicationContext.class);
         when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);

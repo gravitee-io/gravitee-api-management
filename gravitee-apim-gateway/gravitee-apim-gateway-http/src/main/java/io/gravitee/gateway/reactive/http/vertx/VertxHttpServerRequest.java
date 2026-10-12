@@ -99,7 +99,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.messageFlow = null;
         this.options = options;
         // In Vert.x 5, channel() was removed; use channelHandlerContext().channel() instead
-        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channelHandlerContext()
+        this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate())
+            .channelHandlerContext()
             .channel()
             .attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))
             .get();
@@ -202,7 +203,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
         if (address != null) {
             // TODO Could be improve to a better compatibility with geoIP
             int ipv6Idx = address.host().indexOf("%");
-            return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
+            return ipv6Idx != -1 ? address.host().substring(0, ipv6Idx) : address.host();
         }
         return null;
     }

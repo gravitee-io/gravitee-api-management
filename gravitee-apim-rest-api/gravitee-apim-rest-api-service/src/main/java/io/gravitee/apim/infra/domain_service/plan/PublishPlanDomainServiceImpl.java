@@ -106,9 +106,7 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
                 .filter(plan1 -> io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan1.getStatus()))
                 .sorted(Comparator.comparingInt(io.gravitee.repository.management.model.Plan::getOrder))
                 .collect(Collectors.toList());
-            plan.setOrder(
-                orderedPublishedPlans.isEmpty() ? 1 : (orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1)
-            );
+            plan.setOrder(orderedPublishedPlans.isEmpty() ? 1 : orderedPublishedPlans.get(orderedPublishedPlans.size() - 1).getOrder() + 1);
 
             plan.setPublishedAt(new Date());
             plan.setUpdatedAt(plan.getPublishedAt());

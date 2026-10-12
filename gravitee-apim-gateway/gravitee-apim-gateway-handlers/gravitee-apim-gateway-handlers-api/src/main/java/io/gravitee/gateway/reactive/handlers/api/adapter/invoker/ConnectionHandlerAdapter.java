@@ -132,17 +132,15 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
             proxyResponse.headers().forEach(entry -> ctx.response().headers().add(entry.getKey(), entry.getValue()));
 
             // Keep a reference on the proxy response to be able to resume it when a subscription will occur on the Flowable<Buffer> chunks.
-            chunks
-                .initialize(ctx, connection, proxyResponse)
-                .doOnComplete(
-                    (Runnable) () -> {
-                        // Capture invoker trailers and copy them to the response.
-                        final HttpHeaders trailers = proxyResponse.trailers();
-                        if (trailers != null && !trailers.isEmpty()) {
-                            trailers.forEach((entry -> ctx.response().trailers().add(entry.getKey(), entry.getValue())));
-                        }
+            chunks.initialize(ctx, connection, proxyResponse).doOnComplete(
+                (Runnable) () -> {
+                    // Capture invoker trailers and copy them to the response.
+                    final HttpHeaders trailers = proxyResponse.trailers();
+                    if (trailers != null && !trailers.isEmpty()) {
+                        trailers.forEach(entry -> ctx.response().trailers().add(entry.getKey(), entry.getValue()));
                     }
-                );
+                }
+            );
         } else {
             tryCancel(proxyResponse);
         }

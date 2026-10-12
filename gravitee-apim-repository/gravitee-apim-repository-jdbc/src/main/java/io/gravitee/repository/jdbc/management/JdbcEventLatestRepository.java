@@ -80,21 +80,21 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
 
         final List<Object> args = new ArrayList<>();
         var select = """
-            WITH PagedEvents AS (%s)
-            SELECT evt.*, evp.*, ev.*, evo.*
-            FROM %s evt
-                INNER JOIN PagedEvents pe ON evt.id = pe.id
-                INNER JOIN %s evp ON evt.id = evp.event_id
-                LEFT JOIN %s ev ON evt.id = ev.event_id
-                LEFT JOIN %s evo ON evt.id = evo.event_id
-            ORDER BY evt.updated_at ASC, evt.id ASC
-            """.formatted(
-                buildSelectIn(criteria, group, pageNumber, pageSize, args),
-                tableName,
-                EVENT_PROPERTIES,
-                EVENT_ENVIRONMENTS,
-                EVENT_ORGANIZATIONS
-            );
+        WITH PagedEvents AS (%s)
+        SELECT evt.*, evp.*, ev.*, evo.*
+        FROM %s evt
+            INNER JOIN PagedEvents pe ON evt.id = pe.id
+            INNER JOIN %s evp ON evt.id = evp.event_id
+            LEFT JOIN %s ev ON evt.id = ev.event_id
+            LEFT JOIN %s evo ON evt.id = evo.event_id
+        ORDER BY evt.updated_at ASC, evt.id ASC
+        """.formatted(
+            buildSelectIn(criteria, group, pageNumber, pageSize, args),
+            tableName,
+            EVENT_PROPERTIES,
+            EVENT_ENVIRONMENTS,
+            EVENT_ORGANIZATIONS
+        );
         return queryEvents(select, args);
     }
 
@@ -136,17 +136,17 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             }
 
             var selectIn = """
-                select e1.id from %s e1
-                  inner join %s prop on e1.id = prop.event_id
-                  left join %s ee1 on e1.id = ee1.event_id
-                  left join %s eo1 on e1.id = eo1.event_id
-                  %s
-                  order by e1.updated_at asc, e1.id asc
-                """.formatted(tableName, EVENT_PROPERTIES, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
+            select e1.id from %s e1
+              inner join %s prop on e1.id = prop.event_id
+              left join %s ee1 on e1.id = ee1.event_id
+              left join %s eo1 on e1.id = eo1.event_id
+              %s
+              order by e1.updated_at asc, e1.id asc
+            """.formatted(tableName, EVENT_PROPERTIES, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
 
             if (page != null && size != null && size > 0) {
                 final int limit = size.intValue();
-                selectIn += createPagingClause(limit, (page.intValue() * limit));
+                selectIn += createPagingClause(limit, page.intValue() * limit);
             }
             return selectIn;
         }
@@ -155,15 +155,15 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
         appendCriteria(where, criteria, args, "e1", "ee1", "eo1");
 
         var selectIn = """
-            select e1.id from %s e1
-              left join %s ee1 on e1.id = ee1.event_id
-              left join %s eo1 on e1.id = eo1.event_id
-            %s
-            order by e1.updated_at asc, e1.id asc
-            """.formatted(tableName, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
+        select e1.id from %s e1
+          left join %s ee1 on e1.id = ee1.event_id
+          left join %s eo1 on e1.id = eo1.event_id
+        %s
+        order by e1.updated_at asc, e1.id asc
+        """.formatted(tableName, EVENT_ENVIRONMENTS, EVENT_ORGANIZATIONS, where);
         if (page != null && size != null && size > 0) {
             final int limit = size.intValue();
-            selectIn += createPagingClause(limit, (page.intValue() * limit));
+            selectIn += createPagingClause(limit, page.intValue() * limit);
         }
         return selectIn;
     }
@@ -277,22 +277,19 @@ public class JdbcEventLatestRepository extends JdbcAbstractRepository<Event> imp
             CHILD_ADDER,
             "id"
         );
-        jdbcTemplate.query(
-            (Connection cnctn) -> {
-                PreparedStatement stmt = cnctn.prepareStatement(sql);
-                int idx = 1;
-                for (final Object arg : args) {
-                    if (arg instanceof Date) {
-                        final Date date = (Date) arg;
-                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                    } else {
-                        stmt.setObject(idx++, arg);
-                    }
+        jdbcTemplate.query((Connection cnctn) -> {
+            PreparedStatement stmt = cnctn.prepareStatement(sql);
+            int idx = 1;
+            for (final Object arg : args) {
+                if (arg instanceof Date) {
+                    final Date date = (Date) arg;
+                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                } else {
+                    stmt.setObject(idx++, arg);
                 }
-                return stmt;
-            },
-            rowCallbackHandler
-        );
+            }
+            return stmt;
+        }, rowCallbackHandler);
         final List<Event> events = rowCallbackHandler.getRows();
         log.debug("Events found: {}", events);
         return events;

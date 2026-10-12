@@ -218,8 +218,8 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         final var page = sharedPolicyGroupRepository.search(criteria, new PageableBuilder().pageNumber(2).pageSize(2).build(), null);
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
-        assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 4");
-        assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 5");
+        assertThat(page.getContent().get(0).getName()).isEqualTo("name search_test 4");
+        assertThat(page.getContent().get(1).getName()).isEqualTo("name search_test 5");
         assertThat(page.getTotalElements()).isEqualTo(10);
     }
 
@@ -254,8 +254,8 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         );
         assertThat(page).isNotNull();
         assertThat(page.getContent()).hasSize(2);
-        assertThat((page.getContent().get(0)).getName()).isEqualTo("name search_test 9");
-        assertThat((page.getContent().get(1)).getName()).isEqualTo("name search_test 8");
+        assertThat(page.getContent().get(0).getName()).isEqualTo("name search_test 9");
+        assertThat(page.getContent().get(1).getName()).isEqualTo("name search_test 8");
         assertThat(page.getTotalElements()).isEqualTo(10);
     }
 

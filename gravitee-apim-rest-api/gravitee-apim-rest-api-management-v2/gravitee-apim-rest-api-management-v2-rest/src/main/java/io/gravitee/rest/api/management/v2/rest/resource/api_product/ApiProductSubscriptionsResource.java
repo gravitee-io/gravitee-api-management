@@ -331,7 +331,7 @@ public class ApiProductSubscriptionsResource extends AbstractResource {
     }
 
     private String getCustomApiKey(CreateSubscription createSubscription) {
-        return (createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty())
+        return createSubscription.getCustomApiKey() != null && !createSubscription.getCustomApiKey().isEmpty()
             ? createSubscription.getCustomApiKey()
             : null;
     }

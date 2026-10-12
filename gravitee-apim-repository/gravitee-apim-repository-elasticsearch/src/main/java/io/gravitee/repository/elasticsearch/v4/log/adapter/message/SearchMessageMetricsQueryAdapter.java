@@ -120,9 +120,10 @@ public class SearchMessageMetricsQueryAdapter {
                 query = JsonObject.of("bool", JsonObject.of("should", shouldClauses, "minimum_should_match", 1));
             }
         } else {
-            query = values.size() == 1
-                ? JsonObject.of("term", JsonObject.of(fieldPath, values.getString(0)))
-                : JsonObject.of("terms", JsonObject.of(fieldPath, values));
+            query =
+                values.size() == 1
+                    ? JsonObject.of("term", JsonObject.of(fieldPath, values.getString(0)))
+                    : JsonObject.of("terms", JsonObject.of(fieldPath, values));
         }
 
         terms.add(query);

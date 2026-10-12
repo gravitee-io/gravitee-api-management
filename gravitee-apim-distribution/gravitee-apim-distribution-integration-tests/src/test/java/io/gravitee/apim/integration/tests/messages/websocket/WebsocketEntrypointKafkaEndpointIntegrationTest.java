@@ -54,12 +54,10 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
 
     @EnumSource(value = Qos.class, names = { "NONE", "AUTO" })
     @ParameterizedTest(name = "should receive all messages with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber-none.json",
-            "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber-none.json",
+        "/apis/v4/messages/websocket/websocket-entrypoint-kafka-endpoint-subscriber.json",
+    })
     void should_receive_all_messages_with_qos(Qos qos, WebSocketClient webSocketClient, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through entrypoint.
@@ -69,17 +67,19 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
         blockingPublishToKafka(producer, "message3");
         producer.close();
 
-        final var obs = webSocketClient.rxConnect("/test-" + qos.getLabel()).flatMapPublisher(WebSocket::toFlowable).test();
+        final var obs = webSocketClient
+            .rxConnect("/test-" + qos.getLabel())
+            .flatMapPublisher(WebSocket::toFlowable)
+            .test();
 
         // We expect 3 binary frame, for 3 messages
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, frame -> {
-                assertThat(frame).hasToString("message1");
-                return true;
-            })
+        obs.assertValueAt(0, frame -> {
+            assertThat(frame).hasToString("message1");
+            return true;
+        })
             .assertValueAt(1, frame -> {
                 assertThat(frame).hasToString("message2");
                 return true;
@@ -97,11 +97,11 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
         webSocketClient
             .rxConnect("/test")
             .flatMapCompletable(websocket ->
-                // Write text frame
                 websocket
                     .writeTextMessage("message1")
                     // Write binary frame
                     .andThen(websocket.writeBinaryMessage(Buffer.buffer("message2")))
+                    // Write text frame
                     // Write final text frame
                     .andThen(websocket.writeFinalTextFrame("message3"))
             )
@@ -139,7 +139,6 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
         var obs = webSocketClient
             .rxConnect("/test")
             .flatMapPublisher(websocket ->
-                // Write text frame
                 websocket
                     .writeTextMessage("message1")
                     // Write binary frame
@@ -147,17 +146,17 @@ class WebsocketEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpo
                     // Write final text frame
                     .andThen(websocket.writeTextMessage("message3"))
                     .<Buffer>toFlowable()
+                    // Write text frame
                     .mergeWith(websocket.toFlowable())
             )
             .test();
         await()
             .atMost(30, TimeUnit.SECONDS)
             .until(() -> obs.values().size() >= 3);
-        obs
-            .assertValueAt(0, frame -> {
-                assertThat(frame).hasToString("message1");
-                return true;
-            })
+        obs.assertValueAt(0, frame -> {
+            assertThat(frame).hasToString("message1");
+            return true;
+        })
             .assertValueAt(1, frame -> {
                 assertThat(frame).hasToString("message2");
                 return true;

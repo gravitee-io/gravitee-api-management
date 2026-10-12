@@ -48,7 +48,8 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
     public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
         String organizationId = bridgeCommand.getPayload().organizationId();
         try {
-            List<BridgeReplyPayload.BridgeReplyContent> replyContents = this.environmentService.findByOrganization(organizationId)
+            List<BridgeReplyPayload.BridgeReplyContent> replyContents = this.environmentService
+                .findByOrganization(organizationId)
                 .stream()
                 .map(environmentEntity -> {
                     BridgeReplyPayload.BridgeReplyContent.BridgeReplyContentBuilder builder =

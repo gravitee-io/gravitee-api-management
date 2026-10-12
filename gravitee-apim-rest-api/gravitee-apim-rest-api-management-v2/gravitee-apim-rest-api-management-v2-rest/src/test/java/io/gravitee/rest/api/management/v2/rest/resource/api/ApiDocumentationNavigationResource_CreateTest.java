@@ -206,7 +206,9 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
             )
         ).thenReturn(false);
 
-        Response response = rootTarget().request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
+        Response response = rootTarget()
+            .request()
+            .post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
 
         assertThat(response).hasStatus(FORBIDDEN_403);
         verifyNoInteractions(createPortalNavigationItemUseCase);
@@ -224,7 +226,9 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
             )
         ).thenReturn(true);
 
-        Response response = rootTarget().request().post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
+        Response response = rootTarget()
+            .request()
+            .post(json(PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null)));
 
         assertThat(response).hasStatus(CREATED_201);
     }

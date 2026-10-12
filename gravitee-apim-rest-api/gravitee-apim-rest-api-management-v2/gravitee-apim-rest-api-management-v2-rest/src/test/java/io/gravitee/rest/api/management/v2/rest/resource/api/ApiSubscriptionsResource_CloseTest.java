@@ -89,7 +89,10 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     @Test
     public void should_return_404_if_not_found() {
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(NOT_FOUND_404)
+            .asError()
+            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test
@@ -109,7 +112,10 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
         );
 
         final Response response = rootTarget().request().post(Entity.json(null));
-        assertThat(response).hasStatus(NOT_FOUND_404).asError().hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
+        assertThat(response)
+            .hasStatus(NOT_FOUND_404)
+            .asError()
+            .hasMessage("Subscription [" + SUBSCRIPTION + "] cannot be found.");
     }
 
     @Test

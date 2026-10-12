@@ -94,7 +94,8 @@ public class DocumentationValidationDomainService {
     public void validateTemplate(String pageContent, String apiId, String organizationId) {
         try {
             Api exitingApi = this.apiCrudService.get(apiId);
-            var metadata = this.apiMetadataQueryService.findApiMetadata(exitingApi.getEnvironmentId(), apiId)
+            var metadata = this.apiMetadataQueryService
+                .findApiMetadata(exitingApi.getEnvironmentId(), apiId)
                 .entrySet()
                 .stream()
                 .collect(
@@ -206,7 +207,8 @@ public class DocumentationValidationDomainService {
         });
 
         accessControlsByGroupAndRole.computeIfPresent("ROLE", (key, acs) -> {
-            var foundRoleIds = this.roleQueryService.findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
+            var foundRoleIds = this.roleQueryService
+                .findByIds(acs.stream().map(AccessControl::getReferenceId).collect(Collectors.toSet()))
                 .stream()
                 .map(Role::getId)
                 .toList();
@@ -223,7 +225,8 @@ public class DocumentationValidationDomainService {
     private List<String> findGroupReferences(Set<String> referenceIds) {
         var byIds = this.groupQueryService.findByIds(referenceIds).stream().map(Group::getId).toList();
 
-        var byNames = this.groupQueryService.findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds)
+        var byNames = this.groupQueryService
+            .findByNames(GraviteeContext.getCurrentEnvironment(), referenceIds)
             .stream()
             .map(Group::getName)
             .toList();

@@ -83,8 +83,8 @@ public class SearchTracesUseCase {
         // Last-24h fallback: anchor on `end` (now if also unset) so a caller pinning only `end` gets
         // "the 24h leading up to that endpoint" rather than "now-24h..end" which can yield empty windows.
         Instant resolvedStart = input.start != null ? input.start : resolvedEnd.minus(DEFAULT_LOOKBACK);
-        int resolvedPage = (input.page != null && input.page >= 1) ? input.page : 1;
-        int resolvedPerPage = (input.perPage != null && input.perPage > 0) ? input.perPage : DEFAULT_PER_PAGE;
+        int resolvedPage = input.page != null && input.page >= 1 ? input.page : 1;
+        int resolvedPerPage = input.perPage != null && input.perPage > 0 ? input.perPage : DEFAULT_PER_PAGE;
         // Throws UnsupportedFilterException on unknown name / unsupported operator — mapped to HTTP 400
         // upstream by the apim ValidationDomainExceptionMapper already registered in GammaModuleApplication.
         Map<String, String> attributeFilters = SearchTraceFilterTranslator.toAttributeFilters(input.filters);

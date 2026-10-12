@@ -66,12 +66,12 @@ public class NullByteRequestProcessorBenchmark {
 
     @Benchmark
     public boolean scan_uri_clean() {
-        return (NullByteRequestProcessor.containsEncodedNullByte(cleanUri) || NullByteRequestProcessor.containsNullByte(cleanUri));
+        return NullByteRequestProcessor.containsEncodedNullByte(cleanUri) || NullByteRequestProcessor.containsNullByte(cleanUri);
     }
 
     @Benchmark
     public boolean scan_uri_dirty() {
-        return (NullByteRequestProcessor.containsEncodedNullByte(dirtyUri) || NullByteRequestProcessor.containsNullByte(dirtyUri));
+        return NullByteRequestProcessor.containsEncodedNullByte(dirtyUri) || NullByteRequestProcessor.containsNullByte(dirtyUri);
     }
 
     @Benchmark

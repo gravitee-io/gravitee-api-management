@@ -58,7 +58,9 @@ public class ListenerMapperTest {
             .contains(Objects.requireNonNull(httpListener.getServers()).toArray());
         assertThat(httpListenerEntityV4).isInstanceOf(HttpListener.class);
 
-        assertThat(((HttpListener) httpListenerEntityV4).getPaths()).asList().hasSize(1);
+        assertThat(((HttpListener) httpListenerEntityV4).getPaths())
+            .asList()
+            .hasSize(1);
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0)).isNotNull();
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getHost()).isEqualTo(httpListener.getPaths().get(0).getHost());
         assertThat(((HttpListener) httpListenerEntityV4).getPaths().get(0).getPath()).isEqualTo(httpListener.getPaths().get(0).getPath());
@@ -69,7 +71,9 @@ public class ListenerMapperTest {
             new HashSet<>(Objects.requireNonNull(httpListener.getPathMappings()))
         );
         assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern()).isNotNull();
-        assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern().get("/test")).isNotNull().isInstanceOf(Pattern.class);
+        assertThat(((HttpListener) httpListenerEntityV4).getPathMappingsPattern().get("/test"))
+            .isNotNull()
+            .isInstanceOf(Pattern.class);
         assertThat(((HttpListener) httpListenerEntityV4).getCors()).isNotNull(); // Tested in CorsMapperTest
 
         var subscriptionEntityV4 = listenerEntityV4List.get(1);

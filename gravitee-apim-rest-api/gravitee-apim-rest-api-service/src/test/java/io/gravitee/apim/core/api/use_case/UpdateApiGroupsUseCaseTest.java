@@ -99,7 +99,9 @@ class UpdateApiGroupsUseCaseTest {
             membershipQueryService,
             groupQueryService
         );
-        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+        lenient()
+            .when(permissionDomainService.hasPermission(any(), any(), any(), any(), any()))
+            .thenReturn(true);
         apiCrudService.initWith(
             List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).groups(Set.of("old-group")).build())
         );

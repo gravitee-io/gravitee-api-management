@@ -38,15 +38,13 @@ public class ConnectorToHeaderPolicy implements HttpPolicy {
     @Override
     public Completable onResponse(HttpPlainExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
-            ctx
-                .response()
+            ctx.response()
                 .headers()
                 .add(
                     "X-Entrypoint-Used",
                     ((HttpEntrypointConnector) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).id()
                 );
-            ctx
-                .response()
+            ctx.response()
                 .headers()
                 .add("X-Endpoint-Used", (String) ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENDPOINT_CONNECTOR_ID));
         });

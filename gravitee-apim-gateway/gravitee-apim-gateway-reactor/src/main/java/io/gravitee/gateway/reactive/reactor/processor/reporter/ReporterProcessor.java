@@ -145,9 +145,12 @@ public class ReporterProcessor implements Processor {
             }
         } catch (Exception e) {
             // Connector matching is plugin code; a failure here must not cost the whole report.
-            ctx
-                .withLogger(log)
-                .warn("Unable to attribute request [{}] of api [{}] to an entrypoint", metrics.getRequestId(), metrics.getApiId(), e);
+            ctx.withLogger(log).warn(
+                "Unable to attribute request [{}] of api [{}] to an entrypoint",
+                metrics.getRequestId(),
+                metrics.getApiId(),
+                e
+            );
         }
     }
 

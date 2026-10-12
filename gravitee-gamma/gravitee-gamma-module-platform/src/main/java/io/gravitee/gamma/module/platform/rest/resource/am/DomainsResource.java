@@ -43,7 +43,12 @@ public class DomainsResource {
     @GET
     public List<DomainResponse> list(@PathParam("orgId") String orgId, @PathParam("amEnvId") String amEnvId, @QueryParam("q") String q) {
         return AmCalls.run(() ->
-            listDomainsUseCase.execute(new ListDomainsUseCase.Input(orgId, amEnvId, q)).domains().stream().map(AmDtoMapper::toDto).toList()
+            listDomainsUseCase
+                .execute(new ListDomainsUseCase.Input(orgId, amEnvId, q))
+                .domains()
+                .stream()
+                .map(AmDtoMapper::toDto)
+                .toList()
         );
     }
 

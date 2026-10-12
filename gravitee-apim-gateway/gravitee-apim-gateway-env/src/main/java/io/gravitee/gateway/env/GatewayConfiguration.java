@@ -137,9 +137,8 @@ public class GatewayConfiguration implements InitializingBean {
 
     private void initOrganizations() {
         String systemPropertyOrganizations = System.getProperty(ORGANIZATION_SYSTEM_PROPERTY);
-        String orgs = systemPropertyOrganizations == null
-            ? configuration.getProperty(ORGANIZATION_SYSTEM_PROPERTY)
-            : systemPropertyOrganizations;
+        String orgs =
+            systemPropertyOrganizations == null ? configuration.getProperty(ORGANIZATION_SYSTEM_PROPERTY) : systemPropertyOrganizations;
         if (orgs != null && !orgs.isEmpty()) {
             organizations = Optional.of(Arrays.asList(orgs.split(ORGANIZATIONS_SEPARATOR)));
         } else {
@@ -153,9 +152,8 @@ public class GatewayConfiguration implements InitializingBean {
 
     private void initEnvironments() {
         String systemPropertyEnvironments = System.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY);
-        String envs = systemPropertyEnvironments == null
-            ? configuration.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY)
-            : systemPropertyEnvironments;
+        String envs =
+            systemPropertyEnvironments == null ? configuration.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY) : systemPropertyEnvironments;
         if (envs != null && !envs.isEmpty()) {
             environments = Optional.of(Arrays.asList(envs.split(ENVIRONMENTS_SEPARATOR)));
         } else {

@@ -37,7 +37,8 @@ public class GetPolicyPluginsUseCase {
 
     public Output getPoliciesByOrganization(Input input) {
         return new Output(
-            this.licenseChecker.setPluginDeployedStatusDependingOnLicense(policyPluginQueryService.findAll(), input.organizationId)
+            this.licenseChecker
+                .setPluginDeployedStatusDependingOnLicense(policyPluginQueryService.findAll(), input.organizationId)
                 .stream()
                 .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(PolicyPlugin::getName))))
         );

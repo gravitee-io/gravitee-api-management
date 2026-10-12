@@ -26,7 +26,10 @@ import java.util.Map;
 
 public class PrimaryOwnerDomainServiceInMemory
     implements
-        ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService, InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
+        ApiPrimaryOwnerDomainService,
+        ApplicationPrimaryOwnerDomainService,
+        InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>>
+{
 
     Map<String, PrimaryOwnerEntity> storage = new HashMap<>();
 

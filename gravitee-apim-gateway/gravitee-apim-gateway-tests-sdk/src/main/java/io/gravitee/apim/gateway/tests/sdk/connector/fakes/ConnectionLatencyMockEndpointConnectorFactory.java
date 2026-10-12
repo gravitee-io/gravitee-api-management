@@ -28,7 +28,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class ConnectionLatencyMockEndpointConnectorFactory
-    implements HttpEndpointAsyncConnectorFactory<ConnectionLatencyMockEndpointConnector> {
+    implements HttpEndpointAsyncConnectorFactory<ConnectionLatencyMockEndpointConnector>
+{
 
     private final PluginConfigurationHelper pluginConfigurationHelper;
 

@@ -65,8 +65,7 @@ class ApiKeyFetcherTest {
         apiKey.setId("k");
         apiKey.setUpdatedAt(new Date(1));
         when(apiKeyRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(apiKey));
-        cut
-            .fetchLatest(null, null, Set.of())
+        cut.fetchLatest(null, null, Set.of())
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(apiKey));
@@ -93,8 +92,7 @@ class ApiKeyFetcherTest {
                 eq(BULK_ITEMS)
             )
         ).thenReturn(List.of(apiKey));
-        cut
-            .fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
+        cut.fetchLatest(from.toEpochMilli(), to.toEpochMilli(), Set.of("env"))
             .test()
             .assertValueCount(1)
             .assertValue(apiKeys -> apiKeys.contains(apiKey));

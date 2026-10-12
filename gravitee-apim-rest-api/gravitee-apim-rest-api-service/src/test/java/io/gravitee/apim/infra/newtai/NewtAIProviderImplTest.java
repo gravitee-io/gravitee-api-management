@@ -73,19 +73,17 @@ class NewtAIProviderImplTest {
         var reply = new ELReply("commandId", CommandStatus.SUCCEEDED, replyPayload);
         when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                elGenReply ->
-                    context.verify(() -> {
-                        assertThat(elGenReply.message()).isEqualTo("generated el");
-                        assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
-                        assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
-                        assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
-                        context.completeNow();
-                    }),
-                context::failNow
-            );
+        cut.generateEL(query).subscribe(
+            elGenReply ->
+                context.verify(() -> {
+                    assertThat(elGenReply.message()).isEqualTo("generated el");
+                    assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
+                    assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
+                    assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
+                    context.completeNow();
+                }),
+            context::failNow
+        );
     }
 
     @Test
@@ -96,16 +94,14 @@ class NewtAIProviderImplTest {
         var reply = new ELReply("commandId", "error details");
         when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                reply1 -> context.failNow("expect error"),
-                e ->
-                    context.verify(() -> {
-                        assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("error details");
-                        context.completeNow();
-                    })
-            );
+        cut.generateEL(query).subscribe(
+            reply1 -> context.failNow("expect error"),
+            e ->
+                context.verify(() -> {
+                    assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("error details");
+                    context.completeNow();
+                })
+        );
     }
 
     @Test
@@ -115,16 +111,14 @@ class NewtAIProviderImplTest {
         var query = new Input("apiId", "test message", "cid");
         when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.error(new RuntimeException("send command error")));
 
-        cut
-            .generateEL(query)
-            .subscribe(
-                reply1 -> context.failNow("expect error"),
-                e ->
-                    context.verify(() -> {
-                        assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("send command error");
-                        context.completeNow();
-                    })
-            );
+        cut.generateEL(query).subscribe(
+            reply1 -> context.failNow("expect error"),
+            e ->
+                context.verify(() -> {
+                    assertThat(e).isInstanceOf(NewtAIReplyException.class).hasMessage("send command error");
+                    context.completeNow();
+                })
+        );
     }
 
     @Test
@@ -142,8 +136,7 @@ class NewtAIProviderImplTest {
         var reply = new ElGenFeedbackReply("commandId", "error details");
         when(cockpitConnector.sendCommand(any(ELGenFeedbackCommand.class))).thenReturn(Single.just(reply));
 
-        cut
-            .submitFeedback(feedback)
+        cut.submitFeedback(feedback)
             .test()
             .assertError(throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("error details"));
     }
@@ -155,8 +148,7 @@ class NewtAIProviderImplTest {
             Single.error(new RuntimeException("send command error"))
         );
 
-        cut
-            .submitFeedback(feedback)
+        cut.submitFeedback(feedback)
             .test()
             .assertError(
                 throwable -> throwable instanceof NewtAiSubmitFeedbackException && throwable.getMessage().equals("send command error")
@@ -207,19 +199,17 @@ class NewtAIProviderImplTest {
             var reply = new ELReply("commandId", CommandStatus.SUCCEEDED, replyPayload);
             when(cockpitConnector.sendCommand(any(ELCommand.class))).thenReturn(Single.just(reply));
 
-            cut
-                .generateEL(query)
-                .subscribe(
-                    elGenReply ->
-                        context.verify(() -> {
-                            assertThat(elGenReply.message()).isEqualTo(expected);
-                            assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
-                            assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
-                            assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
-                            context.completeNow();
-                        }),
-                    context::failNow
-                );
+            cut.generateEL(query).subscribe(
+                elGenReply ->
+                    context.verify(() -> {
+                        assertThat(elGenReply.message()).isEqualTo(expected);
+                        assertThat(elGenReply.feedbackId().chatId()).isEqualTo("chatId");
+                        assertThat(elGenReply.feedbackId().userMessageId()).isEqualTo("userMessageId");
+                        assertThat(elGenReply.feedbackId().agentMessageId()).isEqualTo("agentMessageId");
+                        context.completeNow();
+                    }),
+                context::failNow
+            );
         }
     }
 

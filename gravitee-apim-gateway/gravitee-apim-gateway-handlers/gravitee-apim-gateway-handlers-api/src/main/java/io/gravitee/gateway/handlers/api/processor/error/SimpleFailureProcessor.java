@@ -68,7 +68,10 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
             // Combine generic failure message with detailed reason from policy,
             // e.g. "Unauthorized" + "Signed JWT rejected: Invalid signature"
             //    -> "Unauthorized (Signed JWT rejected: Invalid signature)"
-            context.request().metrics().setMessage(failure.message() + " (" + existingMessage + ")");
+            context
+                .request()
+                .metrics()
+                .setMessage(failure.message() + " (" + existingMessage + ")");
         }
 
         response.status(failure.statusCode());

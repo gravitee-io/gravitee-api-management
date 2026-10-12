@@ -74,7 +74,13 @@ class DebugApiV4Test {
         final Api api = Api.builder()
             .id("api-id")
             .name("api")
-            .listeners(List.of(HttpListener.builder().paths(List.of(new Path("/path1"), new Path("/path2"))).build()))
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(new Path("/path1"), new Path("/path2")))
+                        .build()
+                )
+            )
             .build();
 
         return new io.gravitee.definition.model.debug.DebugApiV4(api, new HttpRequest("/path", "GET"));

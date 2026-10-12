@@ -218,7 +218,10 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     private ApiDescriptor.ApiDescriptorV4 fakeApiEntityV4() {
-        var httpListener = HttpListener.builder().paths(List.of(new Path("my.fake.host", "/test"))).pathMappings(Set.of("/test")).build();
+        var httpListener = HttpListener.builder()
+            .paths(List.of(new Path("my.fake.host", "/test")))
+            .pathMappings(Set.of("/test"))
+            .build();
 
         SubscriptionListener subscriptionListener = new SubscriptionListener();
         Entrypoint entrypoint = new Entrypoint();
@@ -660,8 +663,14 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     }
 
     private void testReturnedMembers(Set<Member> members) {
-        var userMember = new Member().displayName("John Doe").id("memberId").roles(List.of(new Role().name("OWNER")));
-        var poUserMember = new Member().displayName("Thomas Pesquet").id("poMemberId").roles(List.of(new Role().name("PRIMARY_OWNER")));
+        var userMember = new Member()
+            .displayName("John Doe")
+            .id("memberId")
+            .roles(List.of(new Role().name("OWNER")));
+        var poUserMember = new Member()
+            .displayName("Thomas Pesquet")
+            .id("poMemberId")
+            .roles(List.of(new Role().name("PRIMARY_OWNER")));
 
         assertThat(members).containsOnly(userMember, poUserMember);
     }

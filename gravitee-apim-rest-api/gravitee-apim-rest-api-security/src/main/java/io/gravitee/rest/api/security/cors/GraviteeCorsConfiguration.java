@@ -237,8 +237,9 @@ public class GraviteeCorsConfiguration extends CorsConfiguration {
         }
     }
 
-    record AccessPointEventListener(GraviteeCorsConfiguration graviteeCorsConfiguration) implements
-        EventListener<AccessPointEvent, AccessPoint> {
+    record AccessPointEventListener(
+        GraviteeCorsConfiguration graviteeCorsConfiguration
+    ) implements EventListener<AccessPointEvent, AccessPoint> {
         @Override
         public void onEvent(final Event<AccessPointEvent, AccessPoint> event) {
             if (isReferenced(event) && (isConsoleTarget(event) || isPortalTarget(event) || isGammaConsoleTarget(event))) {

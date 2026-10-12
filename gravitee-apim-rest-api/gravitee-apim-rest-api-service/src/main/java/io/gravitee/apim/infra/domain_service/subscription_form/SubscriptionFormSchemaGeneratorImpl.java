@@ -182,7 +182,8 @@ public class SubscriptionFormSchemaGeneratorImpl implements SubscriptionFormSche
     }
 
     private sealed interface ParsedOptions
-        permits ParsedOptions.NoOptions, ParsedOptions.StaticOptions, ParsedOptions.DynamicOptionsParsed {
+        permits ParsedOptions.NoOptions, ParsedOptions.StaticOptions, ParsedOptions.DynamicOptionsParsed
+    {
         record NoOptions() implements ParsedOptions {}
 
         record StaticOptions(List<String> values) implements ParsedOptions {}

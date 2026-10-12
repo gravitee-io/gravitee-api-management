@@ -71,7 +71,9 @@ class ApiResource_RollbackTest extends ApiResourceTest {
 
     @Test
     void should_return_400_if_not_eventId() {
-        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(null)));
+        final Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRollbackPayload(null)));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
         var error = response.readEntity(Error.class);
@@ -90,7 +92,9 @@ class ApiResource_RollbackTest extends ApiResourceTest {
             )
         ).thenReturn(false);
 
-        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
+        final Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
 
         var error = response.readEntity(Error.class);
@@ -100,7 +104,9 @@ class ApiResource_RollbackTest extends ApiResourceTest {
 
     @Test
     void should_rollback_api() {
-        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
+        final Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
 
         var captor = ArgumentCaptor.forClass(RollbackApiUseCase.Input.class);
@@ -120,7 +126,9 @@ class ApiResource_RollbackTest extends ApiResourceTest {
             .when(rollbackApiUseCase)
             .execute(any(RollbackApiUseCase.Input.class));
 
-        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
+        final Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRollbackPayload(EVENT_ID)));
         assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
 
         var error = response.readEntity(Error.class);

@@ -61,12 +61,12 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApiV2> {
 
         JsonNode resultNode = node.get("debugSteps");
         if (resultNode != null) {
-            debugApi.setDebugSteps((resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<List<DebugStep>>() {})));
+            debugApi.setDebugSteps(resultNode.traverse(jp.getCodec()).readValueAs(new TypeReference<List<DebugStep>>() {}));
         }
 
         JsonNode preprocessorStepNode = node.get("preprocessorStep");
         if (preprocessorStepNode != null) {
-            debugApi.setPreprocessorStep((preprocessorStepNode.traverse(jp.getCodec()).readValueAs(PreprocessorStep.class)));
+            debugApi.setPreprocessorStep(preprocessorStepNode.traverse(jp.getCodec()).readValueAs(PreprocessorStep.class));
         }
 
         JsonNode backendResponseNode = node.get("backendResponse");

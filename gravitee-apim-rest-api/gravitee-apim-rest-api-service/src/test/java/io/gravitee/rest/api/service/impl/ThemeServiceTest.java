@@ -362,14 +362,15 @@ public class ThemeServiceTest {
         theme.setReferenceType(ENVIRONMENT.name());
 
         verify(themeRepository, times(1)).create(
-            argThat(argument ->
-                ("NAME".equals(argument.getName()) &&
+            argThat(
+                argument ->
+                    "NAME".equals(argument.getName()) &&
                     argument.getDefinition() != null &&
                     "DEFAULT".equals(argument.getReferenceId()) &&
                     ENVIRONMENT.name().equals(argument.getReferenceType()) &&
                     !argument.getId().isEmpty() &&
                     argument.getCreatedAt() != null &&
-                    argument.getUpdatedAt() != null)
+                    argument.getUpdatedAt() != null
             )
         );
         verify(auditService, times(1)).createAuditLog(

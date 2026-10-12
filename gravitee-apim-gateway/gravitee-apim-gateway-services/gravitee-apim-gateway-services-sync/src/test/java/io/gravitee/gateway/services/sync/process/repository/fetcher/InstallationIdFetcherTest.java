@@ -68,8 +68,7 @@ class InstallationIdFetcherTest {
         Installation installation = new Installation();
         installation.setId("installation#id");
         when(installationRepository.find()).thenReturn(Optional.of(installation));
-        cut
-            .fetch()
+        cut.fetch()
             .test()
             .assertValueCount(1)
             .assertValue(events -> events.contains(installation.getId()));

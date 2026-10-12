@@ -282,9 +282,9 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
 
     private String loadTemplate(String templatePath) {
         try (
-            var inputStream = SeedDefaultPagesForPortalNavigationItemsUseCaseTest.class.getClassLoader().getResourceAsStream(
-                String.format("templates/%s", templatePath)
-            )
+            var inputStream = SeedDefaultPagesForPortalNavigationItemsUseCaseTest.class
+                .getClassLoader()
+                .getResourceAsStream(String.format("templates/%s", templatePath))
         ) {
             assertThat(inputStream).isNotNull();
             return new String(inputStream.readAllBytes());

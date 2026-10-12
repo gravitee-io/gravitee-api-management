@@ -35,15 +35,13 @@ public class WSDLToOpenAPIConverterTest {
     private WSDLToOpenAPIConverter converter = new WSDLToOpenAPIConverter();
 
     public static Iterable<Object[]> data() {
-        return Arrays.asList(
-            new Object[][] {
-                { "/calculator.asmx", 8, 8, 1 },
-                { "/example.wsdl", 1, 1, 1 },
-                { "/rpc_style.wsdl", 1, 1, 1 },
-                { "/rpc_style_2args.wsdl", 1, 1, 1 },
-                { "/tempconvert.wsdl", 6, 4, 3 },
-            }
-        );
+        return Arrays.asList(new Object[][] {
+            { "/calculator.asmx", 8, 8, 1 },
+            { "/example.wsdl", 1, 1, 1 },
+            { "/rpc_style.wsdl", 1, 1, 1 },
+            { "/rpc_style_2args.wsdl", 1, 1, 1 },
+            { "/tempconvert.wsdl", 6, 4, 3 },
+        });
     }
 
     @MethodSource("data")

@@ -58,7 +58,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI("/linkwithParams?q=query&page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI("/linkwithParams?q=query&page=" + page + "&size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = "/linkwithParams?q=query&page=3&size=15";
@@ -80,7 +82,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=3&size=15";
@@ -102,7 +106,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=1&size=15";
@@ -124,7 +130,9 @@ public class PaginationLinkTest {
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=8&size=15";
@@ -145,7 +153,9 @@ public class PaginationLinkTest {
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
         queryParameters.putSingle(PaginationParam.PAGE_QUERY_PARAM_NAME, page.toString());
 
-        doReturn(new URI(path + "?page=" + page)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?page=3";
@@ -166,7 +176,9 @@ public class PaginationLinkTest {
         MultivaluedMap<String, String> queryParameters = new MultivaluedHashMap<String, String>();
         queryParameters.putSingle(PaginationParam.SIZE_QUERY_PARAM_NAME, size.toString());
 
-        doReturn(new URI(path + "?size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
         doReturn(queryParameters).when(uriInfo).getQueryParameters();
 
         String expectedSelf = path + "?size=15";
@@ -221,7 +233,9 @@ public class PaginationLinkTest {
         Integer size = 15;
         Integer totalItems = 3;
 
-        doReturn(new URI(path + "?page=" + page + "&size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?page=" + page + "&size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
 
         String expectedSelf = path + "?page=1&size=15";
         String expectedFirst = null;
@@ -238,7 +252,9 @@ public class PaginationLinkTest {
         Integer size = 15;
         Integer totalItems = 3;
 
-        doReturn(new URI(path + "?size=" + size)).when(uriInfo).getRequestUri();
+        doReturn(new URI(path + "?size=" + size))
+            .when(uriInfo)
+            .getRequestUri();
 
         String expectedSelf = path + "?size=15";
         String expectedFirst = null;

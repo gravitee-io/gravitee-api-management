@@ -55,12 +55,10 @@ public class GroupMemberResource extends AbstractResource {
     @ApiResponse(responseCode = "200", description = "Member has been removed successfully")
     @ApiResponse(responseCode = "400", description = "User does not exist")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.DELETE),
+    })
     public Response deleteGroupMember(@PathParam("member") String userId) {
         groupService.deleteUserFromGroup(GraviteeContext.getExecutionContext(), group, userId);
 

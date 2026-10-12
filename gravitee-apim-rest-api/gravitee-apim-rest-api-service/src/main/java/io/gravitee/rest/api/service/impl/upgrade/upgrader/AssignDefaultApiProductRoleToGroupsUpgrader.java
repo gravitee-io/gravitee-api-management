@@ -87,20 +87,18 @@ public class AssignDefaultApiProductRoleToGroupsUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        environmentRepository
-            .findAll()
-            .forEach(environment -> {
-                ExecutionContext executionContext = new ExecutionContext(environment);
-                try {
-                    backfillAllGroupsInEnvironment(executionContext);
-                } catch (TechnicalException e) {
-                    log.error(
-                        "Error backfilling default API_PRODUCT role on groups for environment {}",
-                        executionContext.getEnvironmentId(),
-                        e
-                    );
-                }
-            });
+        environmentRepository.findAll().forEach(environment -> {
+            ExecutionContext executionContext = new ExecutionContext(environment);
+            try {
+                backfillAllGroupsInEnvironment(executionContext);
+            } catch (TechnicalException e) {
+                log.error(
+                    "Error backfilling default API_PRODUCT role on groups for environment {}",
+                    executionContext.getEnvironmentId(),
+                    e
+                );
+            }
+        });
         return true;
     }
 

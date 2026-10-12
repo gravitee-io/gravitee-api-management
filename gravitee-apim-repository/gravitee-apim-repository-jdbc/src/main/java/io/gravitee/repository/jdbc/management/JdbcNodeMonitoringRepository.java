@@ -152,22 +152,19 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
         }
 
         return Flowable.fromIterable(
-            jdbcTemplate.query(
-                (Connection cnctn) -> {
-                    PreparedStatement stmt = cnctn.prepareStatement(builder.toString());
-                    int idx = 1;
-                    for (final Object arg : args) {
-                        if (arg instanceof Date) {
-                            final Date date = (Date) arg;
-                            stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                        } else {
-                            stmt.setObject(idx++, arg);
-                        }
+            jdbcTemplate.query((Connection cnctn) -> {
+                PreparedStatement stmt = cnctn.prepareStatement(builder.toString());
+                int idx = 1;
+                for (final Object arg : args) {
+                    if (arg instanceof Date) {
+                        final Date date = (Date) arg;
+                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                    } else {
+                        stmt.setObject(idx++, arg);
                     }
-                    return stmt;
-                },
-                getRowMapper()
-            )
+                }
+                return stmt;
+            }, getRowMapper())
         ).subscribeOn(Schedulers.io());
     }
 }

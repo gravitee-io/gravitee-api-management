@@ -63,7 +63,7 @@ public class NodeMetadataSynchronizer implements RepositorySynchronizer {
                 .ignoreElement()
                 .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
                 .doOnComplete(() -> {
-                    log.info("Node metadata synchronized in {}ms", (System.currentTimeMillis() - launchTime.get()));
+                    log.info("Node metadata synchronized in {}ms", System.currentTimeMillis() - launchTime.get());
                 });
         } else {
             return Completable.complete();

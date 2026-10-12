@@ -49,12 +49,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_api_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "api-id": "48bddce0-11ea-4ff4-bddc-e011ea5ff4be" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "api-id": "48bddce0-11ea-4ff4-bddc-e011ea5ff4be" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -67,12 +67,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_multiple_v2_documents_by_api_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "api-id": "e2c0ecd5-893a-458d-80ec-d5893ab58d12" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "api-id": "e2c0ecd5-893a-458d-80ec-d5893ab58d12" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -88,12 +88,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_application_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "application-id": "cdf6ab93-cb6f-4ea9-b6ab-93cb6f0ea9e2" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "application-id": "cdf6ab93-cb6f-4ea9-b6ab-93cb6f0ea9e2" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -109,12 +109,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_plan_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "plan-id": "858760f9-5d97-4bd8-8760-f95d970bd86e" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "plan-id": "858760f9-5d97-4bd8-8760-f95d970bd86e" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -130,12 +130,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_document_by_transaction_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "transaction-id": "d78460be-3e9a-404a-8460-be3e9a604afe" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "transaction-id": "d78460be-3e9a-404a-8460-be3e9a604afe" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -152,12 +152,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_http_method_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "http-method": 7 }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "http-method": 7 }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -173,12 +173,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_gateway_response_time_ms_range() {
             var query = """
-                {
-                  "query": {
-                    "range": { "gateway-response-time-ms": { "gte": 300, "lte": 600 } }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "range": { "gateway-response-time-ms": { "gte": 300, "lte": 600 } }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -190,15 +190,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_aggregate_on_gateway_response_time_ms_alias() {
             var query = """
-                {
-                  "size": 0,
-                  "aggs": {
-                    "response_time_stats": {
-                      "stats": { "field": "gateway-response-time-ms" }
-                    }
-                  }
+            {
+              "size": 0,
+              "aggs": {
+                "response_time_stats": {
+                  "stats": { "field": "gateway-response-time-ms" }
                 }
-                """;
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -216,12 +216,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_document_by_subscription_id_alias() {
             var query = """
-                {
-                  "query": {
-                    "term": { "subscription-id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "subscription-id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -234,12 +234,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_return_no_results_for_non_existent_subscription_id() {
             var query = """
-                {
-                  "query": {
-                    "term": { "subscription-id": "does-not-exist" }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "term": { "subscription-id": "does-not-exist" }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -255,12 +255,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_gateway_latency_ms_range() {
             var query = """
-                {
-                  "query": {
-                    "range": { "gateway-latency-ms": { "gte": 10, "lte": 60 } }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "range": { "gateway-latency-ms": { "gte": 10, "lte": 60 } }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -272,15 +272,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_aggregate_on_gateway_latency_ms_alias() {
             var query = """
-                {
-                  "size": 0,
-                  "aggs": {
-                    "latency_stats": {
-                      "stats": { "field": "gateway-latency-ms" }
-                    }
-                  }
+            {
+              "size": 0,
+              "aggs": {
+                "latency_stats": {
+                  "stats": { "field": "gateway-latency-ms" }
                 }
-                """;
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -298,12 +298,12 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_find_v2_documents_by_endpoint_response_time_ms_range() {
             var query = """
-                {
-                  "query": {
-                    "range": { "endpoint-response-time-ms": { "gte": 200, "lte": 500 } }
-                  }
-                }
-                """;
+            {
+              "query": {
+                "range": { "endpoint-response-time-ms": { "gte": 200, "lte": 500 } }
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -315,15 +315,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_aggregate_on_endpoint_response_time_ms_alias() {
             var query = """
-                {
-                  "size": 0,
-                  "aggs": {
-                    "endpoint_time_stats": {
-                      "stats": { "field": "endpoint-response-time-ms" }
-                    }
-                  }
+            {
+              "size": 0,
+              "aggs": {
+                "endpoint_time_stats": {
+                  "stats": { "field": "endpoint-response-time-ms" }
                 }
-                """;
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_REQUEST_INDEX, null, query).blockingGet();
 
@@ -343,16 +343,16 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_return_zero_v2_results_for_entrypoint_id_exists_query() {
             var query = """
-                {
-                  "query": {
-                    "bool": {
-                      "must": [
-                        { "exists": { "field": "entrypoint-id" } }
-                      ]
-                    }
-                  }
+            {
+              "query": {
+                "bool": {
+                  "must": [
+                    { "exists": { "field": "entrypoint-id" } }
+                  ]
                 }
-                """;
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_AND_V4_INDICES, null, query).blockingGet();
 
@@ -364,15 +364,15 @@ public class RequestIndexFieldAliasesIT extends AbstractElasticsearchRepositoryT
         @Test
         void should_not_include_v2_docs_in_entrypoint_id_terms_aggregation() {
             var query = """
-                {
-                  "size": 0,
-                  "aggs": {
-                    "per_entrypoint": {
-                      "terms": { "field": "entrypoint-id", "size": 10 }
-                    }
-                  }
+            {
+              "size": 0,
+              "aggs": {
+                "per_entrypoint": {
+                  "terms": { "field": "entrypoint-id", "size": 10 }
                 }
-                """;
+              }
+            }
+            """;
 
             SearchResponse response = client.search(V2_AND_V4_INDICES, null, query).blockingGet();
 

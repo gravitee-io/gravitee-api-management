@@ -74,12 +74,12 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
 
     private Api applySanitizedValues(Api original, io.gravitee.rest.api.model.v4.api.UpdateApiEntity sanitized) {
         var originalDefinition = original.getApiDefinitionHttpV4();
-        var sanitizedLifecycle = sanitized.getLifecycleState() != null
-            ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
-            : original.getApiLifecycleState();
-        var sanitizedVisibility = sanitized.getVisibility() != null
-            ? Api.Visibility.valueOf(sanitized.getVisibility().name())
-            : original.getVisibility();
+        var sanitizedLifecycle =
+            sanitized.getLifecycleState() != null
+                ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
+                : original.getApiLifecycleState();
+        var sanitizedVisibility =
+            sanitized.getVisibility() != null ? Api.Visibility.valueOf(sanitized.getVisibility().name()) : original.getVisibility();
         var sanitizedDefinition = originalDefinition
             .toBuilder()
             .tags(coalesce(sanitized.getTags(), originalDefinition.getTags()))

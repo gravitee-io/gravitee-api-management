@@ -107,24 +107,22 @@ public class DeleteIngestedApisUseCase {
     private void delete(Api api, AuditInfo auditInfo) {
         var apiId = api.getId();
 
-        planQueryService
-            .findAllByApiId(apiId)
-            .forEach(plan -> {
-                //Close active Subscriptions
-                subscriptionQueryService
-                    .findActiveSubscriptionsByPlan(plan.getId())
-                    .forEach(activeSubscription ->
-                        closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), api, auditInfo)
-                    );
+        planQueryService.findAllByApiId(apiId).forEach(plan -> {
+            //Close active Subscriptions
+            subscriptionQueryService
+                .findActiveSubscriptionsByPlan(plan.getId())
+                .forEach(activeSubscription ->
+                    closeSubscriptionDomainService.closeSubscription(activeSubscription.getId(), api, auditInfo)
+                );
 
-                //Delete all subscriptions
-                subscriptionQueryService
-                    .findSubscriptionsByPlan(plan.getId())
-                    .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
+            //Delete all subscriptions
+            subscriptionQueryService
+                .findSubscriptionsByPlan(plan.getId())
+                .forEach(subscription -> deleteSubscriptionDomainService.delete(subscription, auditInfo));
 
-                //Delete plans
-                deletePlanDomainService.delete(plan, auditInfo);
-            });
+            //Delete plans
+            deletePlanDomainService.delete(plan, auditInfo);
+        });
 
         //Delete pages
         pageQueryService.searchByApiId(apiId).forEach(page -> deleteApiDocumentationDomainService.delete(api, page.getId(), auditInfo));

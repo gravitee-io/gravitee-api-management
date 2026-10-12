@@ -36,11 +36,9 @@ public class VerifyApiPathsUseCase {
             new VerifyApiPathDomainService.Input(GraviteeContext.getExecutionContext().getEnvironmentId(), request.apiId, request.paths)
         );
 
-        validationResult
-            .severe()
-            .ifPresent(errors -> {
-                throw new InvalidPathsException(errors.iterator().next().getMessage());
-            });
+        validationResult.severe().ifPresent(errors -> {
+            throw new InvalidPathsException(errors.iterator().next().getMessage());
+        });
 
         return validationResult
             .value()

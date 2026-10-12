@@ -142,7 +142,12 @@ class PortalsResourceTest extends AbstractResourceTest {
                 new CreateOrUpdatePortalUseCase.Output(persisted, PortalNavigationStructure.empty(), null, List.of())
             );
 
-            try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal.json")))) {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal.json")))
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdatePortalUseCase).execute(any(CreateOrUpdatePortalUseCase.Input.class));
 

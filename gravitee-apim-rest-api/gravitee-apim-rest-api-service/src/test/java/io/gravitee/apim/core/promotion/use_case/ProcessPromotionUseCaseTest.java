@@ -783,13 +783,13 @@ class ProcessPromotionUseCaseTest {
     }
 
     private static final String A_V4_DEFINITION_SERVING_HTTP_PROXY = """
-        {
-            "api": {
-                "crossId": "%s",
-                "definitionVersion": "V4",
-                "name": "My Api",
-                "listeners": [ { "type": "HTTP", "paths": [ { "path": "/http_proxy" } ] } ]
-            }
+    {
+        "api": {
+            "crossId": "%s",
+            "definitionVersion": "V4",
+            "name": "My Api",
+            "listeners": [ { "type": "HTTP", "paths": [ { "path": "/http_proxy" } ] } ]
         }
-        """.formatted(CROSS_ID);
+    }
+    """.formatted(CROSS_ID);
 }

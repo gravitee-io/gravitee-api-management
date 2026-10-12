@@ -28,7 +28,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface IdentityProviderActivationMongoRepository
-    extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo> {
+    extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo>
+{
     @Query("{ '_id.identityProviderId': ?0 }")
     List<IdentityProviderActivationMongo> findAllByIdentityProviderId(String identityProviderId);
 

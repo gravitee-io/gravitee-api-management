@@ -225,11 +225,9 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             .stream()
             .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
             .flatMap(role ->
-                this.membershipService.getMembershipsByReferenceAndRole(
-                    MembershipReferenceType.API,
-                    genericApiEntity.getId(),
-                    role.getId()
-                ).stream()
+                this.membershipService
+                    .getMembershipsByReferenceAndRole(MembershipReferenceType.API, genericApiEntity.getId(), role.getId())
+                    .stream()
             )
             .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
             .map(MembershipEntity::getMemberId)
@@ -250,11 +248,9 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                         .stream()
                         .filter(role -> this.roleService.hasPermission(role.getPermissions(), ApiPermission.REVIEWS, acls))
                         .flatMap(role ->
-                            this.membershipService.getMembershipsByReferenceAndRole(
-                                MembershipReferenceType.GROUP,
-                                group,
-                                role.getId()
-                            ).stream()
+                            this.membershipService
+                                .getMembershipsByReferenceAndRole(MembershipReferenceType.GROUP, group, role.getId())
+                                .stream()
                         )
                         .filter(m -> m.getMemberType().equals(MembershipMemberType.USER))
                         .map(MembershipEntity::getMemberId)

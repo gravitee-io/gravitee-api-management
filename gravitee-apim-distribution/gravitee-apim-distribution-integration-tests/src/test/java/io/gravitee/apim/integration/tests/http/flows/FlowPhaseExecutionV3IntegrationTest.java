@@ -124,11 +124,9 @@ class FlowPhaseExecutionV3IntegrationTest {
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isLegacyApi(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition
-                    .getFlows()
-                    .forEach(flow -> {
-                        flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
-                    });
+                definition.getFlows().forEach(flow -> {
+                    flow.setPathOperator(new PathOperator(flow.getPath(), Operator.EQUALS));
+                });
             }
         }
 

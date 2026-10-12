@@ -71,13 +71,14 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                     isNull(apiCriteria.getGroups()) ||
                     apiCriteria.getGroups().isEmpty() ||
                     (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
-                return (matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId && matchesGroups);
+                return matchesIntegrationId && matchesApiId && matchesLifecycleState && matchesEnvironmentId && matchesGroups;
             })
             .toList();
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+        var page =
+            matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }
@@ -149,9 +150,10 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
             .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
             .toList();
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+        var page =
+            matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, page.size(), matches.size());
     }

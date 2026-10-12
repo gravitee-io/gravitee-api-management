@@ -56,7 +56,7 @@ public class HttpSelectorConditionFilter implements HttpConditionFilter<Flow> {
     private boolean isPathMatches(final HttpBaseExecutionContext ctx, final HttpSelector httpSelector) {
         Pattern pattern = pathPatterns.getOrCreate(httpSelector.getPath());
         String pathInfo = ctx.request().pathInfo();
-        return (httpSelector.getPathOperator() == Operator.EQUALS)
+        return httpSelector.getPathOperator() == Operator.EQUALS
             ? pattern.matcher(pathInfo).matches()
             : pattern.matcher(pathInfo).lookingAt();
     }

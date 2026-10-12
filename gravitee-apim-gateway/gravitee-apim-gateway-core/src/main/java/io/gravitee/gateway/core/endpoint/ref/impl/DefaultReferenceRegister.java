@@ -85,7 +85,7 @@ public class DefaultReferenceRegister implements EndpointManager, ReferenceRegis
     @Override
     public Endpoint get(String name) {
         Reference reference = lookup(name);
-        return (reference != null) ? reference.endpoint() : null;
+        return reference != null ? reference.endpoint() : null;
     }
 
     private static class EndpointReferenceMap implements Map<String, String> {
@@ -119,7 +119,7 @@ public class DefaultReferenceRegister implements EndpointManager, ReferenceRegis
         @Override
         public String get(Object key) {
             String reference = wrapped.get(key);
-            return (reference != null) ? reference : Reference.UNKNOWN_REFERENCE;
+            return reference != null ? reference : Reference.UNKNOWN_REFERENCE;
         }
 
         @Override

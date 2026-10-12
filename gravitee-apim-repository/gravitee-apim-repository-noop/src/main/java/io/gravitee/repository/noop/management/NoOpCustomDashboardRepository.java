@@ -26,7 +26,8 @@ import java.util.List;
  */
 public class NoOpCustomDashboardRepository
     extends AbstractNoOpManagementRepository<CustomDashboard, String>
-    implements CustomDashboardRepository {
+    implements CustomDashboardRepository
+{
 
     @Override
     public List<CustomDashboard> findByEnvironmentId(String environmentId) throws TechnicalException {

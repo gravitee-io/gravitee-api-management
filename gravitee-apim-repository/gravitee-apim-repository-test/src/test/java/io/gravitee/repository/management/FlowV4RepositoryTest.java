@@ -73,31 +73,29 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("{#message.headers != null}", flow.getSubscribe().get(0).getMessageCondition());
 
         assertEquals(4, flow.getSelectors().size());
-        flow
-            .getSelectors()
-            .forEach(flowSelector -> {
-                if (flowSelector instanceof FlowHttpSelector) {
-                    FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
-                    assertEquals(2, httpSelector.getMethods().size());
-                    assertEquals("/", httpSelector.getPath());
-                    assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
-                } else if (flowSelector instanceof FlowConditionSelector) {
-                    FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
-                    assertEquals("my-condition", conditionSelector.getCondition());
-                } else if (flowSelector instanceof FlowChannelSelector) {
-                    FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
-                    assertEquals("/", channelSelector.getChannel());
-                    assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
-                    assertTrue(
-                        channelSelector
-                            .getOperations()
-                            .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
-                    );
-                    assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
-                } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
-                    assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
-                }
-            });
+        flow.getSelectors().forEach(flowSelector -> {
+            if (flowSelector instanceof FlowHttpSelector) {
+                FlowHttpSelector httpSelector = (FlowHttpSelector) flowSelector;
+                assertEquals(2, httpSelector.getMethods().size());
+                assertEquals("/", httpSelector.getPath());
+                assertEquals(FlowOperator.STARTS_WITH, httpSelector.getPathOperator());
+            } else if (flowSelector instanceof FlowConditionSelector) {
+                FlowConditionSelector conditionSelector = (FlowConditionSelector) flowSelector;
+                assertEquals("my-condition", conditionSelector.getCondition());
+            } else if (flowSelector instanceof FlowChannelSelector) {
+                FlowChannelSelector channelSelector = (FlowChannelSelector) flowSelector;
+                assertEquals("/", channelSelector.getChannel());
+                assertEquals(FlowOperator.STARTS_WITH, channelSelector.getChannelOperator());
+                assertTrue(
+                    channelSelector
+                        .getOperations()
+                        .containsAll(Set.of(FlowChannelSelector.Operation.SUBSCRIBE, FlowChannelSelector.Operation.PUBLISH))
+                );
+                assertTrue(channelSelector.getEntrypoints().contains("entrypoint"));
+            } else if (flowSelector instanceof FlowMcpSelector mcpSelector) {
+                assertEquals(Set.of("tools/call"), mcpSelector.getMethods());
+            }
+        });
     }
 
     @Test

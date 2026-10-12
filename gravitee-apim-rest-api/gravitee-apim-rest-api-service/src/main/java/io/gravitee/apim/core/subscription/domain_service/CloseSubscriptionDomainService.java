@@ -188,13 +188,11 @@ public class CloseSubscriptionDomainService {
         AuditInfo auditInfo,
         SubscriptionAuditEvent event
     ) {
-        String referenceId = subscriptionEntity.getReferenceId() != null
-            ? subscriptionEntity.getReferenceId()
-            : subscriptionEntity.getApiId();
+        String referenceId =
+            subscriptionEntity.getReferenceId() != null ? subscriptionEntity.getReferenceId() : subscriptionEntity.getApiId();
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
-        var createdAt = event == SubscriptionAuditEvent.SUBSCRIPTION_CLOSED
-            ? updatedSubscription.getUpdatedAt()
-            : updatedSubscription.getClosedAt();
+        var createdAt =
+            event == SubscriptionAuditEvent.SUBSCRIPTION_CLOSED ? updatedSubscription.getUpdatedAt() : updatedSubscription.getClosedAt();
 
         if (isApiProduct) {
             auditDomainService.createApiProductAuditLog(

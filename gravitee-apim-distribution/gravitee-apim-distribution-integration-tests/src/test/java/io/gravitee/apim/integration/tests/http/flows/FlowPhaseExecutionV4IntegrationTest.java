@@ -68,13 +68,11 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionV4EmulationI
         public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
             if (isV4Api(definitionClass)) {
                 final Api definition = (Api) api.getDefinition();
-                definition
-                    .getFlows()
-                    .forEach(flow -> {
-                        flow
-                            .selectorByType(SelectorType.HTTP)
-                            .ifPresent(selector -> ((HttpSelector) selector).setPathOperator(Operator.EQUALS));
-                    });
+                definition.getFlows().forEach(flow -> {
+                    flow.selectorByType(SelectorType.HTTP).ifPresent(selector ->
+                        ((HttpSelector) selector).setPathOperator(Operator.EQUALS)
+                    );
+                });
             }
         }
 
@@ -108,9 +106,10 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionV4EmulationI
 
     @Nested
     @GatewayTest
-    @DeployApi(
-        { "/apis/v4/http/flows/api-conditional-flows.json", "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json" }
-    )
+    @DeployApi({
+        "/apis/v4/http/flows/api-conditional-flows.json",
+        "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json",
+    })
     @DisplayName("Flows without condition and mixed operators")
     class ConditionalFlows extends FlowPhaseExecutionV4EmulationIntegrationTest.ConditionalFlows {
 

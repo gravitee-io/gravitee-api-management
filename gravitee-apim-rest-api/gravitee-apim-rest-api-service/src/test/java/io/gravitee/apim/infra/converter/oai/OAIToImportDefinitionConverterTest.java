@@ -566,7 +566,8 @@ class OAIToImportDefinitionConverterTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                "io/gravitee/rest/api/management/service/openapi.json",
+                "io/gravitee/rest/api/management/service/openapi-vhost.json",
             }
         )
         void should_be_null_when_no_definition_or_null(String filePath) throws IOException {
@@ -605,7 +606,8 @@ class OAIToImportDefinitionConverterTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                "io/gravitee/rest/api/management/service/openapi.json",
+                "io/gravitee/rest/api/management/service/openapi-vhost.json",
             }
         )
         void should_be_null_when_no_definition_or_null() throws IOException {
@@ -661,7 +663,8 @@ class OAIToImportDefinitionConverterTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                "io/gravitee/rest/api/management/service/openapi.json",
+                "io/gravitee/rest/api/management/service/openapi-vhost.json",
             }
         )
         void should_be_empty_when_no_definition_or_null(String filePath) throws IOException {
@@ -707,7 +710,8 @@ class OAIToImportDefinitionConverterTest {
         @ParameterizedTest
         @ValueSource(
             strings = {
-                "io/gravitee/rest/api/management/service/openapi.json", "io/gravitee/rest/api/management/service/openapi-vhost.json",
+                "io/gravitee/rest/api/management/service/openapi.json",
+                "io/gravitee/rest/api/management/service/openapi-vhost.json",
             }
         )
         void should_be_empty_when_no_definition_or_null(String filePath) throws IOException {
@@ -755,7 +759,8 @@ class OAIToImportDefinitionConverterTest {
             assertSoftly(softly -> {
                 softly.assertThat(result).isNotNull();
                 softly.assertThat(result.getApiExport()).isNotNull();
-                var flowPaths = ((List<Flow>) result.getApiExport().getFlows()).stream()
+                var flowPaths = ((List<Flow>) result.getApiExport().getFlows())
+                    .stream()
                     .flatMap(flow -> flow.getSelectors().stream())
                     .filter(HttpSelector.class::isInstance)
                     .map(selector -> ((HttpSelector) selector).getPath())

@@ -69,19 +69,17 @@ public class ApplicationApiKeysResource extends AbstractApiKeyResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List all API Keys for an application", description = "User must have the READ permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                responseCode = "200",
-                description = "List of API Keys for application",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON,
-                    array = @ArraySchema(schema = @Schema(implementation = ApiKeyEntity.class))
-                )
-            ),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-        }
-    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "200",
+            description = "List of API Keys for application",
+            content = @Content(
+                mediaType = MediaType.APPLICATION_JSON,
+                array = @ArraySchema(schema = @Schema(implementation = ApiKeyEntity.class))
+            )
+        ),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+    })
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApplication() {
         return apiKeyService.findByApplication(GraviteeContext.getExecutionContext(), application);
@@ -91,16 +89,14 @@ public class ApplicationApiKeysResource extends AbstractApiKeyResource {
     @Path("/_renew")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Renew an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                responseCode = "201",
-                description = "A new API Key",
-                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
-            ),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-        }
-    )
+    @ApiResponses({
+        @ApiResponse(
+            responseCode = "201",
+            description = "A new API Key",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApiKeyEntity.class))
+        ),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+    })
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response renewApiKeyForApplicationSubscription() {
         ApplicationEntity applicationEntity = getApplication();

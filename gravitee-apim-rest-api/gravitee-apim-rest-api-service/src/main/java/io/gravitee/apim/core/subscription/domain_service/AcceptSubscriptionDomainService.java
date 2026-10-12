@@ -138,9 +138,8 @@ public class AcceptSubscriptionDomainService {
             var api = apiCrudService.get(subscription.getApiId());
             var application = applicationCrudService.findById(subscription.getApplicationId(), api.getEnvironmentId());
             var metadata = metadataCrudService.findByApiId(subscription.getApiId());
-            var integrationId = api.getOriginContext() instanceof OriginContext.Integration(Object a, String integId, Object c, Object d)
-                ? integId
-                : null;
+            var integrationId =
+                api.getOriginContext() instanceof OriginContext.Integration(Object a, String integId, Object c, Object d) ? integId : null;
             var apiDefinition = api.getApiDefinitionValue() instanceof FederatedApi federatedApi ? federatedApi : null;
 
             SubscriptionParameter subscriptionParams;
@@ -270,9 +269,10 @@ public class AcceptSubscriptionDomainService {
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
         String referenceId = subscriptionEntity.getReferenceId();
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT == subscriptionEntity.getReferenceType();
-        var createdAt = acceptedSubscriptionEntity.getProcessedAt() != null
-            ? acceptedSubscriptionEntity.getProcessedAt()
-            : acceptedSubscriptionEntity.getClosedAt();
+        var createdAt =
+            acceptedSubscriptionEntity.getProcessedAt() != null
+                ? acceptedSubscriptionEntity.getProcessedAt()
+                : acceptedSubscriptionEntity.getClosedAt();
 
         if (isApiProduct) {
             auditDomainService.createApiProductAuditLog(

@@ -158,7 +158,9 @@ class ValidateApiCRDUseCaseTest {
         var output = cut.execute(input);
 
         assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder().errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of())).build()
+            ApiCRDStatus.builder()
+                .errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of()))
+                .build()
         );
     }
 
@@ -175,7 +177,9 @@ class ValidateApiCRDUseCaseTest {
         var output = cut.execute(input);
 
         assertThat(output.status()).isEqualTo(
-            ApiCRDStatus.builder().errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of())).build()
+            ApiCRDStatus.builder()
+                .errors(new ApiCRDStatus.Errors(List.of("something went wrong and it's not OK"), List.of()))
+                .build()
         );
     }
 }

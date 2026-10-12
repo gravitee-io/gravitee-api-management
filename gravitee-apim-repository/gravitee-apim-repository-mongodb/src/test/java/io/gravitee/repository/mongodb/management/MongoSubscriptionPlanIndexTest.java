@@ -56,7 +56,10 @@ public class MongoSubscriptionPlanIndexTest extends AbstractManagementRepository
     public void searchByPlanListSortedByUpdatedAtAsc_shouldUseCompoundIndex() {
         List<Bson> pipeline = List.of(match(in("plan", List.of("plan3", "plan4"))), sort(ascending("updatedAt")));
 
-        Document explain = mongoTemplate.getCollection(tablePrefix + "subscriptions").aggregate(pipeline).explain();
+        Document explain = mongoTemplate
+            .getCollection(tablePrefix + "subscriptions")
+            .aggregate(pipeline)
+            .explain();
 
         Optional<Document> winningPlan = findFirst(explain, "winningPlan");
         Optional<String> indexName = winningPlan.flatMap(plan -> findFirst(plan, "indexName")).map(Object::toString);

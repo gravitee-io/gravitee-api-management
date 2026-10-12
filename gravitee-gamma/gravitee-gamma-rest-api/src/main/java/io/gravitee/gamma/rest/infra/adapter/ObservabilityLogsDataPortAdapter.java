@@ -753,37 +753,37 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         var planNameById = planIds.isEmpty()
             ? Map.<String, String>of()
             : planCrudService
-                .findByIds(planIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
+                  .findByIds(planIds)
+                  .stream()
+                  .filter(p -> p.getName() != null)
+                  .collect(Collectors.toMap(Plan::getId, Plan::getName, (a, b) -> a));
 
         var appIds = entries.stream().map(LogEntry::applicationId).filter(Objects::nonNull).distinct().toList();
         var appNameById = appIds.isEmpty()
             ? Map.<String, String>of()
             : applicationCrudService
-                .findByIds(appIds, executionContext.getEnvironmentId())
-                .stream()
-                .filter(a -> a.getName() != null)
-                .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
+                  .findByIds(appIds, executionContext.getEnvironmentId())
+                  .stream()
+                  .filter(a -> a.getName() != null)
+                  .collect(Collectors.toMap(BaseApplicationEntity::getId, BaseApplicationEntity::getName, (a, b) -> a));
 
         var gatewayIds = entries.stream().map(LogEntry::gateway).filter(Objects::nonNull).distinct().toList();
         var gatewayHostnameById = gatewayIds.isEmpty()
             ? Map.<String, String>of()
             : instanceQueryService
-                .findByIds(executionContext, gatewayIds)
-                .stream()
-                .filter(i -> i.getHostname() != null)
-                .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
+                  .findByIds(executionContext, gatewayIds)
+                  .stream()
+                  .filter(i -> i.getHostname() != null)
+                  .collect(Collectors.toMap(BaseInstance::getId, BaseInstance::getHostname, (a, b) -> a));
 
         var apiProductIds = entries.stream().map(LogEntry::apiProductId).filter(Objects::nonNull).collect(Collectors.toSet());
         var apiProductNameById = apiProductIds.isEmpty()
             ? Map.<String, String>of()
             : apiProductQueryService
-                .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), apiProductIds)
-                .stream()
-                .filter(p -> p.getName() != null)
-                .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName, (a, b) -> a));
+                  .findByEnvironmentIdAndIdIn(executionContext.getEnvironmentId(), apiProductIds)
+                  .stream()
+                  .filter(p -> p.getName() != null)
+                  .collect(Collectors.toMap(ApiProduct::getId, ApiProduct::getName, (a, b) -> a));
 
         return entries
             .stream()

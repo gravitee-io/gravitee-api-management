@@ -385,7 +385,9 @@ class DefaultApiReactorTest {
         lenient().when(afterApiExecutionProcessors.getId()).thenReturn("mockAfterApiFlowsProcessors");
         lenient().when(onErrorProcessors.getId()).thenReturn("mockOnErrorProcessors");
 
-        lenient().when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
+        lenient()
+            .when(defaultInvoker.invoke(any(HttpExecutionContext.class)))
+            .thenReturn(spyInvokerChain);
         lenient().when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER)).thenReturn(defaultInvoker);
         lenient().when(entrypointConnector.handleRequest(ctx)).thenReturn(spyEntrypointRequest);
         lenient().when(entrypointConnector.handleResponse(ctx)).thenReturn(spyEntrypointResponse);

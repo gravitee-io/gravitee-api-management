@@ -167,19 +167,17 @@ public class LogsServiceImpl implements LogsService {
             if (response.getLogs() != null && !response.getLogs().isEmpty()) {
                 Map<String, Map<String, String>> metadata = new HashMap<>();
 
-                logResponse
-                    .getLogs()
-                    .forEach(logItem -> {
-                        String application = logItem.getApplication();
-                        String plan = logItem.getPlan();
+                logResponse.getLogs().forEach(logItem -> {
+                    String application = logItem.getApplication();
+                    String plan = logItem.getPlan();
 
-                        if (application != null) {
-                            metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
-                        }
-                        if (plan != null) {
-                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                        }
-                    });
+                    if (application != null) {
+                        metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
+                    }
+                    if (plan != null) {
+                        metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                    }
+                });
 
                 logResponse.setMetadata(metadata);
             }
@@ -255,19 +253,17 @@ public class LogsServiceImpl implements LogsService {
             if (response.getSize() > 0) {
                 Map<String, Map<String, String>> metadata = new HashMap<>();
 
-                logResponse
-                    .getLogs()
-                    .forEach(logItem -> {
-                        String api = logItem.getApi();
-                        String plan = logItem.getPlan();
+                logResponse.getLogs().forEach(logItem -> {
+                    String api = logItem.getApi();
+                    String plan = logItem.getPlan();
 
-                        if (api != null) {
-                            metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
-                        }
-                        if (plan != null) {
-                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                        }
-                    });
+                    if (api != null) {
+                        metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
+                    }
+                    if (plan != null) {
+                        metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                    }
+                });
 
                 logResponse.setMetadata(metadata);
             }
@@ -308,23 +304,21 @@ public class LogsServiceImpl implements LogsService {
             if (response.getSize() > 0) {
                 Map<String, Map<String, String>> metadata = new HashMap<>();
 
-                logResponse
-                    .getLogs()
-                    .forEach(logItem -> {
-                        String api = logItem.getApi();
-                        String application = logItem.getApplication();
-                        String plan = logItem.getPlan();
+                logResponse.getLogs().forEach(logItem -> {
+                    String api = logItem.getApi();
+                    String application = logItem.getApplication();
+                    String plan = logItem.getPlan();
 
-                        if (api != null) {
-                            metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
-                        }
-                        if (application != null) {
-                            metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
-                        }
-                        if (plan != null) {
-                            metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
-                        }
-                    });
+                    if (api != null) {
+                        metadata.computeIfAbsent(api, getAPIMetadata(executionContext, api));
+                    }
+                    if (application != null) {
+                        metadata.computeIfAbsent(application, getApplicationMetadata(executionContext, application));
+                    }
+                    if (plan != null) {
+                        metadata.computeIfAbsent(plan, getPlanMetadata(executionContext, plan));
+                    }
+                });
 
                 logResponse.setMetadata(metadata);
             }

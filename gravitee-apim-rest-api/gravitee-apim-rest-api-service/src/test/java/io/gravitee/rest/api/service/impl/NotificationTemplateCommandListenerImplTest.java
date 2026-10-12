@@ -45,8 +45,8 @@ class NotificationTemplateCommandListenerImplTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
     private static final String EMAIL_CONTENT = """
-            {"id":"c4f45b5d-526e-4660-b45b-5d526ee660ec", "hook":"USER_REGISTRATION","scope":"TEMPLATES_FOR_ACTION","name":"User registration","description":"Email sent to a user who has self-registered on portal or admin console. Contains a registration link.","title":"User ${registrationAction} - ${user.displayName}","content":"email content","type":"EMAIL","enabled":true,"templateName":"TEMPLATES_FOR_ACTION.USER_REGISTRATION.EMAIL","created_at":1718895875127}
-        """;
+        {"id":"c4f45b5d-526e-4660-b45b-5d526ee660ec", "hook":"USER_REGISTRATION","scope":"TEMPLATES_FOR_ACTION","name":"User registration","description":"Email sent to a user who has self-registered on portal or admin console. Contains a registration link.","title":"User ${registrationAction} - ${user.displayName}","content":"email content","type":"EMAIL","enabled":true,"templateName":"TEMPLATES_FOR_ACTION.USER_REGISTRATION.EMAIL","created_at":1718895875127}
+    """;
     private static final String ORGANIZATION_ID = "DEFAULT";
 
     @Mock

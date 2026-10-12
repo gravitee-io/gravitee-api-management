@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class PortalNavigationItemsQueryServiceInMemory
-    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService {
+    implements InMemoryAlternative<PortalNavigationItem>, PortalNavigationItemsQueryService
+{
 
     List<PortalNavigationItem> storage;
 
@@ -100,7 +101,7 @@ public class PortalNavigationItemsQueryServiceInMemory
                 item ->
                     (criteria.getEnvironmentId() == null || criteria.getEnvironmentId().equals(item.getEnvironmentId())) &&
                     (criteria.getArea() == null || criteria.getArea().equals(item.getArea())) &&
-                    (PARENT_ID_FILTER.test(item)) &&
+                    PARENT_ID_FILTER.test(item) &&
                     (criteria.getPublished() == null || criteria.getPublished().equals(item.getPublished())) &&
                     (criteria.getVisibility() == null || criteria.getVisibility().equals(item.getVisibility())) &&
                     (criteria.getType() == null || matchesType(item, criteria.getType())) &&

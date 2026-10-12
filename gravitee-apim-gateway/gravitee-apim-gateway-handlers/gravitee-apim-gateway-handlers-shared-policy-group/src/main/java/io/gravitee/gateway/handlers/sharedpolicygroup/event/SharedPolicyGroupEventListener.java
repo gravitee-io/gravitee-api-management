@@ -24,7 +24,8 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.registry.SharedPolicyGroup
 
 public class SharedPolicyGroupEventListener
     extends AbstractService<SharedPolicyGroupEventListener>
-    implements EventListener<SharedPolicyGroupEvent, ReactableSharedPolicyGroup> {
+    implements EventListener<SharedPolicyGroupEvent, ReactableSharedPolicyGroup>
+{
 
     private final SharedPolicyGroupRegistry sharedPolicyGroupRegistry;
 

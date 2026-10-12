@@ -198,15 +198,13 @@ class ValidateApiCRDDomainServiceTest {
             )
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> {
-                    Assertions.assertThat(sanitized.spec().getId()).isEqualTo("pre-set-id");
-                    Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo("pre-set-cross-id");
-                },
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> {
+                Assertions.assertThat(sanitized.spec().getId()).isEqualTo("pre-set-id");
+                Assertions.assertThat(sanitized.spec().getCrossId()).isEqualTo("pre-set-cross-id");
+            },
+            errors -> Assertions.assertThat(errors).isEmpty()
+        );
     }
 
     @Test
@@ -249,15 +247,13 @@ class ValidateApiCRDDomainServiceTest {
             )
         ).thenAnswer(call -> Validator.Result.ofValue(call.getArgument(0)));
 
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> {
-                    var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_HRID).categories(Set.of("id-1", "id-2")).build();
-                    Assertions.assertThat(sanitized.spec()).isEqualTo(expected);
-                },
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> {
+                var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_HRID).categories(Set.of("id-1", "id-2")).build();
+                Assertions.assertThat(sanitized.spec()).isEqualTo(expected);
+            },
+            errors -> Assertions.assertThat(errors).isEmpty()
+        );
     }
 
     @Test
@@ -301,12 +297,10 @@ class ValidateApiCRDDomainServiceTest {
 
         var expected = spec.toBuilder().crossId(API_CROSS_ID).hrid(API_HRID).build();
 
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
+            errors -> Assertions.assertThat(errors).isEmpty()
+        );
     }
 
     @Test

@@ -142,12 +142,10 @@ public class ApplicationMembersResource extends AbstractResource {
     @ApiResponse(responseCode = "201", description = "Member has been added or updated successfully")
     @ApiResponse(responseCode = "400", description = "Membership parameter is not valid")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE),
+    })
     public Response addOrUpdateApplicationMember(@Valid @NotNull ApplicationMembership applicationMembership) {
         if (PRIMARY_OWNER.name().equals(applicationMembership.getRole())) {
             throw new SinglePrimaryOwnerException(APPLICATION);

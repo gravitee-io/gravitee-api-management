@@ -95,7 +95,7 @@ public class IdentityProviderInitializer implements Initializer {
 
         while (found) {
             String type = environment.getProperty("security.providers[" + idx + "].type");
-            found = (type != null);
+            found = type != null;
             if (found && !notStorableIDPs.contains(type)) {
                 if (idpTypeNames.contains(type.toUpperCase())) {
                     log.info("Upsert identity provider config [{}]", type);
@@ -242,7 +242,7 @@ public class IdentityProviderInitializer implements Initializer {
 
         while (found) {
             String scope = environment.getProperty(listName + "[" + idx + "]");
-            found = (scope != null);
+            found = scope != null;
             if (found) {
                 scopes.add(scope);
             }
@@ -271,7 +271,7 @@ public class IdentityProviderInitializer implements Initializer {
 
         while (found) {
             String condition = environment.getProperty("security.providers[" + providerIndex + "].groupMapping[" + idx + "].condition");
-            found = (condition != null);
+            found = condition != null;
             if (found) {
                 GroupMappingEntity groupMappingEntity = new GroupMappingEntity();
                 groupMappingEntity.setCondition(condition);
@@ -303,7 +303,7 @@ public class IdentityProviderInitializer implements Initializer {
 
         while (found) {
             String condition = environment.getProperty("security.providers[" + providerIndex + "].roleMapping[" + idx + "].condition");
-            found = (condition != null);
+            found = condition != null;
             if (found) {
                 List<String> roles = getListOfString("security.providers[" + providerIndex + "].roleMapping[" + idx + "].roles");
                 RoleMappingEntity roleMappingEntity = identityProviderService.getRoleMappings(condition, roles);

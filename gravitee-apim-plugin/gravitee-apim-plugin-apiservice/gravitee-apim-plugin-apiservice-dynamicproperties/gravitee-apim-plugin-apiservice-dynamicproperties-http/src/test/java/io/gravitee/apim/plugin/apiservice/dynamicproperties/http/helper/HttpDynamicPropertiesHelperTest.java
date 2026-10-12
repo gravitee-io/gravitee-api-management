@@ -57,7 +57,12 @@ class HttpDynamicPropertiesHelperTest {
     @Test
     void should_not_handle_non_http_dynamic_properties_service() {
         final ApiServices services = new ApiServices();
-        services.setDynamicProperty(Service.builder().enabled(true).type("not-" + HTTP_DYNAMIC_PROPERTIES_TYPE).build());
+        services.setDynamicProperty(
+            Service.builder()
+                .enabled(true)
+                .type("not-" + HTTP_DYNAMIC_PROPERTIES_TYPE)
+                .build()
+        );
         assertThat(HttpDynamicPropertiesHelper.canHandle(Api.builder().services(services).build())).isFalse();
     }
 

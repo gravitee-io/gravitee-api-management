@@ -114,7 +114,7 @@ public class ElasticsearchMonitoringRepository extends AbstractElasticsearchRepo
 
         final JsonNode cpu = os.get("cpu");
         monitoringResponse.setOsCPUPercent(cpu.get("percent").asInt());
-        monitoringResponse.setOsCPULoadAverage((objectMapper.convertValue(cpu.get("load_average"), Map.class)));
+        monitoringResponse.setOsCPULoadAverage(objectMapper.convertValue(cpu.get("load_average"), Map.class));
 
         final JsonNode osMem = os.get("mem");
         monitoringResponse.setOsMemUsedInBytes(osMem.get("used_in_bytes").asLong());

@@ -45,7 +45,8 @@ import org.springframework.stereotype.Repository;
 @CustomLog
 public class JdbcPortalNavigationItemRepository
     extends JdbcAbstractCrudRepository<PortalNavigationItem, String>
-    implements PortalNavigationItemRepository {
+    implements PortalNavigationItemRepository
+{
 
     private static final String DELETE_FROM = "delete from ";
     private static final ObjectMapper JSON = new ObjectMapper();

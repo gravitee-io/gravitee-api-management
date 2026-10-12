@@ -91,21 +91,21 @@ class AuthzSharedEngineSyncTest {
         mocks = MockitoAnnotations.openMocks(this);
         vertx = Vertx.vertx();
         lenient().when(fetcher.bulkItems()).thenReturn(10);
-        lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
+        lenient()
+            .when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+            .thenReturn(Flowable.empty());
         hostedScopes = new AuthzHostedScopes();
         revisions = new AuthzAppliedRevisions();
         engine = registerFakeEngine();
-        provisionConsumer = vertx
-            .eventBus()
-            .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
-                if (provisionRelayFails) {
-                    message.fail(500, "pdp unreachable");
-                    return;
-                }
-                JsonObject body = message.body();
-                provisionOps.add(body.getString("op") + ":" + body.getString("targetPdpId"));
-                message.reply(new JsonObject().put("ok", true));
-            });
+        provisionConsumer = vertx.eventBus().consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+            if (provisionRelayFails) {
+                message.fail(500, "pdp unreachable");
+                return;
+            }
+            JsonObject body = message.body();
+            provisionOps.add(body.getString("op") + ":" + body.getString("targetPdpId"));
+            message.reply(new JsonObject().put("ok", true));
+        });
         wireSynchronizers();
     }
 
@@ -299,24 +299,23 @@ class AuthzSharedEngineSyncTest {
         Set<String> staged = ConcurrentHashMap.newKeySet();
         Set<String> served = ConcurrentHashMap.newKeySet();
         List<String> ops = Collections.synchronizedList(new ArrayList<>());
-        engineConsumer = vertx
-            .eventBus()
-            .consumer(ENGINE_ADDRESS, msg -> {
-                JsonObject body = msg.body();
-                String op = body.getString("op");
-                String docId = body.getString("docId", body.getString("uid"));
-                ops.add(docId == null ? op : op + ":" + docId);
-                switch (op) {
-                    case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
-                    case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
-                    case "commit" -> {
-                        served.clear();
-                        served.addAll(staged);
-                    }
-                    default -> {}
+        engineConsumer = vertx.eventBus().consumer(ENGINE_ADDRESS, msg -> {
+            JsonObject body = msg.body();
+            String op = body.getString("op");
+            String docId = body.getString("docId", body.getString("uid"));
+            ops.add(docId == null ? op : op + ":" + docId);
+            switch (op) {
+                case "addOrUpdatePolicy", "addOrUpdateEntity", "addOrUpdateSchema" -> staged.add(docId);
+                case "removePolicy", "removeEntity", "removeSchema" -> staged.remove(docId);
+                case "commit" -> {
+                    served.clear();
+                    served.addAll(staged);
                 }
-                msg.reply(new JsonObject().put("commitGeneration", 1L));
-            });
+                default -> {
+                }
+            }
+            msg.reply(new JsonObject().put("commitGeneration", 1L));
+        });
         return new FakeEngine(served, ops);
     }
 

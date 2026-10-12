@@ -627,9 +627,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             templateEngine.getTemplateContext().setVariable("client_id", registrationResponse.getClientId());
 
             if (registrationProviderClient instanceof DiscoveryBasedDynamicClientRegistrationProviderClient) {
-                ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient).getMetadata().forEach((s, o) ->
-                    templateEngine.getTemplateContext().setVariable(s, o)
-                );
+                ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient)
+                    .getMetadata()
+                    .forEach((s, o) -> templateEngine.getTemplateContext().setVariable(s, o));
             }
 
             return registrationProviderClient.renewClientSecret(

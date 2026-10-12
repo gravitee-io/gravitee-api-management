@@ -30,12 +30,12 @@ public class HttpProxyEndpointConfigurationFactory implements EndpointConfigurat
     }
 
     private String buildTargetUrl(io.vertx.ext.consul.Service service) {
-        var sslMetadata = (service.getMeta() != null) ? service.getMeta().get(CONSUL_METADATA_SSL) : null;
-        var pathMetadata = (service.getMeta() != null) ? service.getMeta().get(CONSUL_METADATA_PATH) : null;
+        var sslMetadata = service.getMeta() != null ? service.getMeta().get(CONSUL_METADATA_SSL) : null;
+        var pathMetadata = service.getMeta() != null ? service.getMeta().get(CONSUL_METADATA_PATH) : null;
 
         var scheme = Boolean.parseBoolean(sslMetadata) ? "https" : "http";
         var host = service.getAddress() == null || service.getAddress().trim().isBlank() ? service.getNodeAddress() : service.getAddress();
-        var port = (service.getPort() > 0 ? ":" + service.getPort() : "");
+        var port = service.getPort() > 0 ? ":" + service.getPort() : "";
         var path = removeTrailingSlash(pathMetadata != null ? pathMetadata : "");
 
         return scheme + "://" + host + port + path;

@@ -83,12 +83,10 @@ public class TenantsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.CREATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.CREATE),
+    })
     public List<TenantEntity> createTenants(@Valid @NotNull final List<NewTenantEntity> tenant) {
         return tenantService.create(
             GraviteeContext.getExecutionContext(),
@@ -111,12 +109,10 @@ public class TenantsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.UPDATE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.UPDATE),
+    })
     public List<TenantEntity> updateTenants(@Valid @NotNull final List<UpdateTenantEntity> tenant) {
         return tenantService.update(
             GraviteeContext.getExecutionContext(),
@@ -139,12 +135,10 @@ public class TenantsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE),
-            @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.DELETE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ENVIRONMENT_TENANT, acls = RolePermissionAction.DELETE),
+        @Permission(value = RolePermission.ORGANIZATION_TENANT, acls = RolePermissionAction.DELETE),
+    })
     public void deleteTenant(@PathParam("tenant") String tenant) {
         tenantService.delete(
             GraviteeContext.getExecutionContext(),

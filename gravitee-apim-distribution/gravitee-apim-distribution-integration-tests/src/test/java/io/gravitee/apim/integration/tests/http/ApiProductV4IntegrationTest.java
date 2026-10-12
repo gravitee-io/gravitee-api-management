@@ -182,9 +182,11 @@ class ApiProductV4IntegrationTest {
     class DeletionScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_for_all_product_apis_after_product_deletion(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -201,9 +203,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_when_api_is_detached_from_product_but_api_itself_is_still_deployed(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -219,9 +223,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_keep_sibling_api_accessible_after_underlying_api_is_undeployed_from_gateway(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -237,9 +243,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_for_all_apis_when_last_api_is_undeployed_and_product_redeployed_with_no_apis(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -256,9 +264,11 @@ class ApiProductV4IntegrationTest {
     class PlanStateScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_produce_deterministic_blocked_or_error_outcome_when_plan_is_not_published(HttpClient client) {
             final String productId = "plan-state-d1-product";
             final String planId = "plan-state-d1-plan";
@@ -277,9 +287,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_keep_deterministic_access_outcome_after_plan_deprecation_transition(HttpClient client) {
             final String productId = "plan-state-d2-product";
             final String planId = "plan-state-d2-plan";
@@ -302,9 +314,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_keep_deterministic_access_outcome_after_plan_close_or_delete_transition(HttpClient client) {
             final String productId = "plan-state-d4-product";
             final String planId = "plan-state-d4-plan";
@@ -329,9 +343,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         void should_register_and_resolve_api_product_plan_security_types_for_api_key_jwt_and_mtls() {
             final String productId = "plan-state-d3-product";
             ReactableApiProduct apiProduct = product(productId, Set.of(API_1_ID));
@@ -365,9 +381,11 @@ class ApiProductV4IntegrationTest {
     class SubscriptionStateScenarios extends TestPreparer {
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_return_401_after_subscription_is_revoked_or_cancelled(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);
@@ -378,9 +396,11 @@ class ApiProductV4IntegrationTest {
         }
 
         @Test
-        @DeployApi(
-            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
-        )
+        @DeployApi({
+            "/apis/v4/http/api-product/api-1.json",
+            "/apis/v4/http/api-product/api-2.json",
+            "/apis/v4/http/api-product/api-3.json",
+        })
         @DeployApiProducts(PRODUCT_RESOURCE)
         void should_keep_key_isolation_when_two_apps_are_subscribed_and_one_key_is_revoked(HttpClient client) {
             allowKeyForApi(KEY_ALPHA, API_1_ID);

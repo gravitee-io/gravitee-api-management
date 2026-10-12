@@ -34,16 +34,16 @@ import org.junit.jupiter.api.Test;
 class SearchRequestsCountQueryAdapterTest {
 
     public static final String QUERY_WITHOUT_FILTER = """
-        {
-            "size": 0,
-            "track_total_hits": true,
-            "aggs": {
-                "entrypoints": {
-                    "terms": {"field":"entrypoint-id", "size": 100}
-                }
+    {
+        "size": 0,
+        "track_total_hits": true,
+        "aggs": {
+            "entrypoints": {
+                "terms": {"field":"entrypoint-id", "size": 100}
             }
         }
-        """;
+    }
+    """;
 
     @Test
     void should_build_query_without_filter() {

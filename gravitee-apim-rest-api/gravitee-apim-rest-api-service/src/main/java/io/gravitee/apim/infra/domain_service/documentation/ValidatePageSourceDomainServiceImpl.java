@@ -175,7 +175,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
             config.get(GITHUB_REPOSITORY) +
             "/contents" +
             config.get(GITHUB_FILEPATH) +
-            (branchOrTag != null && StringUtils.isNotEmpty(branchOrTag.toString()) ? ("?ref=" + branchOrTag) : "");
+            (branchOrTag != null && StringUtils.isNotEmpty(branchOrTag.toString()) ? "?ref=" + branchOrTag : "");
 
         return new RequestOptions()
             .setMethod(HttpMethod.GET)
@@ -239,8 +239,8 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
         return CronExpression.isValidExpression(cronExpression)
             ? Result.ofValue(cronExpression)
             : Result.withError(
-                Error.severe("property [fetchCron] of source [%s] must be a valid cron expression for page [%s]", sourceType, pageName)
-            );
+                  Error.severe("property [fetchCron] of source [%s] must be a valid cron expression for page [%s]", sourceType, pageName)
+              );
     }
 
     private Validator.Result<Map<String, Object>> checkRequiredProperties(

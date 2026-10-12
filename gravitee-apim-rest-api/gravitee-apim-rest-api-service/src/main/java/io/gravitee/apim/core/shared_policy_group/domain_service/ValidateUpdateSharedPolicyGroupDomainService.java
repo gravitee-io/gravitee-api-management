@@ -63,7 +63,8 @@ public class ValidateUpdateSharedPolicyGroupDomainService implements Validator<V
             throw new InvalidDataException("Name is required.");
         }
 
-        this.sharedPolicyGroupCrudService.findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroup.getCrossId())
+        this.sharedPolicyGroupCrudService
+            .findByEnvironmentIdAndCrossId(environmentId, sharedPolicyGroup.getCrossId())
             .filter(spg -> !spg.getId().equals(sharedPolicyGroup.getId()))
             .ifPresent(spg -> {
                 throw new SharedPolicyGroupDuplicateCrossIdException(sharedPolicyGroup.getCrossId(), environmentId);

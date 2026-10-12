@@ -38,7 +38,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcIdentityProviderActivationRepository
     extends JdbcAbstractRepository<IdentityProviderActivation>
-    implements IdentityProviderActivationRepository {
+    implements IdentityProviderActivationRepository
+{
 
     JdbcIdentityProviderActivationRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "identity_provider_activations");

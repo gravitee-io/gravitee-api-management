@@ -263,11 +263,12 @@ public class GetFilterValuesUseCase {
     private Output searchApiProductsByNameFromEnvironment(Input input, String lowerQuery) {
         var environmentId = input.auditInfo().environmentId();
 
-        var stream = apiProductQueryService
-            .findByEnvironmentId(environmentId)
-            .stream()
-            // Exclude products with no name — they cannot be meaningfully displayed.
-            .filter(ap -> ap.getName() != null);
+        var stream =
+            apiProductQueryService
+                .findByEnvironmentId(environmentId)
+                .stream()
+                // Exclude products with no name — they cannot be meaningfully displayed.
+                .filter(ap -> ap.getName() != null);
 
         if (lowerQuery != null) {
             stream = stream.filter(ap -> ap.getName().toLowerCase().contains(lowerQuery));

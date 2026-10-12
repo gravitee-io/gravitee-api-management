@@ -97,9 +97,9 @@ public final class ApiServicesMigration {
                 try {
                     config.set(
                         "headers",
-                        (step.getRequest().getHeaders() == null
-                                ? jsonMapper.createArrayNode()
-                                : jsonMapper.valueToTree(step.getRequest().getHeaders()))
+                        step.getRequest().getHeaders() == null
+                            ? jsonMapper.createArrayNode()
+                            : jsonMapper.valueToTree(step.getRequest().getHeaders())
                     );
                     config.set("method", jsonMapper.valueToTree(step.getRequest().getMethod()));
                     config.set("target", jsonMapper.valueToTree(step.getRequest().getPath()));

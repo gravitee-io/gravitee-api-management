@@ -84,16 +84,16 @@ public class UserMapper {
 
     public User convertForEnvironment(UserEntity user, String environmentId) {
         final User userItem = convertUser(user);
-        Stream<UserRoleEntity> organizationRoles = user.getRoles() == null
-            ? Stream.empty()
-            : user
-                .getRoles()
-                .stream()
-                .filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
+        Stream<UserRoleEntity> organizationRoles =
+            user.getRoles() == null
+                ? Stream.empty()
+                : user
+                      .getRoles()
+                      .stream()
+                      .filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
 
-        Set<UserRoleEntity> environmentRoles = user.getEnvRoles() == null || environmentId == null
-            ? Set.of()
-            : user.getEnvRoles().getOrDefault(environmentId, Set.of());
+        Set<UserRoleEntity> environmentRoles =
+            user.getEnvRoles() == null || environmentId == null ? Set.of() : user.getEnvRoles().getOrDefault(environmentId, Set.of());
 
         userItem.setPermissions(
             convertPermissions(

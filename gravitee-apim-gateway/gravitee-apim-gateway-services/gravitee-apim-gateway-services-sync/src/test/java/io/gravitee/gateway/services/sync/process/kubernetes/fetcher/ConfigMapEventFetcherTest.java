@@ -192,8 +192,7 @@ class ConfigMapEventFetcherTest {
             Flowable.just(createEvent(configMap))
         );
 
-        cut
-            .fetchLatest(API_DEFINITIONS_KIND)
+        cut.fetchLatest(API_DEFINITIONS_KIND)
             .test()
             .assertComplete()
             .assertValue(events -> events.stream().anyMatch(event -> readApi(event.getPayload()).getType() == ApiType.PROXY));
@@ -227,8 +226,7 @@ class ConfigMapEventFetcherTest {
                 Flowable.just(createEvent(configMap))
             );
 
-            cut
-                .fetchLatest(API_DEFINITIONS_KIND)
+            cut.fetchLatest(API_DEFINITIONS_KIND)
                 .test()
                 .assertComplete()
                 .assertValue(events -> {

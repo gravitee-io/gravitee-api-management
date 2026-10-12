@@ -148,7 +148,9 @@ public abstract class AbstractBestMatchFlowSelector<T> {
     protected abstract Optional<String> providePath(T flow);
 
     private String[] splitFlowPath(T flow) {
-        return providePath(flow).map(AbstractBestMatchFlowSelector::splitPath).orElse(new String[0]);
+        return providePath(flow)
+            .map(AbstractBestMatchFlowSelector::splitPath)
+            .orElse(new String[0]);
     }
 
     /**

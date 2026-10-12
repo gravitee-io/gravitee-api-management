@@ -302,7 +302,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         // excluded via "!tag"). A PDP without a tag behaves like an untagged document — hosted only on an
         // untagged (catch-all) node.
         String tag = deployable.tag();
-        Set<String> tags = (tag == null || tag.isBlank()) ? Set.of() : Set.of(tag);
+        Set<String> tags = tag == null || tag.isBlank() ? Set.of() : Set.of(tag);
         boolean matches = EnvironmentUtils.hasMatchingTags(gatewayConfiguration.shardingTags(), tags);
         if (!matches) {
             log.debug(
@@ -574,7 +574,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     ) {}
 
     private static String routingScope(String targetPdpId, String tag) {
-        return (tag != null && !tag.isBlank()) ? targetPdpId + SCOPE_TAG_SEPARATOR + tag : targetPdpId;
+        return tag != null && !tag.isBlank() ? targetPdpId + SCOPE_TAG_SEPARATOR + tag : targetPdpId;
     }
 
     protected int bulkEvents() {

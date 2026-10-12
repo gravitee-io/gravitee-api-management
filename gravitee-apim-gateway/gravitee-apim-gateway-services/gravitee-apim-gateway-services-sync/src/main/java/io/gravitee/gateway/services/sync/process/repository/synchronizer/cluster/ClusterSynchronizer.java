@@ -73,7 +73,7 @@ public class ClusterSynchronizer implements RepositorySynchronizer {
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
-                String logMsg = String.format("%s clusters synchronized in %sms", count, (System.currentTimeMillis() - launchTime.get()));
+                String logMsg = String.format("%s clusters synchronized in %sms", count, System.currentTimeMillis() - launchTime.get());
                 if (from == -1) {
                     log.info(logMsg);
                 } else {

@@ -57,18 +57,14 @@ public class RedisTestRepositoryInitializer implements TestRepositoryInitializer
                 redisClient
                     .redisApi()
                     .flatMap(redisAPI ->
-                        redisAPI
-                            .send(Command.KEYS, "*")
-                            .onSuccess(event ->
-                                event
-                                    .iterator()
-                                    .forEachRemaining(key ->
-                                        redisAPI
-                                            .send(Command.DEL, key.toString())
-                                            .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
-                                            .result()
-                                    )
+                        redisAPI.send(Command.KEYS, "*").onSuccess(event ->
+                            event.iterator().forEachRemaining(key ->
+                                redisAPI
+                                    .send(Command.DEL, key.toString())
+                                    .onFailure(t -> LOGGER.error("unable to delete key {}.", key, t))
+                                    .result()
                             )
+                        )
                     )
                     .toCompletionStage()
                     .toCompletableFuture()

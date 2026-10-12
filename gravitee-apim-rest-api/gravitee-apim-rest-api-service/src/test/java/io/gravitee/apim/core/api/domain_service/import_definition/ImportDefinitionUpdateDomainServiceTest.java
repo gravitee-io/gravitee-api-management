@@ -375,13 +375,14 @@ class ImportDefinitionUpdateDomainServiceTest {
         apiCrudServiceInMemory.initWith(List.of(existingApi));
         apiQueryServiceInMemory.initWith(List.of(existingApi));
 
-        var apiExport = ApiExport.builder()
-            .id(PROMOTED_API_ID)
-            .crossId(PROMOTED_API_CROSS_ID)
-            .name("updated name")
-            .type(ApiType.NATIVE)
-            // No properties — simulating OAS import
-            .build();
+        var apiExport =
+            ApiExport.builder()
+                .id(PROMOTED_API_ID)
+                .crossId(PROMOTED_API_CROSS_ID)
+                .name("updated name")
+                .type(ApiType.NATIVE)
+                // No properties — simulating OAS import
+                .build();
 
         when(
             importDefinitionUpdateInitializer.validateApiDomainService.validateAndSanitizeForUpdate(

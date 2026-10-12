@@ -41,16 +41,14 @@ public class PropertiesAsListDeserializer extends StdScalarDeserializer<List<Pro
         List<Property> values = new ArrayList<>();
 
         if (node.isArray()) {
-            node
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    try {
-                        Property property = jsonNode.traverse(jp.getCodec()).readValueAs(Property.class);
-                        values.add(property);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            node.elements().forEachRemaining(jsonNode -> {
+                try {
+                    Property property = jsonNode.traverse(jp.getCodec()).readValueAs(Property.class);
+                    values.add(property);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         } else if (node.isObject()) {
             node.fields().forEachRemaining(jsonNode -> values.add(new Property(jsonNode.getKey(), jsonNode.getValue().asText())));
         }

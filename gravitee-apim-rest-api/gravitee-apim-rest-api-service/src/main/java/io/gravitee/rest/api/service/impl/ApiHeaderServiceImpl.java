@@ -194,7 +194,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
         }
 
         for (int i = 0; i < headers.length; i++) {
-            int newOrder = (i + 1) < headerToReorder.getOrder() ? (i + 1) : (i + 2);
+            int newOrder = i + 1 < headerToReorder.getOrder() ? i + 1 : i + 2;
             if (headers[i].getOrder() != newOrder) {
                 headers[i].setOrder(newOrder);
                 apiHeaderRepository.update(headers[i]);

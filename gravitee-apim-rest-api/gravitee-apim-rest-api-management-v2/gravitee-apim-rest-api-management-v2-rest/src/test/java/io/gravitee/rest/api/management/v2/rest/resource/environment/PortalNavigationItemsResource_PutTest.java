@@ -502,7 +502,10 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .build();
         initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
 
-        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, true)));
+        Response response = target
+            .path(parentFolder.getId().toString())
+            .request()
+            .put(json(updateFolderPublished(parentFolder, true)));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
@@ -560,7 +563,10 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .build();
         initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
 
-        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, false)));
+        Response response = target
+            .path(parentFolder.getId().toString())
+            .request()
+            .put(json(updateFolderPublished(parentFolder, false)));
 
         assertThat(response).hasStatus(OK_200);
         PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);

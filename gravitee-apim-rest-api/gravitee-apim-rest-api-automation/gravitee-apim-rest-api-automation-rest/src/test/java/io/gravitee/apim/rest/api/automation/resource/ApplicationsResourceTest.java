@@ -190,7 +190,12 @@ class ApplicationsResourceTest extends AbstractResourceTest {
             if (ignoreGroups != null) {
                 target = target.queryParam("ignoreGroups", ignoreGroups);
             }
-            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+            try (
+                var response = target
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON(spec)))
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
         }

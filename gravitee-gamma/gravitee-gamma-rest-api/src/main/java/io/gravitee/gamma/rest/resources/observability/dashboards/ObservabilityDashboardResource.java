@@ -142,15 +142,16 @@ public class ObservabilityDashboardResource {
      * is refused rather than guessed at.
      */
     private static VersionPrecondition requiredVersionPrecondition(List<String> ifMatch) {
-        List<String> validators = ifMatch == null
-            ? List.of()
-            : ifMatch
-                .stream()
-                .filter(Objects::nonNull)
-                .flatMap(value -> Arrays.stream(value.split(",")))
-                .map(String::trim)
-                .filter(validator -> !validator.isEmpty())
-                .toList();
+        List<String> validators =
+            ifMatch == null
+                ? List.of()
+                : ifMatch
+                      .stream()
+                      .filter(Objects::nonNull)
+                      .flatMap(value -> Arrays.stream(value.split(",")))
+                      .map(String::trim)
+                      .filter(validator -> !validator.isEmpty())
+                      .toList();
 
         if (validators.isEmpty()) {
             throw new WebApplicationException(

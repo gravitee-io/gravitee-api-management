@@ -104,18 +104,16 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                 );
             }
             if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
-                endpointGroup
-                    .getEndpoints()
-                    .forEach(endpoint -> {
-                        validateUniqueEndpointName(endpoint.getName(), names);
-                        validateEndpointWeight(endpoint);
-                        validateEndpointType(endpoint.getType());
-                        validateEndpointMatchType(endpointGroup, endpoint);
-                        validateEndpointConfiguration(endpointConnector, endpoint);
-                        validateSharedConfigurationInheritance(endpointGroup, endpoint);
-                        validateSharedConfigurationOverride(endpointConnector, endpoint);
-                        validateServices(apiType, endpointGroup, endpoint);
-                    });
+                endpointGroup.getEndpoints().forEach(endpoint -> {
+                    validateUniqueEndpointName(endpoint.getName(), names);
+                    validateEndpointWeight(endpoint);
+                    validateEndpointType(endpoint.getType());
+                    validateEndpointMatchType(endpointGroup, endpoint);
+                    validateEndpointConfiguration(endpointConnector, endpoint);
+                    validateSharedConfigurationInheritance(endpointGroup, endpoint);
+                    validateSharedConfigurationOverride(endpointConnector, endpoint);
+                    validateServices(apiType, endpointGroup, endpoint);
+                });
             }
         });
 
@@ -283,9 +281,10 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                     validateAndSetHealthCheckConfiguration(serviceHealthCheck);
                 }
 
-                final var hcGroupWithoutConfig = (groupServices == null ||
+                final var hcGroupWithoutConfig =
+                    groupServices == null ||
                     groupServices.getHealthCheck() == null ||
-                    isBlank(groupServices.getHealthCheck().getConfiguration()));
+                    isBlank(groupServices.getHealthCheck().getConfiguration());
                 if (!serviceHealthCheck.isOverrideConfiguration() && hcGroupWithoutConfig) {
                     log.debug("HealthCheck inherit from a missing configuration");
                     throw new HealthcheckInheritanceException();

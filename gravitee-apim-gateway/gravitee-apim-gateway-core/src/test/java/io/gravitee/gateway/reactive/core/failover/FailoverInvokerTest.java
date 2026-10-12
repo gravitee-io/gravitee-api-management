@@ -155,8 +155,7 @@ class FailoverInvokerTest {
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
-        cut
-            .invoke(executionContext)
+        cut.invoke(executionContext)
             .test()
             .awaitDone(2, TimeUnit.SECONDS)
             .assertError(
@@ -206,8 +205,7 @@ class FailoverInvokerTest {
         );
         when(endpointInvoker.invoke(executionContext)).thenReturn(Completable.complete().delay(100, TimeUnit.MILLISECONDS));
         executionContext.setAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT, "endpoint-name");
-        cut
-            .invoke(executionContext)
+        cut.invoke(executionContext)
             .test()
             .awaitDone(2, TimeUnit.SECONDS)
             .assertError(
@@ -238,7 +236,9 @@ class FailoverInvokerTest {
         @BeforeEach
         void setUpConditionTests() {
             lenient().when(mockCtx.getAttribute(ContextAttributes.ATTR_REQUEST_ENDPOINT)).thenReturn("endpoint-name");
-            lenient().when(mockCtx.request()).thenReturn(fakeRequest(Buffer.buffer("body")));
+            lenient()
+                .when(mockCtx.request())
+                .thenReturn(fakeRequest(Buffer.buffer("body")));
             lenient().when(mockCtx.getTemplateEngine()).thenReturn(templateEngine);
             lenient()
                 .when(mockCtx.interruptWith(any()))
@@ -261,8 +261,7 @@ class FailoverInvokerTest {
             when(endpointInvoker.invoke(mockCtx)).thenReturn(Completable.complete());
 
             // When - condition always true → retries exhausted → 502
-            cut
-                .invoke(mockCtx)
+            cut.invoke(mockCtx)
                 .test()
                 .awaitDone(2, TimeUnit.SECONDS)
                 .assertError(

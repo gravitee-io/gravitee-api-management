@@ -62,8 +62,7 @@ class SharedPolicyGroupMapperTest {
             .syncAction(DistributedSyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(result -> {
                 assertThat(result.sharedPolicyGroupId()).isEqualTo("env-flow-id");
@@ -95,8 +94,7 @@ class SharedPolicyGroupMapperTest {
             .syncAction(DistributedSyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(result -> {
                 assertThat(result.environmentId()).isEqualTo("env-b");
@@ -115,8 +113,7 @@ class SharedPolicyGroupMapperTest {
             .syncAction(SyncAction.UNDEPLOY)
             .build();
 
-        cut
-            .to(deployable)
+        cut.to(deployable)
             .test()
             .assertValue(event -> {
                 assertThat(event.getId()).isEqualTo("spg-id");
@@ -139,8 +136,7 @@ class SharedPolicyGroupMapperTest {
 
         DistributedEvent distributedEvent = cut.to(deployable).blockingFirst();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(result -> {
                 assertThat(result.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
@@ -163,8 +159,7 @@ class SharedPolicyGroupMapperTest {
 
         DistributedEvent distributedEvent = cut.to(deployable).blockingFirst();
 
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(result -> {
                 assertThat(result.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
@@ -186,8 +181,7 @@ class SharedPolicyGroupMapperTest {
             .syncAction(SyncAction.DEPLOY)
             .build();
 
-        cut
-            .to(deployable)
+        cut.to(deployable)
             .test()
             .assertValue(event -> {
                 assertThat(event.getId()).isEqualTo("spg-id");

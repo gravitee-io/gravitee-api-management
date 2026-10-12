@@ -61,9 +61,10 @@ public class PortalRedirectResource extends AbstractAuthenticationResource {
             UserEntity user = userService.findById(GraviteeContext.getExecutionContext(), userDetails.getUsername());
 
             TokenEntity tokenEntity = generateToken(user, 30);
-            String environmentId = GraviteeContext.getCurrentEnvironment() != null
-                ? GraviteeContext.getCurrentEnvironment()
-                : GraviteeContext.getDefaultEnvironment();
+            String environmentId =
+                GraviteeContext.getCurrentEnvironment() != null
+                    ? GraviteeContext.getCurrentEnvironment()
+                    : GraviteeContext.getDefaultEnvironment();
             String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
             if (url == null) {
                 ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);

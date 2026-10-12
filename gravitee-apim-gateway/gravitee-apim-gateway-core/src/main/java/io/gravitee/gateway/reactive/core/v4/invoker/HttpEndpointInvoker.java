@@ -91,7 +91,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
         }
 
         if (endpointConnector instanceof EndpointConnector legacyEndpointConnector) {
-            return connect((legacyEndpointConnector), ((ExecutionContext) ctx));
+            return connect(legacyEndpointConnector, (ExecutionContext) ctx);
         }
         return connect(endpointConnector, ctx);
     }

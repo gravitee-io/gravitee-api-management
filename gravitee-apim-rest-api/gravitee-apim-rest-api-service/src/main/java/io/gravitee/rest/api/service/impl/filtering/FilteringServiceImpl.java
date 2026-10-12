@@ -255,7 +255,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
         } else if (excluded) {
             return apis
                 .stream()
-                .filter(api -> (!topApiIdAndOrderMap.containsKey(api)))
+                .filter(api -> !topApiIdAndOrderMap.containsKey(api))
                 .collect(Collectors.toList());
         } else {
             return apis

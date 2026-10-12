@@ -46,7 +46,8 @@ import java.util.stream.Collectors;
  */
 public class HttpSecurityChain
     extends AbstractSecurityChain<HttpSecurityPlan, HttpPlainExecutionContext>
-    implements Hookable<SecurityPlanHook> {
+    implements Hookable<SecurityPlanHook>
+{
 
     private final ExecutionPhase executionPhase;
 

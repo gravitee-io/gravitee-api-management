@@ -74,8 +74,7 @@ class DisableOrganizationCommandHandlerTest {
 
         when(organizationService.findByCockpitId(ORG_COCKPIT_ID)).thenReturn(apimOrg);
 
-        cut
-            .handle(aDisableOrgCommand())
+        cut.handle(aDisableOrgCommand())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
@@ -91,8 +90,7 @@ class DisableOrganizationCommandHandlerTest {
     void handleThrowsException() {
         when(organizationService.findByCockpitId(ORG_COCKPIT_ID)).thenThrow(new OrganizationNotFoundException(ORG_COCKPIT_ID));
 
-        cut
-            .handle(aDisableOrgCommand())
+        cut.handle(aDisableOrgCommand())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.ERROR));

@@ -123,7 +123,10 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
         @SneakyThrows
         @Override
         protected Map<String, Object> authConfig(SecuredVaultContainer vaultContainer) {
-            String token = rootVault.auth().createToken(new Auth.TokenRequest().polices(List.of(TEST_POLICY_NAME))).getAuthClientToken();
+            String token = rootVault
+                .auth()
+                .createToken(new Auth.TokenRequest().polices(List.of(TEST_POLICY_NAME)))
+                .getAuthClientToken();
             return Map.of("secrets.vault.auth.method", "token", "secrets.vault.auth.config.token", token);
         }
     }
@@ -176,7 +179,10 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+            options
+                .setSsl(true)
+                .setVerifyHost(false)
+                .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Test
@@ -259,7 +265,10 @@ class SecuredVaultSecretProviderIntegrationTest extends AbstractSecuredVaultSecr
             GatewayDynamicConfig.Config gatewayConfig,
             ParameterContext parameterContext
         ) {
-            options.setSsl(true).setVerifyHost(false).setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
+            options
+                .setSsl(true)
+                .setVerifyHost(false)
+                .setTrustOptions(new PemTrustOptions().addCertValue(Buffer.buffer(sslPairs.cert())));
         }
 
         @Override

@@ -449,25 +449,21 @@ class DebugApiUseCaseTest {
             givenExistingPlan(plan);
             io.gravitee.apim.core.api.model.Api api1 = ApiFixtures.aProxyApiV4().setTags(Set.of("valid-tag"));
             var api = givenExistingApiDefinition(api1, io.gravitee.definition.model.v4.Api.class);
-            api
-                .getAnalytics()
-                .setLogging(
-                    new io.gravitee.definition.model.v4.analytics.logging.Logging(
-                        new io.gravitee.definition.model.v4.analytics.logging.LoggingMode(true, true),
-                        new LoggingPhase(true, true),
-                        new io.gravitee.definition.model.v4.analytics.logging.LoggingContent(true, false, false, false, false),
-                        null,
-                        null
-                    )
-                );
-            api
-                .getEndpointGroups()
-                .forEach(endpointGroup -> {
-                    endpointGroup.setServices(new EndpointGroupServices(null, new Service(false, true, "healthcheck", null)));
-                    endpointGroup
-                        .getEndpoints()
-                        .forEach(endpoint -> endpoint.setServices(new EndpointServices(new Service(false, true, "healthcheck", null))));
-                });
+            api.getAnalytics().setLogging(
+                new io.gravitee.definition.model.v4.analytics.logging.Logging(
+                    new io.gravitee.definition.model.v4.analytics.logging.LoggingMode(true, true),
+                    new LoggingPhase(true, true),
+                    new io.gravitee.definition.model.v4.analytics.logging.LoggingContent(true, false, false, false, false),
+                    null,
+                    null
+                )
+            );
+            api.getEndpointGroups().forEach(endpointGroup -> {
+                endpointGroup.setServices(new EndpointGroupServices(null, new Service(false, true, "healthcheck", null)));
+                endpointGroup
+                    .getEndpoints()
+                    .forEach(endpoint -> endpoint.setServices(new EndpointServices(new Service(false, true, "healthcheck", null))));
+            });
 
             final DebugApiUseCase.Output output = cut.execute(
                 new DebugApiUseCase.Input(API_ID, new HttpRequest("/path", "GET"), AUDIT_INFO)

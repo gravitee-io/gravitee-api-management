@@ -188,14 +188,14 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
         try {
             Single<SearchResponse> result = this.client.search(
-                (timestamp == null)
+                timestamp == null
                     ? this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters)
                     : this.indexNameGenerator.getIndexName(
-                        queryContext.placeholder(),
-                        Type.REQUEST,
-                        Instant.ofEpochMilli(timestamp),
-                        clusters
-                    ),
+                          queryContext.placeholder(),
+                          Type.REQUEST,
+                          Instant.ofEpochMilli(timestamp),
+                          clusters
+                      ),
                 !info.getVersion().canUseTypeRequests() ? null : Type.REQUEST.getType(),
                 sQuery
             );

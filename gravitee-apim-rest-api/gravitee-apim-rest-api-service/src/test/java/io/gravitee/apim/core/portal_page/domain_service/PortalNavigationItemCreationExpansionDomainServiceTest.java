@@ -86,7 +86,11 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
     void should_create_api_children_in_stable_name_and_id_order() {
         apiProductQueryService.initWith(
             List.of(
-                ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENVIRONMENT_ID).apiIds(Set.of("api-z", "api-a-2", "api-a-1")).build()
+                ApiProduct.builder()
+                    .id(API_PRODUCT_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .apiIds(Set.of("api-z", "api-a-2", "api-a-1"))
+                    .build()
             )
         );
         apiCrudService.initWith(

@@ -51,9 +51,8 @@ public class GetPortalApiProductUseCase {
         );
         var apiProduct = accessibleApiProduct.apiProduct();
         var apis = findAccessibleApis(apiProduct, input);
-        var tags = apiProduct.getTags() == null
-            ? List.<String>of()
-            : apiProduct.getTags().stream().sorted(NULL_SAFE_STRING_COMPARATOR).toList();
+        var tags =
+            apiProduct.getTags() == null ? List.<String>of() : apiProduct.getTags().stream().sorted(NULL_SAFE_STRING_COMPARATOR).toList();
 
         return new Output(
             new PortalApiProductDetails(

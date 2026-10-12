@@ -86,13 +86,19 @@ class AuthzPdpHydrationTest {
         vertx = Vertx.vertx();
         lenient().when(node.id()).thenReturn("gw-1");
         lenient().when(fetcher.bulkItems()).thenReturn(10);
-        lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
+        lenient()
+            .when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+            .thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of()));
         lenient()
             .when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
             .thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateSchema(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient()
+            .when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong()))
+            .thenReturn(Completable.complete());
+        lenient()
+            .when(enginePort.addOrUpdateSchema(any(), any(), any(), any(), any(), anyLong()))
+            .thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         provisionConsumer = vertx

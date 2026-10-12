@@ -392,12 +392,10 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive all messages with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+    })
     void should_receive_all_messages_with_qos(Qos qos, HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
@@ -494,12 +492,10 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive empty items while requesting recent cursor with {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+    })
     void should_receive_empty_items_while_requesting_recent_cursor_with_specific_qos(Qos qos, HttpClient client, Vertx vertx) {
         // In order to simplify the test, Kafka endpoint's consumer is configured with "autoOffsetReset": "earliest"
         // It allows us to publish the messages in the topic before opening the api connection through SSE entrypoint.
@@ -539,12 +535,10 @@ class HttpGetEntrypointKafkaEndpointIntegrationTest extends AbstractKafkaEndpoin
 
     @EnumSource(value = Qos.class, names = { "AT_MOST_ONCE", "AT_LEAST_ONCE" })
     @ParameterizedTest(name = "should receive empty items with_initial_cursor with_no_messages and {0} qos")
-    @DeployApi(
-        {
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
-            "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
-        }
-    )
+    @DeployApi({
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-least-once.json",
+        "/apis/v4/messages/http-get/http-get-entrypoint-kafka-endpoint-at-most-once.json",
+    })
     void should_receive_empty_items_with_initial_cursor_with_no_messages_and_specific_qos(Qos qos, HttpClient client) {
         client
             .rxRequest(HttpMethod.GET, "/test-" + qos.getLabel())

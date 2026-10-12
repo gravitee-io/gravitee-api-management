@@ -37,15 +37,13 @@ public class ResponseSerializer extends StdScalarSerializer<HealthCheckResponse>
 
         jgen.writeArrayFieldStart("assertions");
         if (response.getAssertions() != null && !response.getAssertions().isEmpty()) {
-            response
-                .getAssertions()
-                .forEach(assertion -> {
-                    try {
-                        jgen.writeString(assertion);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            response.getAssertions().forEach(assertion -> {
+                try {
+                    jgen.writeString(assertion);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         } else {
             jgen.writeString(HealthCheckResponse.DEFAULT_ASSERTION);
         }

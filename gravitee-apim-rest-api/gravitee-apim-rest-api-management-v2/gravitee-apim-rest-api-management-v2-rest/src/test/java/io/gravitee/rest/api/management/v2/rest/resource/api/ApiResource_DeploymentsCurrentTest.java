@@ -44,7 +44,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
     public void should_get_api_v4_deployments() {
         when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.anApiV4()));
 
-        final Response response = rootTarget(API + "/deployments/current").request().get();
+        final Response response = rootTarget(API + "/deployments/current")
+            .request()
+            .get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
@@ -52,7 +54,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
     public void should_get_native_api_v4_deployments() {
         when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.aNativeApiV4()));
 
-        final Response response = rootTarget(API + "/deployments/current").request().get();
+        final Response response = rootTarget(API + "/deployments/current")
+            .request()
+            .get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
@@ -60,7 +64,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
     public void should_get_api_v2_deployments() {
         when(getApiDefinitionUseCase.execute(any())).thenReturn(new GetApiDefinitionUseCase.Output(ApiDefinitionFixtures.anApiV2()));
 
-        final Response response = rootTarget(API + "/deployments/current").request().get();
+        final Response response = rootTarget(API + "/deployments/current")
+            .request()
+            .get();
         assertThat(response.getStatus()).isEqualTo(OK_200);
     }
 
@@ -69,7 +75,9 @@ public class ApiResource_DeploymentsCurrentTest extends ApiResourceTest {
         when(
             permissionService.hasPermission(eq(GraviteeContext.getExecutionContext()), eq(RolePermission.API_DEFINITION), eq(API), any())
         ).thenReturn(false);
-        final Response response = rootTarget(API + "/deployments/current").request().get();
+        final Response response = rootTarget(API + "/deployments/current")
+            .request()
+            .get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
     }
 }

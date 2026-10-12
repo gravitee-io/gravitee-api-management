@@ -95,7 +95,10 @@ public interface LogMapper {
         if (value == null) {
             return new HashMap<>();
         }
-        return value.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> mapToObjectMap(e.getValue())));
+        return value
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> mapToObjectMap(e.getValue())));
     }
 
     default Map<String, Object> mapToObjectMap(Map<String, String> value) {

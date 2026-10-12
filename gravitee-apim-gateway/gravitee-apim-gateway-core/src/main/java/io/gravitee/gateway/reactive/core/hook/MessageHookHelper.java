@@ -53,7 +53,7 @@ public class MessageHookHelper {
                 List<MessageHook> messageHooks = hooks
                     .stream()
                     .filter(hook -> hook instanceof MessageHook)
-                    .map(hook -> ((MessageHook) hook))
+                    .map(hook -> (MessageHook) hook)
                     .toList();
                 if (!messageHooks.isEmpty()) {
                     String interceptorId = "interceptor-message-hook-%s".formatted(componentId);
@@ -157,18 +157,19 @@ public class MessageHookHelper {
         final ExecutionFailure executionFailure
     ) {
         return Flowable.fromIterable(hooks)
-            .concatMapCompletable(hook ->
-                switch (phase) {
-                    case PRE -> hook.preMessage(componentId, ctx, executionPhase, message);
-                    case POST -> hook.postMessage(componentId, ctx, executionPhase, message);
-                    case INTERRUPT -> hook.interruptMessage(componentId, ctx, executionPhase, message);
-                    case INTERRUPT_WITH -> hook.interruptMessageWith(componentId, ctx, executionPhase, message, executionFailure);
-                    case ERROR -> hook.errorMessage(componentId, ctx, executionPhase, message, throwable);
-                    case CANCEL -> {
-                        hook.cancelMessage(componentId, ctx, executionPhase, message);
-                        yield Completable.complete();
+            .concatMapCompletable(
+                hook ->
+                    switch (phase) {
+                        case PRE -> hook.preMessage(componentId, ctx, executionPhase, message);
+                        case POST -> hook.postMessage(componentId, ctx, executionPhase, message);
+                        case INTERRUPT -> hook.interruptMessage(componentId, ctx, executionPhase, message);
+                        case INTERRUPT_WITH -> hook.interruptMessageWith(componentId, ctx, executionPhase, message, executionFailure);
+                        case ERROR -> hook.errorMessage(componentId, ctx, executionPhase, message, throwable);
+                        case CANCEL -> {
+                            hook.cancelMessage(componentId, ctx, executionPhase, message);
+                            yield Completable.complete();
+                        }
                     }
-                }
             )
             .doOnError(error -> ctx.withLogger(log).warn("Unable to execute '{}' message hook on '{}'", phase.name(), componentId, error))
             .onErrorComplete();

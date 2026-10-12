@@ -186,8 +186,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(1)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var to =
                 ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
@@ -196,8 +195,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(59)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -224,8 +222,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(59)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -251,8 +248,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(1)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -362,7 +358,11 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
         void should_return_the_connection_logs_for_statuses() {
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
-                MetricsQuery.builder().page(1).size(10).filter(Filter.builder().statuses(Set.of(500, 200)).build()).build(),
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(10)
+                    .filter(Filter.builder().statuses(Set.of(500, 200)).build())
+                    .build(),
                 List.of(DefinitionVersion.V4)
             );
             assertThat(result).isNotNull();
@@ -499,8 +499,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(1)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var to =
                 ZonedDateTime.ofInstant(TimeProvider.now(), TimeProvider.zone())
@@ -509,8 +508,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(59)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -519,18 +517,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             );
             assertThat(result).isNotNull();
             assertThat(result.total()).isEqualTo(14);
-            assertThat(result.data())
-                .extracting(Metrics::getRequestId)
-                .contains(
-                    // V4
-                    "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
-                    "aed3a207-d5c0-4073-93a2-07d5c0007336",
-                    "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41",
-                    // V2
-                    "AVyN4EtnFQI2bNU8MTYY",
-                    "AVyN4SJ6FQI2bNU8MTYv",
-                    "AVxa0gYCLKmeaYDnLd34"
-                );
+            assertThat(result.data()).extracting(Metrics::getRequestId).contains(
+                // V4
+                "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
+                "aed3a207-d5c0-4073-93a2-07d5c0007336",
+                "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41",
+                // V2
+                "AVyN4EtnFQI2bNU8MTYY",
+                "AVyN4SJ6FQI2bNU8MTYv",
+                "AVxa0gYCLKmeaYDnLd34"
+            );
         }
 
         @Test
@@ -542,8 +538,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(59)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -552,18 +547,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             );
             assertThat(result).isNotNull();
             assertThat(result.total()).isEqualTo(14);
-            assertThat(result.data())
-                .extracting(Metrics::getRequestId)
-                .contains(
-                    // V4
-                    "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
-                    "aed3a207-d5c0-4073-93a2-07d5c0007336",
-                    "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41",
-                    // V2
-                    "AVyN4EtnFQI2bNU8MTYY",
-                    "AVyN4SJ6FQI2bNU8MTYv",
-                    "AVxa0gYCLKmeaYDnLd34"
-                );
+            assertThat(result.data()).extracting(Metrics::getRequestId).contains(
+                // V4
+                "ebaa9b08-eac8-490d-aa9b-08eac8590d3c",
+                "aed3a207-d5c0-4073-93a2-07d5c0007336",
+                "3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41",
+                // V2
+                "AVyN4EtnFQI2bNU8MTYY",
+                "AVyN4SJ6FQI2bNU8MTYv",
+                "AVxa0gYCLKmeaYDnLd34"
+            );
         }
 
         @Test
@@ -574,8 +567,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .withMinute(1)
                     .withSecond(0)
                     .withNano(0)
-                    .toEpochSecond() *
-                1000;
+                    .toEpochSecond() * 1000;
 
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
@@ -601,19 +593,17 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             );
             assertThat(result).isNotNull();
             assertThat(result.total()).isEqualTo(12);
-            assertThat(result.data())
-                .extracting(Metrics::getRequestId)
-                .contains(
-                    // V4 HTTP
-                    "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
-                    "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
-                    "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
-                    "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4",
-                    // V2
-                    "AVsJ2NpUuDfGHrKOwwSX",
-                    "AVsGhMNOooztmMPf1gPL",
-                    "AVxVhwWQrXoTnnvkvhKV"
-                );
+            assertThat(result.data()).extracting(Metrics::getRequestId).contains(
+                // V4 HTTP
+                "e71f2ae0-7673-4d7e-9f2a-e076730d7e69",
+                "8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48",
+                "26c61cfc-a4cc-4272-861c-fca4cc2272ab",
+                "5fc3b3e5-7aa7-408e-83b3-e57aa7708ed4",
+                // V2
+                "AVsJ2NpUuDfGHrKOwwSX",
+                "AVsGhMNOooztmMPf1gPL",
+                "AVxVhwWQrXoTnnvkvhKV"
+            );
         }
 
         @Test
@@ -685,27 +675,29 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             );
             assertThat(result).isNotNull();
             assertThat(result.total()).isEqualTo(23);
-            assertThat(result.data())
-                .extracting(Metrics::getRequestId, Metrics::getMethod)
-                .contains(
-                    // V4
-                    tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", HttpMethod.GET),
-                    tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", HttpMethod.POST),
-                    tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", HttpMethod.POST),
-                    tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", HttpMethod.GET),
-                    tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", HttpMethod.GET),
-                    // V2
-                    tuple("AVxViNrrrXoTnnvkvhK9", HttpMethod.GET),
-                    tuple("AVxa0i0fLKmeaYDnLd3-", HttpMethod.GET),
-                    tuple("AVxViO53rXoTnnvkvhLA", HttpMethod.POST)
-                );
+            assertThat(result.data()).extracting(Metrics::getRequestId, Metrics::getMethod).contains(
+                // V4
+                tuple("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48", HttpMethod.GET),
+                tuple("26c61cfc-a4cc-4272-861c-fca4cc2272ab", HttpMethod.POST),
+                tuple("ebaa9b08-eac8-490d-aa9b-08eac8590d3c", HttpMethod.POST),
+                tuple("aed3a207-d5c0-4073-93a2-07d5c0007336", HttpMethod.GET),
+                tuple("3aa93e93-eaa3-4fcd-a93e-93eaa3bfcd41", HttpMethod.GET),
+                // V2
+                tuple("AVxViNrrrXoTnnvkvhK9", HttpMethod.GET),
+                tuple("AVxa0i0fLKmeaYDnLd3-", HttpMethod.GET),
+                tuple("AVxViO53rXoTnnvkvhLA", HttpMethod.POST)
+            );
         }
 
         @Test
         void should_return_the_connection_logs_for_statuses_across_indexes() {
             var result = metricsV4Repository.searchMetrics(
                 queryContext,
-                MetricsQuery.builder().page(1).size(20).filter(Filter.builder().statuses(Set.of(500, 200)).build()).build(),
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(Filter.builder().statuses(Set.of(500, 200)).build())
+                    .build(),
                 List.of(DefinitionVersion.V4, DefinitionVersion.V2)
             );
 
@@ -752,8 +744,7 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 soft.assertThat(result).isNotNull();
                 soft.assertThat(result.total()).isEqualTo(1);
                 soft.assertThat(result.data()).hasSize(1);
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .first()
                     .isInstanceOfSatisfying(MessageMetrics.class, messageMetrics -> {
                         soft.assertThat(messageMetrics.getTimestamp()).isEqualTo(today + "T06:58:41.222Z");
@@ -763,9 +754,9 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         soft.assertThat(messageMetrics.getConnectorType()).isEqualTo("entrypoint");
                         soft.assertThat(messageMetrics.getOperation()).isEqualTo("subscribe");
                         soft.assertThat(messageMetrics.getContentLength()).isEqualTo(12L);
-                        soft
-                            .assertThat(messageMetrics.getClientIdentifier())
-                            .isEqualTo("12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0");
+                        soft.assertThat(messageMetrics.getClientIdentifier()).isEqualTo(
+                            "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0"
+                        );
                         soft.assertThat(messageMetrics.getGateway()).isEqualTo("a125e26c-b289-4dbf-a5e2-6cb2897dbf20");
                         soft.assertThat(messageMetrics.getCount()).isEqualTo(1L);
                         soft.assertThat(messageMetrics.getCountIncrement()).isEqualTo(1L);
@@ -773,26 +764,24 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         soft.assertThat(messageMetrics.getErrorCountIncrement()).isEqualTo(1L);
                         soft.assertThat(messageMetrics.getGatewayLatencyMs()).isEqualTo(512L);
                         soft.assertThat(messageMetrics.getCustom()).containsExactly(Map.entry("bespoke", "all mine"));
-                        soft
-                            .assertThat(messageMetrics.getAdditionalMetrics())
-                            .containsAllEntriesOf(
-                                Map.of(
-                                    "int_test",
-                                    42,
-                                    "long_test",
-                                    100000000000000L,
-                                    "double_test",
-                                    3.1415,
-                                    "bool_test",
-                                    true,
-                                    "keyword_test",
-                                    "foo",
-                                    "string_test",
-                                    "hello world",
-                                    "json_test",
-                                    "{\"message\": \"hello\"}"
-                                )
-                            );
+                        soft.assertThat(messageMetrics.getAdditionalMetrics()).containsAllEntriesOf(
+                            Map.of(
+                                "int_test",
+                                42,
+                                "long_test",
+                                100000000000000L,
+                                "double_test",
+                                3.1415,
+                                "bool_test",
+                                true,
+                                "keyword_test",
+                                "foo",
+                                "string_test",
+                                "hello world",
+                                "json_test",
+                                "{\"message\": \"hello\"}"
+                            )
+                        );
                     });
             });
         }
@@ -819,12 +808,10 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                 soft.assertThat(result).isNotNull();
                 soft.assertThat(result.total()).isEqualTo(2);
                 soft.assertThat(result.data()).hasSize(2);
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(MessageMetrics::getCorrelationId)
                     .containsExactly("55138ad4-9987-4ecd-b2a5-0abe18692111", "8919324a-9c01-4e78-b027-b60ad9742441");
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(MessageMetrics::getRequestId)
                     .containsExactly("8919324a-9987-4ecd-b2a5-0abe18692111", "55138ad4-9c01-4e78-b027-b60ad9742441");
             });
@@ -838,8 +825,16 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                     .filter(
                         MessageMetricsQuery.Filter.builder()
                             .apiId("eec4f752-f4bc-4c63-bc70-9eaaa2be24d5")
-                            .from(OffsetDateTime.parse(today + "T06:58:00.000Z").toInstant().toEpochMilli())
-                            .to(OffsetDateTime.parse(today + "T06:59:00.000Z").toInstant().toEpochMilli())
+                            .from(
+                                OffsetDateTime.parse(today + "T06:58:00.000Z")
+                                    .toInstant()
+                                    .toEpochMilli()
+                            )
+                            .to(
+                                OffsetDateTime.parse(today + "T06:59:00.000Z")
+                                    .toInstant()
+                                    .toEpochMilli()
+                            )
                             .build()
                     )
                     .page(1)
@@ -850,12 +845,10 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(result).isNotNull();
                 soft.assertThat(result.data()).hasSize(1);
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(MessageMetrics::getCorrelationId)
                     .containsExactly("8919324a-9c01-4e78-b027-b60ad9742441");
-                soft
-                    .assertThat(result.data())
+                soft.assertThat(result.data())
                     .extracting(MessageMetrics::getRequestId)
                     .containsExactly("55138ad4-9c01-4e78-b027-b60ad9742441");
             });

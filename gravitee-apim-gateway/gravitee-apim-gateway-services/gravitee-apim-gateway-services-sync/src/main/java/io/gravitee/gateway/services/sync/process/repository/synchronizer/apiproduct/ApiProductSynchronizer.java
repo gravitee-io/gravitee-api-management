@@ -86,11 +86,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
-                String logMsg = String.format(
-                    "%s API products synchronized in %sms",
-                    count,
-                    (System.currentTimeMillis() - launchTime.get())
-                );
+                String logMsg = String.format("%s API products synchronized in %sms", count, System.currentTimeMillis() - launchTime.get());
                 if (from == -1) {
                     log.info(logMsg);
                 } else {
@@ -106,56 +102,56 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
     }
 
     private Flowable<ApiProductReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
-        return eventsFlowable
-            // fetch per page
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New API product events fetch"))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        if (eventsByType.getKey() == EventType.DEPLOY_API_PRODUCT) {
-                            return prepareForDeployment(eventsByType);
-                        } else if (eventsByType.getKey() == EventType.UNDEPLOY_API_PRODUCT) {
-                            return prepareForUndeployment(eventsByType);
-                        } else {
-                            return Flowable.empty();
-                        }
-                    })
-            )
-            // per deployable
-            .compose(upstream -> {
-                ApiProductDeployer apiProductDeployer = deployerFactory.createApiProductDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApiProduct(apiProductDeployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployApiProduct(apiProductDeployer, deployable);
-                        } else {
-                            return Flowable.just(deployable);
-                        }
-                    })
-                    .sequential(bulkEvents());
-            });
+        return (
+            eventsFlowable
+                // fetch per page
+                .flatMap(events ->
+                    Flowable.just(events)
+                        .doOnNext(e -> log.debug("New API product events fetch"))
+                        .flatMapIterable(e -> e)
+                        .groupBy(Event::getType)
+                        .flatMap(eventsByType -> {
+                            if (eventsByType.getKey() == EventType.DEPLOY_API_PRODUCT) {
+                                return prepareForDeployment(eventsByType);
+                            } else if (eventsByType.getKey() == EventType.UNDEPLOY_API_PRODUCT) {
+                                return prepareForUndeployment(eventsByType);
+                            } else {
+                                return Flowable.empty();
+                            }
+                        })
+                )
+                // per deployable
+                .compose(upstream -> {
+                    ApiProductDeployer apiProductDeployer = deployerFactory.createApiProductDeployer();
+                    return upstream
+                        .parallel(syncDeployerExecutor.getMaximumPoolSize())
+                        .runOn(Schedulers.from(syncDeployerExecutor))
+                        .flatMap(deployable -> {
+                            if (deployable.syncAction() == SyncAction.DEPLOY) {
+                                return deployApiProduct(apiProductDeployer, deployable);
+                            } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                return undeployApiProduct(apiProductDeployer, deployable);
+                            } else {
+                                return Flowable.just(deployable);
+                            }
+                        })
+                        .sequential(bulkEvents());
+                })
+        );
     }
 
     private Flowable<ApiProductReactorDeployable> prepareForDeployment(final GroupedFlowable<EventType, Event> eventsByType) {
-        return eventsByType
-            .flatMapMaybe(apiProductMapper::to)
-            .map(reactableApiProduct -> {
-                List<Plan> plans = reactableApiProduct.getPlans();
-                var builder = ApiProductReactorDeployable.builder()
-                    .apiProductId(reactableApiProduct.getId())
-                    .syncAction(SyncAction.DEPLOY)
-                    .reactableApiProduct(reactableApiProduct);
-                if (plans != null && !plans.isEmpty()) {
-                    builder.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
-                }
-                return builder.build();
-            });
+        return eventsByType.flatMapMaybe(apiProductMapper::to).map(reactableApiProduct -> {
+            List<Plan> plans = reactableApiProduct.getPlans();
+            var builder = ApiProductReactorDeployable.builder()
+                .apiProductId(reactableApiProduct.getId())
+                .syncAction(SyncAction.DEPLOY)
+                .reactableApiProduct(reactableApiProduct);
+            if (plans != null && !plans.isEmpty()) {
+                builder.subscribablePlans(plans.stream().map(Plan::getId).collect(Collectors.toSet()));
+            }
+            return builder.build();
+        });
     }
 
     private Flowable<ApiProductReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {

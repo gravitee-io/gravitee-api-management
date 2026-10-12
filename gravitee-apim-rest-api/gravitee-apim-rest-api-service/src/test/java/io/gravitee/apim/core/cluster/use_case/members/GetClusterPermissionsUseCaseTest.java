@@ -53,9 +53,12 @@ class GetClusterPermissionsUseCaseTest {
             () -> assertThat(result.permissions().size()).isEqualTo(2),
             () -> assertThat(result.permissions().get(ClusterPermission.MEMBER.getName())).isEqualTo(new char[] { READ.getId() }),
             () ->
-                assertThat(result.permissions().get(ClusterPermission.DEFINITION.getName())).isEqualTo(
-                    new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-                )
+                assertThat(result.permissions().get(ClusterPermission.DEFINITION.getName())).isEqualTo(new char[] {
+                    CREATE.getId(),
+                    READ.getId(),
+                    UPDATE.getId(),
+                    DELETE.getId(),
+                })
         );
     }
 
@@ -66,9 +69,12 @@ class GetClusterPermissionsUseCaseTest {
         // Then
         assertThat(result.permissions().size()).isEqualTo(ClusterPermission.values().length);
         Arrays.stream(ClusterPermission.values()).forEach(permission ->
-            assertThat(result.permissions().get(permission.getName())).isEqualTo(
-                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
-            )
+            assertThat(result.permissions().get(permission.getName())).isEqualTo(new char[] {
+                CREATE.getId(),
+                READ.getId(),
+                UPDATE.getId(),
+                DELETE.getId(),
+            })
         );
     }
 

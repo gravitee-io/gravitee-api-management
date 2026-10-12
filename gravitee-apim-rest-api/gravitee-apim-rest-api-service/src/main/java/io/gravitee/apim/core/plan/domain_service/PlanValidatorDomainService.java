@@ -157,8 +157,10 @@ public class PlanValidatorDomainService {
     public void validatePlanSecurityAgainstEntrypoints(PlanSecurity planSecurity, List<ListenerType> listenerTypes) {
         if (
             listenerTypes.contains(ListenerType.TCP) &&
-            !(PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
-                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType()))
+            !(
+                PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType()) ||
+                PlanSecurityType.MTLS.getLabel().equals(planSecurity.getType())
+            )
         ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }

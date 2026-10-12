@@ -273,20 +273,18 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                             } else {
                                 f.set(
                                     o,
-                                    values
-                                        .stream()
-                                        .collect(
-                                            toMap(
-                                                v -> v.split(KV_SEPARATOR)[0],
-                                                v -> {
-                                                    final String[] split = v.split(KV_SEPARATOR);
-                                                    if (split.length < 2) {
-                                                        return "";
-                                                    }
-                                                    return split[1];
+                                    values.stream().collect(
+                                        toMap(
+                                            v -> v.split(KV_SEPARATOR)[0],
+                                            v -> {
+                                                final String[] split = v.split(KV_SEPARATOR);
+                                                if (split.length < 2) {
+                                                    return "";
                                                 }
-                                            )
+                                                return split[1];
+                                            }
                                         )
+                                    )
                                 );
                             }
                         } else {
@@ -320,7 +318,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
         while (found) {
             String type = environment.getProperty("security.providers[" + idx + "].type");
-            found = (type != null);
+            found = type != null;
             if (found) {
                 String clientId = environment.getProperty("security.providers[" + idx + "].clientId");
                 if ("google".equals(type)) {

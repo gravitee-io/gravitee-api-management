@@ -61,7 +61,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     }
 
     private PortalNotification mapPortalNotification(PortalNotificationMongo portalNotificationMongo) {
-        return (portalNotificationMongo == null) ? null : mapper.map(portalNotificationMongo);
+        return portalNotificationMongo == null ? null : mapper.map(portalNotificationMongo);
     }
 
     @Override

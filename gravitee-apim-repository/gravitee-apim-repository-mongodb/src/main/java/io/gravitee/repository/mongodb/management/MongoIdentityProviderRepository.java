@@ -155,25 +155,21 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         IdentityProvider identityProvider = mapper.map(identityProviderMongo);
 
         if (identityProviderMongo.getGroupMappings() != null) {
-            identityProviderMongo
-                .getGroupMappings()
-                .forEach((condition, groups) -> {
-                    identityProvider
-                        .getGroupMappings()
-                        .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getGroupMappings().get(condition));
-                    identityProvider.getGroupMappings().remove(condition);
-                });
+            identityProviderMongo.getGroupMappings().forEach((condition, groups) -> {
+                identityProvider
+                    .getGroupMappings()
+                    .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getGroupMappings().get(condition));
+                identityProvider.getGroupMappings().remove(condition);
+            });
         }
 
         if (identityProviderMongo.getRoleMappings() != null) {
-            identityProviderMongo
-                .getRoleMappings()
-                .forEach((condition, roles) -> {
-                    identityProvider
-                        .getRoleMappings()
-                        .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getRoleMappings().get(condition));
-                    identityProvider.getRoleMappings().remove(condition);
-                });
+            identityProviderMongo.getRoleMappings().forEach((condition, roles) -> {
+                identityProvider
+                    .getRoleMappings()
+                    .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getRoleMappings().get(condition));
+                identityProvider.getRoleMappings().remove(condition);
+            });
         }
 
         return identityProvider;

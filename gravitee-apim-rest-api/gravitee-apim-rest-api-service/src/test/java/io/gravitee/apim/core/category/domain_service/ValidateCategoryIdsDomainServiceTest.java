@@ -63,44 +63,32 @@ class ValidateCategoryIdsDomainServiceTest {
     void should_clean_input_from_unknown_ids_with_warning() {
         var input = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of("id", "unknown"));
         var expected = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of("id"));
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
-                errors ->
-                    assertThat(errors).isEqualTo(
-                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
-                    )
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
+            errors ->
+                assertThat(errors).isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+        );
     }
 
     @Test
     void should_clean_input_from_unknown_keys_warning() {
         var input = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of("key", "unknown"));
         var expected = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of("id"));
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
-                errors ->
-                    assertThat(errors).isEqualTo(
-                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
-                    )
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
+            errors ->
+                assertThat(errors).isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+        );
     }
 
     @Test
     void should_return_empty_ids_and_warning() {
         var input = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of("unknown"));
         var expected = new ValidateCategoryIdsDomainService.Input("DEFAULT", Set.of());
-        cut
-            .validateAndSanitize(input)
-            .peek(
-                sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
-                errors ->
-                    assertThat(errors).isEqualTo(
-                        List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]"))
-                    )
-            );
+        cut.validateAndSanitize(input).peek(
+            sanitized -> assertThat(sanitized).usingRecursiveComparison().isEqualTo(expected),
+            errors ->
+                assertThat(errors).isEqualTo(List.of(Validator.Error.warning("category [unknown] is not defined in environment [DEFAULT]")))
+        );
     }
 }

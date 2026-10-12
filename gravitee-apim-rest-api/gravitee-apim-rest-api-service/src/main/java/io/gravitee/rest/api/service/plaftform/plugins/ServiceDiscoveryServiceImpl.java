@@ -32,7 +32,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceDiscoveryServiceImpl
     extends AbstractPluginService<ServiceDiscoveryPlugin<?>, PlatformPluginEntity>
-    implements ServiceDiscoveryService {
+    implements ServiceDiscoveryService
+{
 
     public ServiceDiscoveryServiceImpl(
         JsonSchemaService jsonSchemaService,

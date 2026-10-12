@@ -69,7 +69,7 @@ public class ApiService_FindPrimaryOwnerTest {
     private final ApiServiceImpl apiService = new ApiServiceImpl();
 
     @Spy
-    private final ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
+    private final ObjectMapper objectMapper = new ServiceConfiguration().objectMapper();
 
     @Mock
     private ParameterService parameterService;

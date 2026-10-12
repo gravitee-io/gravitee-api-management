@@ -80,7 +80,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
     public List<Domain> listDomains(String orgId, String envId, String q) {
         // AM matches `q` exactly against the hrid unless it contains wildcards; wrap the term so a
         // partial entry (e.g. "gamma") matches any hrid containing it (e.g. "my-gamma-domain").
-        String search = (q == null || q.isBlank()) ? null : "*" + q.strip() + "*";
+        String search = q == null || q.isBlank() ? null : "*" + q.strip() + "*";
         AmApis apis = clientFactory.forOrg(orgId);
         return AmSdkInvocations.await(
             apis

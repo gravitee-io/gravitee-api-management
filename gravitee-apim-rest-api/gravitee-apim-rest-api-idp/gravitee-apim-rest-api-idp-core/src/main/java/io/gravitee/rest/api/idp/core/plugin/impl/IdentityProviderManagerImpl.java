@@ -123,7 +123,7 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
         try {
             T identityObj = createInstance(identityClass);
             final Import annImport = identityClass.getAnnotation(Import.class);
-            Set<Class<?>> configurations = (annImport != null) ? new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
+            Set<Class<?>> configurations = annImport != null ? new HashSet<>(Arrays.asList(annImport.value())) : Collections.emptySet();
 
             ApplicationContext idpApplicationContext = pluginContextFactory.create(
                 new AnnotationBasedPluginContextConfigurer(plugin) {

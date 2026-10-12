@@ -193,11 +193,11 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
         // get the current PO
         RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
-        assert (poRole != null);
+        assert poRole != null;
         String poRoleName = poRole.getName();
 
         var defaultApiRole = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), RoleScope.API);
-        assert (!isEmpty(defaultApiRole));
+        assert !isEmpty(defaultApiRole);
 
         for (MemberEntity member : members) {
             if (isEmpty(member.getRoles())) {

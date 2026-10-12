@@ -173,7 +173,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
 
     private boolean isRequestValid(String incoming, Set<String> configuredValues, boolean required) {
         String[] inputs = splitAndTrim(incoming, ",");
-        if ((inputs == null || (inputs.length == 1 && inputs[0].isEmpty()))) {
+        if (inputs == null || (inputs.length == 1 && inputs[0].isEmpty())) {
             return true;
         }
         return (

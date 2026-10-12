@@ -52,7 +52,7 @@ public class DictionaryServiceImpl_DeployTest {
     private static final String ENVIRONMENT_ID = GraviteeContext.getCurrentEnvironment();
     private static final String DICTIONARY_ID = "dictionaryId";
     private static final String ACCESS_PATCH = """
-        [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:c806cd9c716cfbfdb4763c71dd1394b3e602fce81291a0338bf8e3225416ac32>","encrypted":true}}]""";
+    [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:c806cd9c716cfbfdb4763c71dd1394b3e602fce81291a0338bf8e3225416ac32>","encrypted":true}}]""";
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();

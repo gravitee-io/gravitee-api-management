@@ -98,25 +98,23 @@ public class Api extends AbstractReactableApi<io.gravitee.definition.model.v4.Ap
 
         // Load policies from Plans
         if (definition.getPlans() != null) {
-            definition
-                .getPlans()
-                .forEach(plan -> {
-                    // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
-                    if (plan.useStandardMode()) {
-                        PlanSecurity security = plan.getSecurity();
-                        Policy secPolicy = new Policy();
-                        secPolicy.setName(security.getType());
+            definition.getPlans().forEach(plan -> {
+                // TODO: associate plan security with its policy (https://github.com/gravitee-io/issues/issues/8427)
+                if (plan.useStandardMode()) {
+                    PlanSecurity security = plan.getSecurity();
+                    Policy secPolicy = new Policy();
+                    secPolicy.setName(security.getType());
 
-                        if (secPolicy.getName() != null) {
-                            policies.add(secPolicy);
-                        }
+                    if (secPolicy.getName() != null) {
+                        policies.add(secPolicy);
                     }
+                }
 
-                    if (plan.getFlows() != null) {
-                        List<Flow> flows = plan.getFlows();
-                        addFlowsPolicies(policies, flows);
-                    }
-                });
+                if (plan.getFlows() != null) {
+                    List<Flow> flows = plan.getFlows();
+                    addFlowsPolicies(policies, flows);
+                }
+            });
         }
 
         // Load policies from flows

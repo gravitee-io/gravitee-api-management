@@ -61,7 +61,7 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
         query.addCriteria(where("referenceType").is(referenceType).and("referenceId").is(referenceId));
 
         PageMongo page = mongoTemplate.findOne(query, PageMongo.class);
-        return (page != null) ? page.getOrder() : 0;
+        return page != null ? page.getOrder() : 0;
     }
 
     @Override

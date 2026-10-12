@@ -32,7 +32,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class XmlValidationPolicyCheckerTest {
 
     private static final String VALID_REGISTRY_CONFIG = """
-        {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1"}""";
+    {"schemaSource":"registry","registryResource":"sr","groupId":"g","artifactId":"a","version":"1"}""";
 
     @Nested
     class NonXmlValidationPolicies {

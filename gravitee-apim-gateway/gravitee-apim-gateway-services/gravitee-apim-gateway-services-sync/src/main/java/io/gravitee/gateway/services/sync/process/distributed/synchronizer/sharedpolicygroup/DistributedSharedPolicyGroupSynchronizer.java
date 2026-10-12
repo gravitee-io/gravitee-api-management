@@ -34,7 +34,8 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class DistributedSharedPolicyGroupSynchronizer
-    extends AbstractDistributedSynchronizer<SharedPolicyGroupReactorDeployable, SharedPolicyGroupDeployer> {
+    extends AbstractDistributedSynchronizer<SharedPolicyGroupReactorDeployable, SharedPolicyGroupDeployer>
+{
 
     private final DeployerFactory deployerFactory;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;

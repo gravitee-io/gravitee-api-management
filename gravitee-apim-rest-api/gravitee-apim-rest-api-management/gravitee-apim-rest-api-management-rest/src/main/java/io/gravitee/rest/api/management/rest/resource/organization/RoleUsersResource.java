@@ -115,12 +115,10 @@ public class RoleUsersResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "201", description = "Membership successfully created / updated")
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    @Permissions(
-        {
-            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
-            @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE),
-        }
-    )
+    @Permissions({
+        @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.CREATE),
+        @Permission(value = RolePermission.ORGANIZATION_ROLE, acls = RolePermissionAction.UPDATE),
+    })
     public Response addRoleToUser(
         @Parameter(name = "scope", required = true, schema = @Schema(allowableValues = { "ORGANIZATION", "ENVIRONMENT" })) @PathParam(
             "scope"

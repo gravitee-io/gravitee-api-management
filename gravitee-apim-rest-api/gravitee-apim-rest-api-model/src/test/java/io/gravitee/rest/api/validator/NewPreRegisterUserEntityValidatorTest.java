@@ -40,32 +40,30 @@ public class NewPreRegisterUserEntityValidatorTest {
     private ConstraintValidatorContext constraintValidatorContext;
 
     public static Iterable<Object[]> data() {
-        return Arrays.asList(
-            new Object[][] {
-                // email;firstName;lastName;sourceId;isServiceAccount;shouldBeValid
-                // sourceId is resolved as sourceId -> lastName -> email, so a service account is only rejected
-                // when none of the three can be used to derive a non-null sourceId (APIM-14832)
-                { "", null, null, null, true, false },
-                { null, null, null, null, true, false },
-                { "mail@mail.mail", null, null, null, true, true },
-                { "", null, "lastName", null, true, true },
-                { null, null, null, "sourceId", true, true },
-                { "mail@mail.mail", null, "lastName", "sourceId", true, true },
-                { null, "firstName", "lastName", "sourceId", true, false },
-                { "mail@mail.mail", "firstName", null, null, true, false },
-                { "", "firstName", null, null, false, false },
-                { null, "firstName", null, null, false, false },
-                { " ", "firstName", null, null, false, false },
-                { "mail@mail.mail", "firstName", null, null, false, true },
-                // whitespace-only values are not usable identifiers, isNotBlank must reject them too
-                { null, null, " ", null, true, false },
-                { null, null, null, " ", true, false },
-                { " ", null, null, null, true, false },
-                // blank firstname is "not set", consistent with isNotBlank used everywhere else
-                { "mail@mail.mail", "", null, null, true, true },
-                { "mail@mail.mail", " ", null, null, true, true },
-            }
-        );
+        return Arrays.asList(new Object[][] {
+            // email;firstName;lastName;sourceId;isServiceAccount;shouldBeValid
+            // sourceId is resolved as sourceId -> lastName -> email, so a service account is only rejected
+            // when none of the three can be used to derive a non-null sourceId (APIM-14832)
+            { "", null, null, null, true, false },
+            { null, null, null, null, true, false },
+            { "mail@mail.mail", null, null, null, true, true },
+            { "", null, "lastName", null, true, true },
+            { null, null, null, "sourceId", true, true },
+            { "mail@mail.mail", null, "lastName", "sourceId", true, true },
+            { null, "firstName", "lastName", "sourceId", true, false },
+            { "mail@mail.mail", "firstName", null, null, true, false },
+            { "", "firstName", null, null, false, false },
+            { null, "firstName", null, null, false, false },
+            { " ", "firstName", null, null, false, false },
+            { "mail@mail.mail", "firstName", null, null, false, true },
+            // whitespace-only values are not usable identifiers, isNotBlank must reject them too
+            { null, null, " ", null, true, false },
+            { null, null, null, " ", true, false },
+            { " ", null, null, null, true, false },
+            // blank firstname is "not set", consistent with isNotBlank used everywhere else
+            { "mail@mail.mail", "", null, null, true, true },
+            { "mail@mail.mail", " ", null, null, true, true },
+        });
     }
 
     @BeforeEach

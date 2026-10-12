@@ -174,7 +174,10 @@ public class ElasticsearchAnalyticsRepositoryTest extends AbstractElasticsearchR
     public void testCount() throws Exception {
         CountResponse response = analyticsRepository.query(
             queryContext,
-            count().timeRange(lastDays(30), hours(1)).terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1"))).build()
+            count()
+                .timeRange(lastDays(30), hours(1))
+                .terms(Map.of("api", Set.of("4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1")))
+                .build()
         );
 
         assertThat(response).isNotNull();

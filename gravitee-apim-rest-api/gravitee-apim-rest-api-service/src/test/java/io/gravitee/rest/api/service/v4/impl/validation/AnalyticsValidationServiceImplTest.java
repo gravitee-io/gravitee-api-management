@@ -146,13 +146,11 @@ class AnalyticsValidationServiceImplTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @CsvSource(
-        {
-            "if_wrong_condition_and_with_settings,true,{#request.timestamp <= 1l && (true)}",
-            "timestamp_case_timestamp_less,{#request.timestamp < 2550166583090l},{#request.timestamp <= 1l}",
-            "double_parenthesis,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-        }
-    )
+    @CsvSource({
+        "if_wrong_condition_and_with_settings,true,{#request.timestamp <= 1l && (true)}",
+        "timestamp_case_timestamp_less,{#request.timestamp < 2550166583090l},{#request.timestamp <= 1l}",
+        "double_parenthesis,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+    })
     void should_add_default_condition_if_wrong_condition_and_with_settings(String name, String condition, String expectedCondition) {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();
@@ -170,18 +168,16 @@ class AnalyticsValidationServiceImplTest {
     }
 
     @ParameterizedTest(name = "{0}")
-    @CsvSource(
-        {
-            "timestamp_less_or_equal,{#request.timestamp <= 2550166583090l},{#request.timestamp <= 1l}",
-            "before_and_timestamp_after,{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2},{#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)}",
-            "double_parenthesis,{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            "before_multiple_parenthesis,{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            "before_and_timestamp_and_after,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
-            "greater_or_equals,{#request.timestamp >= 5l},{#request.timestamp <= 1l && (#request.timestamp >= 5l)}",
-            "greater,{#request.timestamp > 5l},{#request.timestamp <= 1l && (#request.timestamp > 5l)}",
-            "greater_or_equals_in_the_past,{#request.timestamp >= 0l},{#request.timestamp <= 1l && (#request.timestamp >= 0l)}",
-        }
-    )
+    @CsvSource({
+        "timestamp_less_or_equal,{#request.timestamp <= 2550166583090l},{#request.timestamp <= 1l}",
+        "before_and_timestamp_after,{#request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2},{#request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2)}",
+        "double_parenthesis,{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+        "before_multiple_parenthesis,{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 2550166583090l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')},{((#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')) && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+        "before_and_timestamp_and_after,{#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2' && #request.timestamp <= 2550166583090l && #context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2'},{(#context.application == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2') && #request.timestamp <= 1l && (#context.plan == '5aada00c-cd25-41f0-ada0-0ccd25b1f0f2')}",
+        "greater_or_equals,{#request.timestamp >= 5l},{#request.timestamp <= 1l && (#request.timestamp >= 5l)}",
+        "greater,{#request.timestamp > 5l},{#request.timestamp <= 1l && (#request.timestamp > 5l)}",
+        "greater_or_equals_in_the_past,{#request.timestamp >= 0l},{#request.timestamp <= 1l && (#request.timestamp >= 0l)}",
+    })
     void should_override_timestamp(String name, String condition, String expectedCondition) {
         Analytics analytics = new Analytics();
         Logging logging = new Logging();

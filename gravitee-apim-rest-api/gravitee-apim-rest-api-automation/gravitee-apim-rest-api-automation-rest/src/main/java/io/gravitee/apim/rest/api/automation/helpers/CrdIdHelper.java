@@ -59,7 +59,8 @@ public class CrdIdHelper {
             }
             if (
                 (planCRD.getGeneralConditions() == null || planCRD.getGeneralConditions().isEmpty()) &&
-                (planCRD.getGeneralConditionsHrid() != null && !planCRD.getGeneralConditionsHrid().isEmpty())
+                planCRD.getGeneralConditionsHrid() != null &&
+                !planCRD.getGeneralConditionsHrid().isEmpty()
             ) {
                 planCRD.setGeneralConditions(HRIDToUUID.page().context(audit).api(apiHrid).page(planCRD.getGeneralConditionsHrid()).id());
             }

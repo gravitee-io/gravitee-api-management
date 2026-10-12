@@ -208,18 +208,16 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
             executionContext.getOrganizationId(),
             MembershipReferenceType.ORGANIZATION
         );
-        userRepository
-            .deleteByOrganizationId(organization.getId())
-            .forEach(userId -> {
-                searchEngineService.delete(executionContext, UserEntity.builder().id(userId).build());
-                try {
-                    portalNotificationRepository.deleteAll(userId);
-                    metadataRepository.deleteByReferenceIdAndReferenceType(userId, MetadataReferenceType.USER);
-                    tokenRepository.deleteByReferenceIdAndReferenceType(userId, TokenReferenceType.USER.name());
-                } catch (TechnicalException e) {
-                    throw new TechnicalManagementException(e);
-                }
-            });
+        userRepository.deleteByOrganizationId(organization.getId()).forEach(userId -> {
+            searchEngineService.delete(executionContext, UserEntity.builder().id(userId).build());
+            try {
+                portalNotificationRepository.deleteAll(userId);
+                metadataRepository.deleteByReferenceIdAndReferenceType(userId, MetadataReferenceType.USER);
+                tokenRepository.deleteByReferenceIdAndReferenceType(userId, TokenReferenceType.USER.name());
+            } catch (TechnicalException e) {
+                throw new TechnicalManagementException(e);
+            }
+        });
         tenantRepository.deleteByReferenceIdAndReferenceType(organization.getId(), TenantReferenceType.ORGANIZATION);
         roleRepository.deleteByReferenceIdAndReferenceType(organization.getId(), RoleReferenceType.ORGANIZATION);
         identityProviderRepository.deleteByOrganizationId(organization.getId());

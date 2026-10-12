@@ -105,7 +105,9 @@ public class SearchResponseStatusRangesAdapter {
                 json()
                     .<ObjectNode>set(
                         "terms",
-                        json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword").put("size", ENTRYPOINT_BUCKETS)
+                        json()
+                            .put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword")
+                            .put("size", ENTRYPOINT_BUCKETS)
                     )
                     .<ObjectNode>set(
                         "aggs",

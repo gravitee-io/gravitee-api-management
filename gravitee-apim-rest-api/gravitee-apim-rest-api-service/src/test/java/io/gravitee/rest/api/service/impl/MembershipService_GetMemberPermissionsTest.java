@@ -155,7 +155,9 @@ public class MembershipService_GetMemberPermissionsTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         Membership membership = mock(Membership.class);
-        doReturn("API_" + ROLENAME).when(membership).getRoleId();
+        doReturn("API_" + ROLENAME)
+            .when(membership)
+            .getRoleId();
         doReturn(new HashSet<>(List.of(membership)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -170,10 +172,10 @@ public class MembershipService_GetMemberPermissionsTest {
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
-        rolePerms.put(
-            ApiPermission.DOCUMENTATION.getName(),
-            new char[] { RolePermissionAction.UPDATE.getId(), RolePermissionAction.CREATE.getId() }
-        );
+        rolePerms.put(ApiPermission.DOCUMENTATION.getName(), new char[] {
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.CREATE.getId(),
+        });
         doReturn(rolePerms).when(roleEntity).getPermissions();
         when(roleService.findByIds(Set.of("API_" + ROLENAME))).thenAnswer(invocation -> {
             Set<String> ids = invocation.getArgument(0);
@@ -226,7 +228,9 @@ public class MembershipService_GetMemberPermissionsTest {
             );
 
         Membership membership = mock(Membership.class);
-        doReturn("API_" + ROLENAME).when(membership).getRoleId();
+        doReturn("API_" + ROLENAME)
+            .when(membership)
+            .getRoleId();
         doReturn(GROUP_ID1).when(membership).getReferenceId();
         doReturn(new HashSet<>(List.of(membership)))
             .when(membershipRepository)
@@ -242,10 +246,10 @@ public class MembershipService_GetMemberPermissionsTest {
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
-        rolePerms.put(
-            ApiPermission.DOCUMENTATION.getName(),
-            new char[] { RolePermissionAction.UPDATE.getId(), RolePermissionAction.CREATE.getId() }
-        );
+        rolePerms.put(ApiPermission.DOCUMENTATION.getName(), new char[] {
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.CREATE.getId(),
+        });
         doReturn(rolePerms).when(roleEntity).getPermissions();
         doReturn(RoleScope.API).when(roleEntity).getScope();
         when(roleService.findByIds(Set.of("API_" + ROLENAME))).thenAnswer(invocation -> {
@@ -290,7 +294,9 @@ public class MembershipService_GetMemberPermissionsTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
         Membership membershipUser = mock(Membership.class);
-        doReturn("API_" + ROLENAME).when(membershipUser).getRoleId();
+        doReturn("API_" + ROLENAME)
+            .when(membershipUser)
+            .getRoleId();
         doReturn(new HashSet<>(List.of(membershipUser)))
             .when(membershipRepository)
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -301,7 +307,9 @@ public class MembershipService_GetMemberPermissionsTest {
             );
 
         Membership membershipGroup = mock(Membership.class);
-        doReturn("API_" + ROLENAME2).when(membershipGroup).getRoleId();
+        doReturn("API_" + ROLENAME2)
+            .when(membershipGroup)
+            .getRoleId();
         doReturn(GROUP_ID1).when(membershipGroup).getReferenceId();
         doReturn(new HashSet<>(List.of(membershipGroup)))
             .when(membershipRepository)
@@ -317,19 +325,19 @@ public class MembershipService_GetMemberPermissionsTest {
 
         RoleEntity roleEntity = mock(RoleEntity.class);
         Map<String, char[]> rolePerms = new HashMap<>();
-        rolePerms.put(
-            ApiPermission.DOCUMENTATION.getName(),
-            new char[] { RolePermissionAction.UPDATE.getId(), RolePermissionAction.CREATE.getId() }
-        );
+        rolePerms.put(ApiPermission.DOCUMENTATION.getName(), new char[] {
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.CREATE.getId(),
+        });
         doReturn(rolePerms).when(roleEntity).getPermissions();
         lenient().doReturn(RoleScope.API).when(roleEntity).getScope();
 
         RoleEntity roleEntity2 = mock(RoleEntity.class);
         Map<String, char[]> rolePerms2 = new HashMap<>();
-        rolePerms2.put(
-            ApiPermission.DOCUMENTATION.getName(),
-            new char[] { RolePermissionAction.READ.getId(), RolePermissionAction.DELETE.getId() }
-        );
+        rolePerms2.put(ApiPermission.DOCUMENTATION.getName(), new char[] {
+            RolePermissionAction.READ.getId(),
+            RolePermissionAction.DELETE.getId(),
+        });
         rolePerms2.put(ApiPermission.PLAN.getName(), new char[] { RolePermissionAction.READ.getId() });
         doReturn(rolePerms2).when(roleEntity2).getPermissions();
         doReturn(RoleScope.API).when(roleEntity2).getScope();
@@ -346,15 +354,12 @@ public class MembershipService_GetMemberPermissionsTest {
 
         assertThat(permissions).isNotNull();
         Map<String, char[]> expectedPermissions = new HashMap<>();
-        expectedPermissions.put(
-            ApiPermission.DOCUMENTATION.getName(),
-            new char[] {
-                RolePermissionAction.CREATE.getId(),
-                RolePermissionAction.READ.getId(),
-                RolePermissionAction.UPDATE.getId(),
-                RolePermissionAction.DELETE.getId(),
-            }
-        );
+        expectedPermissions.put(ApiPermission.DOCUMENTATION.getName(), new char[] {
+            RolePermissionAction.CREATE.getId(),
+            RolePermissionAction.READ.getId(),
+            RolePermissionAction.UPDATE.getId(),
+            RolePermissionAction.DELETE.getId(),
+        });
         expectedPermissions.put(ApiPermission.PLAN.getName(), new char[] { RolePermissionAction.READ.getId() });
         assertPermissions(expectedPermissions, permissions);
         verify(membershipRepository, times(1)).findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -374,9 +379,13 @@ public class MembershipService_GetMemberPermissionsTest {
     }
 
     private void assertPermissions(Map<String, char[]> expected, Map<String, char[]> actual) {
-        assertThat(actual).as("there must be " + expected.size() + " permission").hasSameSizeAs(expected);
+        assertThat(actual)
+            .as("there must be " + expected.size() + " permission")
+            .hasSameSizeAs(expected);
         for (Map.Entry<String, char[]> expectedEntry : expected.entrySet()) {
-            assertThat(actual).as("must contains perm:" + expectedEntry.getKey()).containsKey(expectedEntry.getKey());
+            assertThat(actual)
+                .as("must contains perm:" + expectedEntry.getKey())
+                .containsKey(expectedEntry.getKey());
             Arrays.sort(expectedEntry.getValue());
             String expectedCRUD = new String(expectedEntry.getValue());
             Arrays.sort(actual.get(expectedEntry.getKey()));

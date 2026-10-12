@@ -89,12 +89,10 @@ public class ApplicationNotificationResource extends AbstractResource {
         portalConfig.setHooks(notification.getHooks());
         portalNotificationConfigService.save(portalConfig);
 
-        genericNotificationConfigService
-            .findByReference(NotificationReferenceType.APPLICATION, applicationId)
-            .forEach(genericConfig -> {
-                genericConfig.setHooks(notification.getHooks());
-                genericNotificationConfigService.update(genericConfig);
-            });
+        genericNotificationConfigService.findByReference(NotificationReferenceType.APPLICATION, applicationId).forEach(genericConfig -> {
+            genericConfig.setHooks(notification.getHooks());
+            genericNotificationConfigService.update(genericConfig);
+        });
         return Response.ok(notification.getHooks()).build();
     }
 }

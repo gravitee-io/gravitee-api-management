@@ -79,7 +79,7 @@ public class OrganizationSynchronizer implements RepositorySynchronizer {
                 String logMsg = String.format(
                     "%s organizations synchronized in %sms",
                     count,
-                    (System.currentTimeMillis() - launchTime.get())
+                    System.currentTimeMillis() - launchTime.get()
                 );
                 if (from == -1) {
                     log.info(logMsg);

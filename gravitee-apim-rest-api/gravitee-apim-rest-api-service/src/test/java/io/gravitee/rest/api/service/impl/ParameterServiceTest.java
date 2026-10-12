@@ -1262,7 +1262,7 @@ public class ParameterServiceTest {
     ) throws TechnicalException {
         final ParameterReferenceType repositoryReferenceType = ParameterReferenceType.valueOf(referenceType.name());
         final String previousValue = """
-            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
         final Parameter existing = new Parameter();
         existing.setKey(EMAIL_BRANDED_SENDERS.key());
         existing.setReferenceId("DEFAULT");
@@ -1433,7 +1433,7 @@ public class ParameterServiceTest {
     @Test
     public void should_emit_audit_log_when_creating_email_branded_senders() throws TechnicalException {
         final String value = """
-            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
         final Parameter parameter = new Parameter();
         parameter.setKey(EMAIL_BRANDED_SENDERS.key());
         parameter.setReferenceId("DEFAULT");
@@ -1465,10 +1465,10 @@ public class ParameterServiceTest {
     @Test
     public void should_emit_audit_log_with_full_json_before_and_after_when_updating_email_branded_senders() throws TechnicalException {
         final String previousValue = """
-            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
         final String newValue = """
-            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"},\
-            {"domains":["vodafone.com"],"from":"noreply@vodafone.com","subject":"[Vodafone] %s"}]""";
+        [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"},\
+        {"domains":["vodafone.com"],"from":"noreply@vodafone.com","subject":"[Vodafone] %s"}]""";
 
         final Parameter existing = new Parameter();
         existing.setKey(EMAIL_BRANDED_SENDERS.key());

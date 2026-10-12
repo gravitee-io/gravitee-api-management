@@ -151,7 +151,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
         flowValidationDomainService.validatePathParameters(
             newApiEntity.getType(),
-            (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
+            newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty(),
             Stream.empty()
         );
 
@@ -224,7 +224,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(
             updateApiEntity.getType(),
-            (updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty()),
+            updateApiEntity.getFlows() != null ? updateApiEntity.getFlows().stream() : Stream.empty(),
             getPlansFlows(updateApiEntity.getPlans())
         );
 
@@ -295,7 +295,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(
             apiEntity.getType(),
-            (apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty()),
+            apiEntity.getFlows() != null ? apiEntity.getFlows().stream() : Stream.empty(),
             getPlansFlows(apiEntity.getPlans())
         );
 

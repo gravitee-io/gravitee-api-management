@@ -348,7 +348,7 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     }
 
     private static String consulUrl() {
-        return ("https://" + consulHost() + ":" + consulSecuredPort());
+        return "https://" + consulHost() + ":" + consulSecuredPort();
     }
 
     private static String consulHost() {
@@ -367,8 +367,7 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
     }
 
     private void configureDiscoveryInGroup(JsonObject configuration) {
-        api
-            .getDefinition()
+        api.getDefinition()
             .getEndpointGroups()
             .get(0)
             .getServices()
@@ -388,8 +387,7 @@ class ConsulServiceDiscoveryServiceWithTLSIntegrationTest {
 
     private void startConsulServiceDiscovery(VertxTestContext testContext) throws InterruptedException {
         cut = new ConsulServiceDiscoveryServiceFactory().createService(deploymentContext);
-        cut
-            .start()
+        cut.start()
             .andThen(
                 Completable.create(emitter -> {
                     testContext.awaitCompletion(5, TimeUnit.SECONDS);

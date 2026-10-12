@@ -193,9 +193,9 @@ class HelloCommandHandlerTest {
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(reply.getCommandStatus()).isEqualTo(CommandStatus.ERROR);
                     soft.assertThat(reply.getCommandId()).isEqualTo(COMMAND_ID);
-                    soft
-                        .assertThat(reply.getErrorDetails())
-                        .isEqualTo("Integration [id=my-integration-id] does not match. Expected provider [provider=other]");
+                    soft.assertThat(reply.getErrorDetails()).isEqualTo(
+                        "Integration [id=my-integration-id] does not match. Expected provider [provider=other]"
+                    );
                 });
 
                 return true;

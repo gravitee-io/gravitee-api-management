@@ -106,13 +106,13 @@ public class PlanSearchServiceImpl_SearchTest {
             groupService,
             apiSearchService,
             objectMapper,
-            genericPlanMapper = new GenericPlanMapper(
+            (genericPlanMapper = new GenericPlanMapper(
                 new PlanMapper(),
                 flowService,
                 new PlanConverter(objectMapper),
                 flowServiceV2,
                 flowCrudService
-            ),
+            )),
             genericApiMapper
         );
     }

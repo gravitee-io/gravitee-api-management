@@ -176,9 +176,10 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             case FEDERATED -> {
                 Function<Plan, PlanDescriptor.Federated> mapPlanFederated = DEFINITION_ADAPTER::mapPlanFederated;
                 var plans = mapPlan(apiId, mapPlanFederated, excluded);
-                var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
-                    ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
-                    : null;
+                var integ =
+                    api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
+                        ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
+                        : null;
                 var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }

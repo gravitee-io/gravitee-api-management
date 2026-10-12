@@ -149,7 +149,9 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_empty_entries_for_empty_request() {
-        var response = rootTarget().request().post(json(Map.of("entries", List.of())));
+        var response = rootTarget()
+            .request()
+            .post(json(Map.of("entries", List.of())));
 
         assertThat(response)
             .hasStatus(200)
@@ -178,7 +180,9 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
         ).thenReturn(false);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Set.of());
 
-        var response = rootTarget().request().post(json(Map.of("entries", List.of())));
+        var response = rootTarget()
+            .request()
+            .post(json(Map.of("entries", List.of())));
 
         assertThat(response).hasStatus(FORBIDDEN_403);
     }
@@ -189,7 +193,9 @@ class ObservabilityFilterLabelsResourceTest extends AbstractResourceTest {
             .mapToObj(index -> Map.of("filterName", "API", "ids", List.of("api-id-" + index)))
             .toList();
 
-        var response = rootTarget().request().post(json(Map.of("entries", entries)));
+        var response = rootTarget()
+            .request()
+            .post(json(Map.of("entries", entries)));
 
         assertThat(response).hasStatus(400).asError().hasHttpStatus(400).hasMessage("Too many filter entries to resolve");
     }

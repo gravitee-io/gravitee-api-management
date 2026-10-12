@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public enum DefinitionVersion {
     @JsonEnumDefaultValue
     V2("2.0.0"),
+
     V4("4.0.0"),
     FEDERATED("FEDERATED"),
     FEDERATED_AGENT("FEDERATED_AGENT");

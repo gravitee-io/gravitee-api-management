@@ -30,7 +30,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcScoringFunctionRepository
     extends JdbcAbstractCrudRepository<ScoringFunction, String>
-    implements ScoringFunctionRepository {
+    implements ScoringFunctionRepository
+{
 
     JdbcScoringFunctionRepository(@Value("${management.jdbc.prefix:}") String prefix) {
         super(prefix, "scoring_functions");

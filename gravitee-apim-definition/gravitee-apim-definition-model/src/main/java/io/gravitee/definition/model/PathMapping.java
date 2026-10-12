@@ -34,8 +34,7 @@ public class PathMapping {
                 .replace("(", "\\(")
                 .replace(")", "\\)")
                 .replaceAll("\\.(?!\\*)", "\\\\.")
-                .replaceAll(":[^/]*", "[^/]*") +
-            "/*";
+                .replaceAll(":[^/]*", "[^/]*") + "/*";
 
         return Pattern.compile(regex);
     }

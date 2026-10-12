@@ -96,7 +96,9 @@ public class AuthResource extends AbstractResource {
             if (!userRoles.isEmpty()) {
                 userRoles.forEach(role ->
                     authorities.add(
-                        Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build()
+                        Maps.<String, String>builder()
+                            .put("authority", role.getScope().toString() + ':' + role.getName())
+                            .build()
                     )
                 );
             }

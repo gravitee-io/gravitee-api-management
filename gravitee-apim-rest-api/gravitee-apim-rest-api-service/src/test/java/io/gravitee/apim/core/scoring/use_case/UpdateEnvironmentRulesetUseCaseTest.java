@@ -95,7 +95,9 @@ class UpdateEnvironmentRulesetUseCaseTest {
         Throwable thrown = catchThrowable(() -> useCase.execute(new UpdateEnvironmentRulesetUseCase.Input(rulesetToUpdate, AUDIT_INFO)));
 
         //Then
-        assertThat(thrown).isInstanceOf(RulesetNotFoundException.class).hasMessage("Ruleset with id " + rulesetId + " not found");
+        assertThat(thrown)
+            .isInstanceOf(RulesetNotFoundException.class)
+            .hasMessage("Ruleset with id " + rulesetId + " not found");
     }
 
     private void givenExistingRulesets(ScoringRuleset... rulesets) {

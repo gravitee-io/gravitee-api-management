@@ -54,8 +54,7 @@ class RequestOptionsBuilder {
             .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()));
 
         if (step.getRequest().getHeaders() != null) {
-            step
-                .getRequest()
+            step.getRequest()
                 .getHeaders()
                 .forEach(h -> options.putHeader(h.getName(), resolveHeaderValue(h)));
             applyCustomHostIfPresent(options, port, request);

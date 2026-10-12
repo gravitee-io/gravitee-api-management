@@ -102,15 +102,16 @@ public class MongoTokenBucketRateLimitRepository implements TokenBucketRateLimit
             .otherwise(elapsed);
         // refillAmount = floor(effectiveElapsed * refillRate / refillPeriodMillis) as a long — whole tokens.
         // A zero rate yields 0 (no refill).
-        AggregationExpression refillAmount = refillRate <= 0
-            ? (AggregationExpression) context -> new org.bson.Document("$literal", 0L)
-            : ConvertOperators.valueOf(
-                ArithmeticOperators.valueOf(
-                    ArithmeticOperators.valueOf(ArithmeticOperators.valueOf(effectiveElapsed).multiplyBy(refillRate)).divideBy(
-                        refillPeriodMillis
-                    )
-                ).floor()
-            ).convertToLong();
+        AggregationExpression refillAmount =
+            refillRate <= 0
+                ? (AggregationExpression) context -> new org.bson.Document("$literal", 0L)
+                : ConvertOperators.valueOf(
+                      ArithmeticOperators.valueOf(
+                          ArithmeticOperators.valueOf(ArithmeticOperators.valueOf(effectiveElapsed).multiplyBy(refillRate)).divideBy(
+                              refillPeriodMillis
+                          )
+                      ).floor()
+                  ).convertToLong();
         // refilled = min(capacity, currentTokens + refillAmount); a missing bucket defaults to full.
         AggregationExpression currentTokens = ConditionalOperators.ifNull(FIELD_TOKENS).then(capacity);
         AggregationExpression refilledRaw = ArithmeticOperators.valueOf(currentTokens).add(refillAmount);

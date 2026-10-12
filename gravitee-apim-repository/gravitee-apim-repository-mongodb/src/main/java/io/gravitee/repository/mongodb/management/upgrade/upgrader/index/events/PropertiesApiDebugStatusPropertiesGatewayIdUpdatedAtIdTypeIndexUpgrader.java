@@ -24,7 +24,8 @@ import org.springframework.stereotype.Component;
  */
 @Component("PropertiesApiDebugStatusPropertiesGatewayIdUpdatedAtIdTypeIndexUpgrader")
 public class PropertiesApiDebugStatusPropertiesGatewayIdUpdatedAtIdTypeIndexUpgrader
-    extends IndexUpgrader {
+    extends IndexUpgrader
+{
 
     @Override
     protected Index buildIndex() {

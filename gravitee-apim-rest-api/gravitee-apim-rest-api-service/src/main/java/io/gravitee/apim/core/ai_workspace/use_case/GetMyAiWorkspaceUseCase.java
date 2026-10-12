@@ -86,12 +86,14 @@ public class GetMyAiWorkspaceUseCase {
             .filter(item -> item.getKind() == ApiProductKind.AI_WORKSPACE)
             .findFirst()
             .orElseThrow(() -> new AiWorkspaceNotFoundException(id));
-        Map<String, List<Flow>> flowsByPlan = membership.planId() == null || membership.planId().isBlank()
-            ? Map.of()
-            : flowCrudService.getPlanV4Flows(Set.of(membership.planId()));
-        List<Api> apis = product.getApiIds() == null
-            ? List.of()
-            : product.getApiIds().stream().map(apiCrudService::findById).flatMap(Optional::stream).toList();
+        Map<String, List<Flow>> flowsByPlan =
+            membership.planId() == null || membership.planId().isBlank()
+                ? Map.of()
+                : flowCrudService.getPlanV4Flows(Set.of(membership.planId()));
+        List<Api> apis =
+            product.getApiIds() == null
+                ? List.of()
+                : product.getApiIds().stream().map(apiCrudService::findById).flatMap(Optional::stream).toList();
         return new Output(
             new AiWorkspaceDetails(
                 product.getId(),

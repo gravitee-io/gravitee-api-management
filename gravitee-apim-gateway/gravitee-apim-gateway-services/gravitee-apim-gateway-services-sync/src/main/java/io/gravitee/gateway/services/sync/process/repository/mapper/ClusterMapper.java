@@ -99,7 +99,8 @@ public class ClusterMapper {
             Map<String, Object> configMap = (Map<String, Object>) configuration;
             Object connectionsRaw = configMap.get("connections");
             if (connectionsRaw instanceof List) {
-                connections = ((List<Map<String, Object>>) connectionsRaw).stream()
+                connections = ((List<Map<String, Object>>) connectionsRaw)
+                    .stream()
                     .map(connMap ->
                         KafkaClusterReactableCluster.KafkaClusterConnection.builder()
                             .crossId((String) connMap.get("crossId"))
@@ -142,7 +143,8 @@ public class ClusterMapper {
             Map<String, Object> configMap = (Map<String, Object>) configuration;
             Object backendsRaw = configMap.get("backends");
             if (backendsRaw instanceof List) {
-                backends = ((List<Map<String, Object>>) backendsRaw).stream()
+                backends = ((List<Map<String, Object>>) backendsRaw)
+                    .stream()
                     .map(backendMap ->
                         KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend.builder()
                             .clusterCrossId((String) backendMap.get("clusterCrossId"))

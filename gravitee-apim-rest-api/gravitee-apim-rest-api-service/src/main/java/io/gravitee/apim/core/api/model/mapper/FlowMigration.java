@@ -142,26 +142,26 @@ public class FlowMigration {
         return reduce.map(e ->
             e != null
                 ? Flow.builder()
-                    .id(v2Flow.getId())
-                    .selectors(
-                        Stream.concat(
-                            nullIfEmpty(v2Flow.getCondition()) == null
-                                ? Stream.empty()
-                                : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
-                            Stream.of(
-                                HttpSelector.builder()
-                                    .methods(v2Flow.getMethods())
-                                    .pathOperator(v2Flow.getOperator())
-                                    .path(v2Flow.getPath())
-                                    .build()
-                            )
-                        ).toList()
-                    )
-                    .request(e.pre())
-                    .response(e.post())
-                    .name(v2Flow.getName())
-                    .enabled(v2Flow.isEnabled())
-                    .build()
+                      .id(v2Flow.getId())
+                      .selectors(
+                          Stream.concat(
+                              nullIfEmpty(v2Flow.getCondition()) == null
+                                  ? Stream.empty()
+                                  : Stream.of(ConditionSelector.builder().condition(v2Flow.getCondition()).build()),
+                              Stream.of(
+                                  HttpSelector.builder()
+                                      .methods(v2Flow.getMethods())
+                                      .pathOperator(v2Flow.getOperator())
+                                      .path(v2Flow.getPath())
+                                      .build()
+                              )
+                          ).toList()
+                      )
+                      .request(e.pre())
+                      .response(e.post())
+                      .name(v2Flow.getName())
+                      .enabled(v2Flow.isEnabled())
+                      .build()
                 : null
         );
     }

@@ -38,7 +38,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcNotificationTemplateRepository
     extends JdbcAbstractCrudRepository<NotificationTemplate, String>
-    implements NotificationTemplateRepository {
+    implements NotificationTemplateRepository
+{
 
     JdbcNotificationTemplateRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "notification_templates");

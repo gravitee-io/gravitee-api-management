@@ -28,7 +28,8 @@ import java.nio.file.Paths;
  * @author GraviteeSource Team
  */
 public class FakeEntrypointConnectorPlugin
-    implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration> {
+    implements EntrypointConnectorPlugin<FakeEntrypointConnectorFactory, FakeEntrypointConnectorConfiguration>
+{
 
     private static final String WITH_SUBSCRIPTION_FILE = "with-subscription";
     private static final String WITHOUT_SUBSCRIPTION_FILE = "without-subscription";
@@ -74,7 +75,12 @@ public class FakeEntrypointConnectorPlugin
     @Override
     public Path path() {
         try {
-            return Paths.get(this.getClass().getClassLoader().getResource("files/" + resourceFolder).toURI());
+            return Paths.get(
+                this.getClass()
+                    .getClassLoader()
+                    .getResource("files/" + resourceFolder)
+                    .toURI()
+            );
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

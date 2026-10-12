@@ -88,14 +88,12 @@ public class RepositoryApiMemberResyncTrigger {
         }
         Completable pipeline = Completable.defer(() -> {
             log.debug("Scheduling resync of {} member API(s) in environment [{}]", apiIds.size(), environmentId);
-            return apiSynchronizer
-                .resyncMemberApis(apiIds, Set.of(environmentId))
-                .andThen(
-                    Completable.fromAction(() -> {
-                        log.debug("Resync done — re-evaluating eligibility of {} API(s) for product [{}]", apiIds.size(), productId);
-                        apiManager.reEvaluateAfterProductChange(productId, apiIds);
-                    })
-                );
+            return apiSynchronizer.resyncMemberApis(apiIds, Set.of(environmentId)).andThen(
+                Completable.fromAction(() -> {
+                    log.debug("Resync done — re-evaluating eligibility of {} API(s) for product [{}]", apiIds.size(), productId);
+                    apiManager.reEvaluateAfterProductChange(productId, apiIds);
+                })
+            );
         }).subscribeOn(Schedulers.from(syncDeployerExecutor));
 
         // The observer knows its own identity from the start, so it can take itself out of the

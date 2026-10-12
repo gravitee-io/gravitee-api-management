@@ -137,7 +137,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(List.of(apiRole, appRole));
 
-        final Response response = envTarget().request().post(Entity.json(Set.of(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Set.of(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -168,7 +170,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(List.of(apiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Set.of(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Set.of(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API_PRODUCT);
@@ -213,7 +217,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Arrays.asList(apiRole, appRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -265,7 +271,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Arrays.asList(apiRole, appRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -330,7 +338,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         GroupMembership groupMembership = new GroupMembership();
         groupMembership.setId(USERNAME);
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -350,7 +360,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(apiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -377,7 +389,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(appRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -404,7 +418,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(integrationRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -431,7 +447,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(apiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -474,7 +492,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(List.of(apiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Set.of(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Set.of(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         // When lockApiProductRole=true and no manage permission, group's default role is used
@@ -504,7 +524,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Arrays.asList(apiRole, appRole, integrationRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(roleService, never()).findDefaultRoleByScopes(GraviteeContext.getCurrentOrganization(), RoleScope.API);
@@ -560,7 +582,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(List.of(apiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Set.of(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Set.of(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         // Lock active with no group default → org default role is used
@@ -596,7 +620,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(apiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         // Previous API_PRODUCT role should be deleted since it is not in the update
@@ -666,7 +692,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -726,7 +754,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         Assertions.assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -788,7 +818,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(groupService).assertGroupIsNotPrimaryOwner(GraviteeContext.getExecutionContext(), GROUP_ID, RoleScope.API);
@@ -870,7 +902,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         // The fix: the resource must no longer consult assignment (getApis) to decide this.
@@ -941,7 +975,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
@@ -1010,7 +1046,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(groupService).updateApiProductPrimaryOwner(GROUP_ID, USERNAME);
@@ -1078,7 +1116,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(groupService).updateApiProductPrimaryOwner(GROUP_ID, null);
@@ -1149,7 +1189,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(groupService, never()).getApiProducts(anyString(), anyString());
@@ -1219,7 +1261,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(Collections.singletonList(newApiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         Assertions.assertEquals(HttpStatusCode.OK_200, response.getStatus());
         verify(groupService, never()).updateApiProductPrimaryOwner(anyString(), any());
@@ -1321,7 +1365,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         groupMembership.setId(USERNAME);
         groupMembership.setRoles(List.of(appRole, apiRole, integrationRole, apiProductRole));
 
-        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+        final Response response = envTarget()
+            .request()
+            .post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 

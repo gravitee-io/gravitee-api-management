@@ -270,7 +270,7 @@ public class JdbcObjectMapper<T> {
     }
 
     public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection args) {
-        if ((args != null) && !args.isEmpty()) {
+        if (args != null && !args.isEmpty()) {
             query.append(first ? " where " : " and ");
             first = false;
             query.append(column).append(" in ( ");
@@ -343,7 +343,7 @@ public class JdbcObjectMapper<T> {
 
     private Object checkTypeAndConvert(final T item, final JdbcColumn column, final Object value) {
         log.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
-        if (column.javaType.isEnum() && (value instanceof String)) {
+        if (column.javaType.isEnum() && value instanceof String) {
             final String stringValue = (String) value;
             if (hasText(stringValue)) {
                 return Enum.valueOf(column.javaType, stringValue);
@@ -415,7 +415,7 @@ public class JdbcObjectMapper<T> {
                 } else if (column.serializer != null) {
                     stmt.setString(idx, ((Function<Object, String>) column.serializer).apply(value));
                     log.debug("Setting {}/{} via custom serializer for the type {}", idx, getDBName(column.name), column.jdbcType);
-                } else if (column.javaType.isEnum() && (column.jdbcType == Types.NVARCHAR)) {
+                } else if (column.javaType.isEnum() && column.jdbcType == Types.NVARCHAR) {
                     stmt.setString(idx, value.toString());
                 } else if (value instanceof Date) {
                     final Date date = (Date) value;
@@ -468,10 +468,10 @@ public class JdbcObjectMapper<T> {
     }
 
     public List<String> filterStrings(Collection<String> values) {
-        if ((values != null) && !values.isEmpty()) {
+        if (values != null && !values.isEmpty()) {
             List<String> items = new ArrayList<>(values.size());
             for (String value : values) {
-                if ((value != null) && !value.isEmpty()) {
+                if (value != null && !value.isEmpty()) {
                     items.add(value);
                 }
             }

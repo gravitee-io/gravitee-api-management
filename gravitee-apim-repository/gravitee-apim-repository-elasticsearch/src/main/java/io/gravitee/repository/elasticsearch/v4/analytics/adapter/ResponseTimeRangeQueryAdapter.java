@@ -58,7 +58,13 @@ public class ResponseTimeRangeQueryAdapter {
             .getBuckets()
             .stream()
             .map(json ->
-                Map.of(json.get("key_as_string").asText(), json.get(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD).get("value").asDouble())
+                Map.of(
+                    json.get("key_as_string").asText(),
+                    json
+                        .get(REDUCE_OPERATION + "_" + RESPONSE_TIME_FIELD)
+                        .get("value")
+                        .asDouble()
+                )
             )
             .reduce(new LinkedHashMap<>(), (acc, b) -> {
                 acc.putAll(b);

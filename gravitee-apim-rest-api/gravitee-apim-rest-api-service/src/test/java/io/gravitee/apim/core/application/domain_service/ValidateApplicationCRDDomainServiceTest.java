@@ -68,12 +68,10 @@ class ValidateApplicationCRDDomainServiceTest {
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(HRID);
 
-        cut
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec().getId()).isEqualTo(APP_ID),
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd)).peek(
+            sanitized -> Assertions.assertThat(sanitized.spec().getId()).isEqualTo(APP_ID),
+            errors -> Assertions.assertThat(errors).isEmpty()
+        );
     }
 
     @Test
@@ -91,12 +89,10 @@ class ValidateApplicationCRDDomainServiceTest {
         ApplicationCRDSpec crd = anApplicationCRD();
         crd.setHrid(null);
 
-        cut
-            .validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd))
-            .peek(
-                sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(crd.toBuilder().hrid(crd.getId()).build()),
-                errors -> Assertions.assertThat(errors).isEmpty()
-            );
+        cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd)).peek(
+            sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(crd.toBuilder().hrid(crd.getId()).build()),
+            errors -> Assertions.assertThat(errors).isEmpty()
+        );
     }
 
     @Test

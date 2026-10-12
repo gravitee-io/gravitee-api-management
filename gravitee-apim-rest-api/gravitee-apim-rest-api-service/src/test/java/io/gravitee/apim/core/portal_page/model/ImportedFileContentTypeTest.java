@@ -87,15 +87,15 @@ class ImportedFileContentTypeTest {
         @Test
         void should_not_let_a_nested_asyncapi_key_reclassify_an_openapi_document() {
             var openApiMentioningAsyncApi = """
-                openapi: 3.0.3
-                info:
-                  title: Petstore
-                components:
-                  schemas:
-                    Link:
-                      properties:
-                        asyncapi: { type: string }
-                """;
+            openapi: 3.0.3
+            info:
+              title: Petstore
+            components:
+              schemas:
+                Link:
+                  properties:
+                    asyncapi: { type: string }
+            """;
             assertThat(ImportedFileContentType.from("petstore.yaml", openApiMentioningAsyncApi)).contains(PortalPageContentType.OPENAPI);
         }
     }

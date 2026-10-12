@@ -127,7 +127,7 @@ public interface SubscriptionMapper {
         return origin == null
             ? null
             : OriginContext.Origin.KUBERNETES == origin
-                ? Subscription.OriginEnum.KUBERNETES
-                : Subscription.OriginEnum.MANAGEMENT;
+              ? Subscription.OriginEnum.KUBERNETES
+              : Subscription.OriginEnum.MANAGEMENT;
     }
 }

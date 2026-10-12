@@ -534,13 +534,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         final String referenceId,
         final io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
     ) {
-        return save(
-            executionContext,
-            key,
-            (values == null || values.isEmpty()) ? null : join(SEPARATOR, values),
-            referenceId,
-            referenceType
-        );
+        return save(executionContext, key, values == null || values.isEmpty() ? null : join(SEPARATOR, values), referenceId, referenceType);
     }
 
     @Override
@@ -557,10 +551,10 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             values == null
                 ? null
                 : values
-                    .entrySet()
-                    .stream()
-                    .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
-                    .collect(joining(SEPARATOR)),
+                      .entrySet()
+                      .stream()
+                      .map(entry -> entry.getKey() + KV_SEPARATOR + entry.getValue())
+                      .collect(joining(SEPARATOR)),
             referenceId,
             referenceType
         );

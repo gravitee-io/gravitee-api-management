@@ -74,8 +74,7 @@ class ApiProductMapperTest {
             event.setId("event-id");
             event.setProperties(Map.of(API_PRODUCT_ID.getValue(), "api-product-123"));
 
-            cut
-                .toId(event)
+            cut.toId(event)
                 .test()
                 .assertValue(id -> {
                     assertThat(id).isEqualTo("api-product-123");
@@ -149,8 +148,7 @@ class ApiProductMapperTest {
             );
             event.setPayload(payload);
 
-            cut
-                .to(event)
+            cut.to(event)
                 .test()
                 .assertValue(reactableApiProduct -> {
                     assertThat(reactableApiProduct.getId()).isEqualTo("api-product-123");
@@ -203,8 +201,7 @@ class ApiProductMapperTest {
             );
             event.setPayload(payload);
 
-            cut
-                .to(event)
+            cut.to(event)
                 .test()
                 .assertValue(reactableApiProduct -> {
                     assertThat(reactableApiProduct.getId()).isEqualTo("api-product-456");
@@ -254,8 +251,7 @@ class ApiProductMapperTest {
                 )
             );
 
-            cut
-                .to(event)
+            cut.to(event)
                 .test()
                 .assertValue(reactableApiProduct -> {
                     assertThat(reactableApiProduct.getAnalytics()).isNotNull();
@@ -308,8 +304,7 @@ class ApiProductMapperTest {
             );
             event.setPayload(payload);
 
-            cut
-                .to(event)
+            cut.to(event)
                 .test()
                 .assertValue(reactableApiProduct -> {
                     assertThat(reactableApiProduct.getId()).isEqualTo("api-product-empty");

@@ -98,12 +98,10 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         // Span events live in a separate OTel "logs" data stream (the collector elasticsearch exporter forces
         // {@code data_stream.type = logs} for events regardless of the pipeline they arrived on). Fetching and
         // stitching them is the LogsRepository's job — handled in a follow-up PR; this repo only returns spans.
-        return client
-            .search(index, null, body)
-            .flatMapMaybe(response -> {
-                Trace trace = parseGetTraceResponse(traceId, response);
-                return trace == null ? Maybe.empty() : Maybe.just(trace);
-            });
+        return client.search(index, null, body).flatMapMaybe(response -> {
+            Trace trace = parseGetTraceResponse(traceId, response);
+            return trace == null ? Maybe.empty() : Maybe.just(trace);
+        });
     }
 
     private String resolveIndex(String template, QueryContext queryContext) {
@@ -422,7 +420,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     }
 
     private static String statusOrUnset(String raw) {
-        return (raw == null || raw.isEmpty()) ? "UNSET" : raw;
+        return raw == null || raw.isEmpty() ? "UNSET" : raw;
     }
 
     private static TraceSpan parseSpan(JsonNode source) {

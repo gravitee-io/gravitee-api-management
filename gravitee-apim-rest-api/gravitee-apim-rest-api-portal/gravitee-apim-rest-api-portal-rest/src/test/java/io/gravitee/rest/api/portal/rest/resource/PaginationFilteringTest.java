@@ -120,7 +120,9 @@ class PaginationFilteringTest {
     }
 
     private List<Integer> initIntegerList(int n) {
-        return IntStream.rangeClosed(0, n - 1).boxed().collect(Collectors.toList());
+        return IntStream.rangeClosed(0, n - 1)
+            .boxed()
+            .collect(Collectors.toList());
     }
 
     @Test

@@ -34,20 +34,18 @@ public class ClusterCrossIdUpgrader implements Upgrader {
     @Override
     public boolean upgrade() {
         try {
-            clusterRepository
-                .findAll()
-                .forEach(cluster -> {
-                    if (cluster.getCrossId() != null && !cluster.getCrossId().isEmpty()) {
-                        return;
-                    }
-                    log.info("Generating crossId for cluster {}", cluster.getName());
-                    cluster.setCrossId(StringUtils.slugify(cluster.getName() != null ? cluster.getName() : cluster.getId()));
-                    try {
-                        clusterRepository.update(cluster);
-                    } catch (Exception e) {
-                        log.error("Failed to update crossId for cluster {}", cluster.getName(), e);
-                    }
-                });
+            clusterRepository.findAll().forEach(cluster -> {
+                if (cluster.getCrossId() != null && !cluster.getCrossId().isEmpty()) {
+                    return;
+                }
+                log.info("Generating crossId for cluster {}", cluster.getName());
+                cluster.setCrossId(StringUtils.slugify(cluster.getName() != null ? cluster.getName() : cluster.getId()));
+                try {
+                    clusterRepository.update(cluster);
+                } catch (Exception e) {
+                    log.error("Failed to update crossId for cluster {}", cluster.getName(), e);
+                }
+            });
             return true;
         } catch (Exception ex) {
             log.error("ClusterCrossIdUpgrader failed", ex);

@@ -370,13 +370,11 @@ public class AggregationAdapter {
         if (aggNode.hasNonNull(ES_VALUES_PROP) && aggNode.get(ES_VALUES_PROP).isObject()) {
             var values = new HashMap<String, Double>();
             var jsonValues = aggNode.get(ES_VALUES_PROP);
-            jsonValues
-                .fields()
-                .forEachRemaining(entry -> {
-                    if (entry.getValue().isNumber()) {
-                        values.put(entry.getKey(), entry.getValue().doubleValue());
-                    }
-                });
+            jsonValues.fields().forEachRemaining(entry -> {
+                if (entry.getValue().isNumber()) {
+                    values.put(entry.getKey(), entry.getValue().doubleValue());
+                }
+            });
             aggregation.setValues(values);
         }
         if (aggNode.get(ES_BUCKETS_PROP) != null && aggNode.get(ES_BUCKETS_PROP).isArray()) {

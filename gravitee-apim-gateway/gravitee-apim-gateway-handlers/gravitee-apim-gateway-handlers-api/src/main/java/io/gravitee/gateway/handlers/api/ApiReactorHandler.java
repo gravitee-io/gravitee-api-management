@@ -207,7 +207,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         // If the response is not yet ended (by a request timeout for example)
         if (!context.response().ended()) {
             if (proxyResponse == null || !proxyResponse.connected()) {
-                context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
+                context.response().status(proxyResponse == null ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
                 context
                     .request()
                     .metrics()
@@ -272,7 +272,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
                         // Write trailers
                         final HttpHeaders trailers = proxyResponse.trailers();
                         if (trailers != null && !trailers.isEmpty()) {
-                            trailers.forEach((entry -> context.response().trailers().add(entry.getKey(), entry.getValue())));
+                            trailers.forEach(entry -> context.response().trailers().add(entry.getKey(), entry.getValue()));
                         }
 
                         context
@@ -333,7 +333,7 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
         dumpVirtualHosts();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        log.debug("API handler started in {} ms", (endTime - startTime));
+        log.debug("API handler started in {} ms", endTime - startTime);
     }
 
     @Override

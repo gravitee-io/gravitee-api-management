@@ -183,14 +183,12 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             Assertions.assertThat(permissions).isNotNull().hasSize(ApiProductPermission.values().length);
 
             // Each permission key maps to a string serialised from char[] — verify CRUD chars present
-            final String expectedRights = new String(
-                new char[] {
-                    RolePermissionAction.CREATE.getId(),
-                    RolePermissionAction.READ.getId(),
-                    RolePermissionAction.UPDATE.getId(),
-                    RolePermissionAction.DELETE.getId(),
-                }
-            );
+            final String expectedRights = new String(new char[] {
+                RolePermissionAction.CREATE.getId(),
+                RolePermissionAction.READ.getId(),
+                RolePermissionAction.UPDATE.getId(),
+                RolePermissionAction.DELETE.getId(),
+            });
 
             Arrays.stream(ApiProductPermission.values()).forEach(perm ->
                 Assertions.assertThat(permissions)
@@ -273,7 +271,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
         void should_return_404_when_api_product_not_found() {
             givenApiProductMissing();
 
-            Response response = rootTarget().request().post(Entity.json(new AddMember().roleName("API_PRODUCT_USER").userId("userId")));
+            Response response = rootTarget()
+                .request()
+                .post(Entity.json(new AddMember().roleName("API_PRODUCT_USER").userId("userId")));
 
             assertThat(response).hasStatus(NOT_FOUND_404);
         }
@@ -312,7 +312,12 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Member.class)
-                .isEqualTo(new Member().id("userId").displayName("John Doe").roles(List.of(new Role().name("API_PRODUCT_USER"))));
+                .isEqualTo(
+                    new Member()
+                        .id("userId")
+                        .displayName("John Doe")
+                        .roles(List.of(new Role().name("API_PRODUCT_USER")))
+                );
 
             verify(addApiProductMemberUseCase).execute(
                 argThat(
@@ -362,7 +367,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
         void should_return_404_when_api_product_not_found() {
             givenApiProductMissing();
 
-            Response response = rootTarget(MEMBER_ID).request().put(Entity.json(new UpdateMember().roleName("API_PRODUCT_USER")));
+            Response response = rootTarget(MEMBER_ID)
+                .request()
+                .put(Entity.json(new UpdateMember().roleName("API_PRODUCT_USER")));
 
             assertThat(response).hasStatus(NOT_FOUND_404);
         }

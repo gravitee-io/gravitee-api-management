@@ -123,7 +123,9 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         var folder = aFolderOwnedBy(API_ID);
         portalNavigationItemCrudService.initWith(List.of(folder));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(folder.getId().id())));
+        Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRequest().parentId(folder.getId().id())));
 
         assertThat(response).hasStatus(OK_200);
         var rootFolder = (io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder) response
@@ -138,7 +140,9 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         var foreignFolder = aFolderOwnedBy(OTHER_API_ID);
         portalNavigationItemCrudService.initWith(List.of(foreignFolder));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(foreignFolder.getId().id())));
+        Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRequest().parentId(foreignFolder.getId().id())));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(portalNavigationItemCrudService.storage()).containsExactly(foreignFolder);
@@ -150,7 +154,9 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         section.setEnvironmentId(ENVIRONMENT);
         portalNavigationItemCrudService.initWith(List.of(section));
 
-        Response response = rootTarget().request().post(Entity.json(aRequest().parentId(section.getId().id())));
+        Response response = rootTarget()
+            .request()
+            .post(Entity.json(aRequest().parentId(section.getId().id())));
 
         assertThat(response).hasStatus(NOT_FOUND_404);
         assertThat(portalNavigationItemCrudService.storage()).containsExactly(section);

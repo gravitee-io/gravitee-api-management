@@ -63,7 +63,7 @@ class ConstraintValidationExceptionMapperTest {
             assertThat(response.getEntity())
                 .isInstanceOf(Error.class)
                 .satisfies(errorObject -> {
-                    Error error = ((Error) errorObject);
+                    Error error = (Error) errorObject;
                     assertThat(error.getHttpStatus()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
                     assertThat(error.getMessage()).isEqualTo("Validation error");
                     assertThat(error.getDetails())

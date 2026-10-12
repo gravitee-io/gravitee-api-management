@@ -72,15 +72,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
         JsonNode consumersNode = node.get("consumers");
         if (consumersNode != null && consumersNode.isArray()) {
             final List<Consumer> consumers = new ArrayList<>();
-            consumersNode
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    try {
-                        consumers.add(jsonNode.traverse(jp.getCodec()).readValueAs(Consumer.class));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            consumersNode.elements().forEachRemaining(jsonNode -> {
+                try {
+                    consumers.add(jsonNode.traverse(jp.getCodec()).readValueAs(Consumer.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
             flow.setConsumers(consumers);
         }
@@ -95,15 +93,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
         JsonNode preNode = node.get("pre");
         if (preNode != null && preNode.isArray()) {
             final List<Step> steps = new ArrayList<>();
-            preNode
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    try {
-                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            preNode.elements().forEachRemaining(jsonNode -> {
+                try {
+                    steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
             flow.setPre(steps);
         }
@@ -111,15 +107,13 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
         JsonNode postNode = node.get("post");
         if (postNode != null && postNode.isArray()) {
             final List<Step> steps = new ArrayList<>();
-            postNode
-                .elements()
-                .forEachRemaining(jsonNode -> {
-                    try {
-                        steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+            postNode.elements().forEachRemaining(jsonNode -> {
+                try {
+                    steps.add(jsonNode.traverse(jp.getCodec()).readValueAs(Step.class));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
 
             flow.setPost(steps);
         }

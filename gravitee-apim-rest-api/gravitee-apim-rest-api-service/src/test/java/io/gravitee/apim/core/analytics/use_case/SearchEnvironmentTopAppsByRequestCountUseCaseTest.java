@@ -129,7 +129,11 @@ class SearchEnvironmentTopAppsByRequestCountUseCaseTest {
             .build();
 
         when(analyticsQueryService.searchTopHitsApps(any(), any())).thenReturn(
-            Optional.of(TopHitsApps.builder().data(List.of(TopHitsApps.TopHitApp.builder().id("app-id-1").count(17L).build())).build())
+            Optional.of(
+                TopHitsApps.builder()
+                    .data(List.of(TopHitsApps.TopHitApp.builder().id("app-id-1").count(17L).build()))
+                    .build()
+            )
         );
 
         var result = cut.execute(input).topHitsApps();

@@ -156,9 +156,9 @@ class AuthzDecisionLogsCrudServiceImplTest {
             soft.assertThat(decision.outcome()).isEqualTo("ALLOW");
             soft.assertThat(decision.enforced()).isEqualTo("ALLOW");
             soft.assertThat(decision.indeterminateCause()).isEqualTo("NOT_APPLICABLE");
-            soft
-                .assertThat(decision.matchedRules())
-                .containsExactly(new AuthzDecisionLog.MatchedRule("pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT"));
+            soft.assertThat(decision.matchedRules()).containsExactly(
+                new AuthzDecisionLog.MatchedRule("pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT")
+            );
             soft.assertThat(decision.reasons()).containsExactly("Permitted by policy 'allow-readers'");
             soft.assertThat(decision.subjectType()).isEqualTo("User");
             soft.assertThat(decision.subjectId()).isEqualTo("alice");

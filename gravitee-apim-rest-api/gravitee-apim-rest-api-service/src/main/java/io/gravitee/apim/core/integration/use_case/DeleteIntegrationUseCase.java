@@ -57,17 +57,15 @@ public class DeleteIntegrationUseCase {
                     throw new AssociatedApisFoundException(input.integrationId);
                 },
                 () ->
-                    integrationCrudService
-                        .findApiIntegrationById(input.integrationId)
-                        .ifPresentOrElse(
-                            integration -> {
-                                deleteMembershipDomainService.deleteIntegrationMemberships(input.integrationId);
-                                integrationCrudService.delete(integration.id());
-                            },
-                            () -> {
-                                throw new IntegrationNotFoundException(input.integrationId);
-                            }
-                        )
+                    integrationCrudService.findApiIntegrationById(input.integrationId).ifPresentOrElse(
+                        integration -> {
+                            deleteMembershipDomainService.deleteIntegrationMemberships(input.integrationId);
+                            integrationCrudService.delete(integration.id());
+                        },
+                        () -> {
+                            throw new IntegrationNotFoundException(input.integrationId);
+                        }
+                    )
             );
     }
 

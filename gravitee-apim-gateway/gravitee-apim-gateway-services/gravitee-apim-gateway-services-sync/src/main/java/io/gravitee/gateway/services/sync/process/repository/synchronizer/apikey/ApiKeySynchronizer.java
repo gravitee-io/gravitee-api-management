@@ -93,7 +93,7 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
                 .count()
                 .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
                 .doOnSuccess(count ->
-                    log.debug("ApiKeys of {} apis refreshed in {}ms", count, (System.currentTimeMillis() - launchTime.get()))
+                    log.debug("ApiKeys of {} apis refreshed in {}ms", count, System.currentTimeMillis() - launchTime.get())
                 )
                 .ignoreElement();
         }

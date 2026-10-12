@@ -230,14 +230,12 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     private Single<Mqtt5RxClient> connectToMqtt5() {
         final Mqtt5RxClient mqtt5RxClient = prepareMqtt5Client();
         return RxJavaBridge.toV3Single(
-            mqtt5RxClient
-                .connect()
-                .flatMap(mqtt5ConnAck -> {
-                    if (!mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
-                        return mqtt5RxClient.disconnect().andThen(io.reactivex.Single.error(new Exception("Unable to connect to MQTT5")));
-                    }
-                    return io.reactivex.Single.just(mqtt5RxClient);
-                })
+            mqtt5RxClient.connect().flatMap(mqtt5ConnAck -> {
+                if (!mqtt5ConnAck.getReasonCode().equals(Mqtt5ConnAckReasonCode.SUCCESS)) {
+                    return mqtt5RxClient.disconnect().andThen(io.reactivex.Single.error(new Exception("Unable to connect to MQTT5")));
+                }
+                return io.reactivex.Single.just(mqtt5RxClient);
+            })
         );
     }
 

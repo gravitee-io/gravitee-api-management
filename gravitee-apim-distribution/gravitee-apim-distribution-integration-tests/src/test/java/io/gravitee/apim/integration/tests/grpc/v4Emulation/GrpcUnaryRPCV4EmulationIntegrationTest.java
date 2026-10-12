@@ -64,7 +64,9 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
             request.handler(hello -> {
                 // just a simple response
                 GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
-                HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                HelloReply reply = HelloReply.newBuilder()
+                    .setMessage("Hello " + hello.getName())
+                    .build();
                 response.end(reply);
             });
         });
@@ -74,31 +76,29 @@ public class GrpcUnaryRPCV4EmulationIntegrationTest extends AbstractGrpcGatewayT
 
         // Create the backend HTTP Server handling gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer
-            .listen()
-            .andThen(handler -> {
-                // call the service through the gateway
-                getGrpcClient()
-                    .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
-                    .compose(request -> {
-                        request.end(HelloRequest.newBuilder().setName("You").build());
-                        return request.response().compose(GrpcReadStream::last);
-                    })
-                    .onSuccess(helloReply -> {
-                        assertThat(helloReply).isNotNull();
-                        assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-                        latch.countDown();
-                    })
-                    .onFailure(failure -> {
-                        failure.printStackTrace();
-                        fail(failure.getMessage());
-                    });
+        httpServer.listen().andThen(handler -> {
+            // call the service through the gateway
+            getGrpcClient()
+                .request(gatewayAddress(httpConfig), GreeterGrpc.getSayHelloMethod())
+                .compose(request -> {
+                    request.end(HelloRequest.newBuilder().setName("You").build());
+                    return request.response().compose(GrpcReadStream::last);
+                })
+                .onSuccess(helloReply -> {
+                    assertThat(helloReply).isNotNull();
+                    assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+                    latch.countDown();
+                })
+                .onFailure(failure -> {
+                    failure.printStackTrace();
+                    fail(failure.getMessage());
+                });
 
-                await()
-                    .atMost(30, TimeUnit.SECONDS)
-                    .untilAsserted(() -> {
-                        assertThat(latch.getCount()).isZero();
-                    });
-            });
+            await()
+                .atMost(30, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    assertThat(latch.getCount()).isZero();
+                });
+        });
     }
 }

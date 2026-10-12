@@ -157,12 +157,10 @@ public class DictionaryResource extends AbstractResource {
 
     @DELETE
     @Operation(summary = "Delete a dictionary", description = "User must have the DICTIONARY[DELETE] permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(responseCode = "204", description = "Dictionary successfully deleted"),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-        }
-    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Dictionary successfully deleted"),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+    })
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
         dictionaryService.delete(GraviteeContext.getExecutionContext(), dictionary);

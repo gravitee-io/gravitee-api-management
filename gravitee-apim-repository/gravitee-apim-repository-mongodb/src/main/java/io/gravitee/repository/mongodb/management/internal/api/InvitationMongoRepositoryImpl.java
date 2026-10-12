@@ -91,9 +91,8 @@ public class InvitationMongoRepositoryImpl implements InvitationMongoRepositoryC
     }
 
     private Sort buildSort(Sortable sortable) {
-        var field = sortable != null && StringUtils.isNotBlank(sortable.field())
-            ? FieldUtils.toCamelCase(sortable.field())
-            : DEFAULT_SORT_FIELD;
+        var field =
+            sortable != null && StringUtils.isNotBlank(sortable.field()) ? FieldUtils.toCamelCase(sortable.field()) : DEFAULT_SORT_FIELD;
 
         if (!SORTABLE_FIELDS.contains(field)) {
             field = DEFAULT_SORT_FIELD;

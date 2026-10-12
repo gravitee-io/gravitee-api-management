@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SharedPolicyGroupHistoryQueryServiceInMemory
-    implements SharedPolicyGroupHistoryQueryService, InMemoryAlternative<SharedPolicyGroup> {
+    implements SharedPolicyGroupHistoryQueryService, InMemoryAlternative<SharedPolicyGroup>
+{
 
     final ArrayList<SharedPolicyGroup> storage = new ArrayList<>();
 
@@ -63,9 +64,10 @@ public class SharedPolicyGroupHistoryQueryServiceInMemory
             Collections.reverse(matches);
         }
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+        var page =
+            matches.size() <= pageSize
+                ? matches
+                : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
 
         return new Page<>(page, pageNumber, pageSize, matches.size());
     }

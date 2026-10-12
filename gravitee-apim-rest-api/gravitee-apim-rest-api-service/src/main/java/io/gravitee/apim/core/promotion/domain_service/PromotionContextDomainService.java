@@ -205,14 +205,16 @@ public class PromotionContextDomainService {
     }
 
     private Optional<Api> findApiPromotedInPreviousPromotion(List<Promotion> previousPromotions, String targetEnvId) {
-        return previousPromotions
-            .stream()
-            .filter(previous -> previous.getTargetApiId() != null && !previous.getTargetApiId().isBlank())
-            .max(Comparator.comparing(Promotion::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
-            .map(Promotion::getTargetApiId)
-            .flatMap(apiCrudService::findById)
-            // A targetApiId must never make us update an API we cannot prove lives in the target environment.
-            .filter(api -> targetEnvId.equals(api.getEnvironmentId()));
+        return (
+            previousPromotions
+                .stream()
+                .filter(previous -> previous.getTargetApiId() != null && !previous.getTargetApiId().isBlank())
+                .max(Comparator.comparing(Promotion::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+                .map(Promotion::getTargetApiId)
+                .flatMap(apiCrudService::findById)
+                // A targetApiId must never make us update an API we cannot prove lives in the target environment.
+                .filter(api -> targetEnvId.equals(api.getEnvironmentId()))
+        );
     }
 
     /**
@@ -312,25 +314,21 @@ public class PromotionContextDomainService {
             }
 
             var paths = new ArrayList<Path>();
-            apiNode
-                .path("listeners")
-                .forEach(listener ->
-                    listener
-                        .path("paths")
-                        .forEach(path -> {
-                            var pathValue = path.path("path");
-                            if (!pathValue.isMissingNode() && !pathValue.isNull()) {
-                                var host = path.path("host");
-                                paths.add(
-                                    Path.builder()
-                                        .host(host.isMissingNode() || host.isNull() ? null : host.asText())
-                                        .path(pathValue.asText())
-                                        .build()
-                                        .sanitize()
-                                );
-                            }
-                        })
-                );
+            apiNode.path("listeners").forEach(listener ->
+                listener.path("paths").forEach(path -> {
+                    var pathValue = path.path("path");
+                    if (!pathValue.isMissingNode() && !pathValue.isNull()) {
+                        var host = path.path("host");
+                        paths.add(
+                            Path.builder()
+                                .host(host.isMissingNode() || host.isNull() ? null : host.asText())
+                                .path(pathValue.asText())
+                                .build()
+                                .sanitize()
+                        );
+                    }
+                })
+            );
             return paths;
         } catch (Exception e) {
             log.warn("Could not extract context paths from promotion [{}] definition", promotion.getId(), e);

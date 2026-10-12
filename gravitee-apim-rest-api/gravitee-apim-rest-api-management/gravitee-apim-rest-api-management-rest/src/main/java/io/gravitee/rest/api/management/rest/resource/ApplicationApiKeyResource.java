@@ -53,13 +53,11 @@ public class ApplicationApiKeyResource extends AbstractApiKeyResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Revoke an API Key", description = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(responseCode = "204", description = "API Key successfully revoked"),
-            @ApiResponse(responseCode = "400", description = "API Key does not correspond to the application"),
-            @ApiResponse(responseCode = "500", description = "Internal server error"),
-        }
-    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "API Key successfully revoked"),
+        @ApiResponse(responseCode = "400", description = "API Key does not correspond to the application"),
+        @ApiResponse(responseCode = "500", description = "Internal server error"),
+    })
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKeyForApplication(@PathParam("apikey") String apikey) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();

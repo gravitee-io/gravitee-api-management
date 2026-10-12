@@ -92,7 +92,11 @@ class ScoringResponseCommandHandlerTest {
         givenAPendingJob();
 
         // When
-        handler.handle(aCommand(new ScoringResult(List.of(anAssetDiagnostic())))).test().awaitDone(5, TimeUnit.SECONDS).assertComplete();
+        handler
+            .handle(aCommand(new ScoringResult(List.of(anAssetDiagnostic()))))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
 
         // Then
         assertThat(asyncJobCrudService.storage()).singleElement().extracting(AsyncJob::getStatus).isEqualTo(AsyncJob.Status.SUCCESS);

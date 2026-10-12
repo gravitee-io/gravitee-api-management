@@ -58,7 +58,8 @@ public class DynamicPropertyServiceDeserializerTest extends AbstractTest {
         Assertions.assertEquals(HttpMethod.POST, ((HttpDynamicPropertyProviderConfiguration) configuration).getMethod());
         Assertions.assertEquals(1, ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders().size());
         Assertions.assertTrue(
-            ((HttpDynamicPropertyProviderConfiguration) configuration).getHeaders()
+            ((HttpDynamicPropertyProviderConfiguration) configuration)
+                .getHeaders()
                 .stream()
                 .allMatch(header -> header.getName().equals("Content-type"))
         );

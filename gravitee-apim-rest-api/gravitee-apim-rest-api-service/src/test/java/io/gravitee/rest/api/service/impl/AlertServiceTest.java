@@ -116,16 +116,24 @@ public class AlertServiceTest {
         alertService = getAlertService();
         alertService.afterPropertiesSet();
 
-        lenient().when(configuration.getProperty(eq("notifiers.email.subject"), anyString())).thenReturn("[Gravitee.io %s]");
+        lenient()
+            .when(configuration.getProperty(eq("notifiers.email.subject"), anyString()))
+            .thenReturn("[Gravitee.io %s]");
         lenient().when(configuration.getProperty("notifiers.email.host")).thenReturn("my.host.io");
-        lenient().when(configuration.getProperty(eq("notifiers.email.port"), eq(Integer.class))).thenReturn(587);
+        lenient()
+            .when(configuration.getProperty(eq("notifiers.email.port"), eq(Integer.class)))
+            .thenReturn(587);
         lenient().when(configuration.getProperty("notifiers.email.username")).thenReturn("username");
         lenient().when(configuration.getProperty("notifiers.email.password")).thenReturn("password");
         lenient()
             .when(configuration.getProperty("notifiers.email.authMethods", String[].class))
             .thenReturn(new String[] { "LOGIN", "PLAIN" });
-        lenient().when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false)).thenReturn(false);
-        lenient().when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false)).thenReturn(false);
+        lenient()
+            .when(configuration.getProperty("notifiers.email.starttls.enabled", Boolean.class, false))
+            .thenReturn(false);
+        lenient()
+            .when(configuration.getProperty("notifiers.email.ssl.trustAll", Boolean.class, false))
+            .thenReturn(false);
         var consoleConfigEntity = mock(ConsoleConfigEntity.class);
         lenient().when(cloudHosted.getEnabled()).thenReturn(Boolean.FALSE);
         lenient().when(consoleConfigEntity.getCloudHosted()).thenReturn(cloudHosted);

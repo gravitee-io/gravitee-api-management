@@ -102,7 +102,12 @@ class UserDocumentSearcherPaginationStabilityTest {
     private List<UserEntity> someUsersThatAllTieOnTheBrowsingSort() {
         return IntStream.range(0, USER_COUNT)
             .mapToObj(i ->
-                UserEntity.builder().id("user-" + i).firstname("John").lastname("Doe").email("john.doe." + i + "@example.com").build()
+                UserEntity.builder()
+                    .id("user-" + i)
+                    .firstname("John")
+                    .lastname("Doe")
+                    .email("john.doe." + i + "@example.com")
+                    .build()
             )
             .collect(Collectors.toList());
     }
@@ -234,7 +239,7 @@ class UserDocumentSearcherPaginationStabilityTest {
                 // firstname must be set too: UserDocumentTransformer only indexes
                 // FIELD_LASTNAME_FIRSTNAME (what the query below matches on) when both
                 // lastname and firstname are non-empty.
-                String lastname = (i % 250 == 0) ? "svc-ci-local-admin-" + i : "svc-ci-local-" + i;
+                String lastname = i % 250 == 0 ? "svc-ci-local-admin-" + i : "svc-ci-local-" + i;
                 return UserEntity.builder()
                     .id("user-" + i)
                     .firstname("ci")

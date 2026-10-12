@@ -56,7 +56,7 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
 
         List<AlertEventMongo> events = mongoTemplate.find(query, AlertEventMongo.class);
 
-        return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
+        return new Page<>(events, pageable != null ? pageable.pageNumber() : 0, events.size(), total);
     }
 
     @Override

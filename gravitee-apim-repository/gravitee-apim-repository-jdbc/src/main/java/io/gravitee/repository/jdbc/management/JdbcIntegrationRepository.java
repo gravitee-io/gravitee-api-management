@@ -132,16 +132,14 @@ public class JdbcIntegrationRepository extends JdbcAbstractCrudRepository<JdbcIn
     }
 
     public Optional<Integration> findByIntegrationId(String id) throws TechnicalException {
-        var integration = super
-            .findById(id)
-            .flatMap(jdbcIntegration -> {
-                try {
-                    return Optional.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
-                } catch (JsonProcessingException e) {
-                    log.warn("Failed to convert Integration from db to Integration id = " + id, e);
-                    return Optional.empty();
-                }
-            });
+        var integration = super.findById(id).flatMap(jdbcIntegration -> {
+            try {
+                return Optional.of(jdbcIntegration.toIntegration(getGroups(jdbcIntegration.getId())));
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to convert Integration from db to Integration id = " + id, e);
+                return Optional.empty();
+            }
+        });
         integration.ifPresent(this::addGroups);
         return integration;
     }

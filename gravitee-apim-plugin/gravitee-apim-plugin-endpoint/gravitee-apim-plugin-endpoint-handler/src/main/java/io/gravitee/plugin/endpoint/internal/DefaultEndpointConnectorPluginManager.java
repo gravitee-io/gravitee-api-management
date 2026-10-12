@@ -36,7 +36,8 @@ import lombok.CustomLog;
 @CustomLog
 public class DefaultEndpointConnectorPluginManager
     extends AbstractConfigurablePluginManager<EndpointConnectorPlugin<?, ?>>
-    implements EndpointConnectorPluginManager {
+    implements EndpointConnectorPluginManager
+{
 
     private final EndpointConnectorClassLoaderFactory classLoaderFactory;
     private final Map<String, BaseEndpointConnectorFactory<?>> factories = new HashMap<>();

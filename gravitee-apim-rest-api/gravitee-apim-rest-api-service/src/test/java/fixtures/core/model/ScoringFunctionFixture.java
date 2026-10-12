@@ -38,6 +38,9 @@ public class ScoringFunctionFixture {
     }
 
     public static ScoringFunction aFunction(String id) {
-        return BASE.get().id(id).payload("payload-" + id).build();
+        return BASE.get()
+            .id(id)
+            .payload("payload-" + id)
+            .build();
     }
 }

@@ -48,12 +48,14 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
         SUBSCRIBE,
         REQUEST,
         RESPONSE,
+
         /**
          * @deprecated since 4.6.0, use {@link #PUBLISH} instead
          * To be kept as long as policies use these phase in plugin.properties
          */
         @Deprecated
         MESSAGE_REQUEST,
+
         /**
          * @deprecated since 4.6.0, use {@link #PUBLISH} instead
          * To be kept as long as policies use these phase in plugin.properties
@@ -197,15 +199,16 @@ public class PolicyPluginServiceImpl extends AbstractPluginService<PolicyPlugin<
             return Arrays.stream(plugin.manifest().properties().get(property).split(","))
                 .map(String::trim)
                 .map(POLICY_FLOW_PHASE::valueOf)
-                .map(p ->
-                    switch (p) {
-                        case ENTRYPOINT_CONNECT -> FlowPhase.ENTRYPOINT_CONNECT;
-                        case INTERACT -> FlowPhase.INTERACT;
-                        case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;
-                        case SUBSCRIBE, MESSAGE_RESPONSE -> FlowPhase.SUBSCRIBE;
-                        case REQUEST -> FlowPhase.REQUEST;
-                        case RESPONSE -> FlowPhase.RESPONSE;
-                    }
+                .map(
+                    p ->
+                        switch (p) {
+                            case ENTRYPOINT_CONNECT -> FlowPhase.ENTRYPOINT_CONNECT;
+                            case INTERACT -> FlowPhase.INTERACT;
+                            case PUBLISH, MESSAGE_REQUEST -> FlowPhase.PUBLISH;
+                            case SUBSCRIBE, MESSAGE_RESPONSE -> FlowPhase.SUBSCRIBE;
+                            case REQUEST -> FlowPhase.REQUEST;
+                            case RESPONSE -> FlowPhase.RESPONSE;
+                        }
                 )
                 .collect(Collectors.toSet());
         } else {

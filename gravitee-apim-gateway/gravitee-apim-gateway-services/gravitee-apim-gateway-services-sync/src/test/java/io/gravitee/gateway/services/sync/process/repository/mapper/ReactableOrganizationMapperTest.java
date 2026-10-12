@@ -51,8 +51,7 @@ class ReactableOrganizationMapperTest {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString(organization));
         event.setCreatedAt(new Date());
-        cut
-            .to(event)
+        cut.to(event)
             .test()
             .assertValue(reactableOrganization -> {
                 assertThat(reactableOrganization.getId()).isEqualTo("id");

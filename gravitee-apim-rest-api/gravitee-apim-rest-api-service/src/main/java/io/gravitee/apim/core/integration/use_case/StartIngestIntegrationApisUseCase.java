@@ -99,22 +99,20 @@ public class StartIngestIntegrationApisUseCase {
     }
 
     private Single<AsyncJob.Status> startApiIngestion(Input input, Integration.ApiIntegration integration, AuditInfo auditInfo) {
-        return integrationAgent
-            .startIngest(integration.id(), UuidString.generateRandom(), input.apiIds())
-            .map(ingestStarted -> {
-                log.info("Ingestion started for integration {}", integration.id());
+        return integrationAgent.startIngest(integration.id(), UuidString.generateRandom(), input.apiIds()).map(ingestStarted -> {
+            log.info("Ingestion started for integration {}", integration.id());
 
-                if (ingestStarted.total() == 0) {
-                    log.info("No APIs to ingest for integration {}", integration.id());
-                    return AsyncJob.Status.SUCCESS;
-                }
+            if (ingestStarted.total() == 0) {
+                log.info("No APIs to ingest for integration {}", integration.id());
+                return AsyncJob.Status.SUCCESS;
+            }
 
-                asyncJobCrudService.create(
-                    newIngestJob(ingestStarted.ingestJobId(), integration, auditInfo.actor().userId(), ingestStarted.total())
-                );
+            asyncJobCrudService.create(
+                newIngestJob(ingestStarted.ingestJobId(), integration, auditInfo.actor().userId(), ingestStarted.total())
+            );
 
-                return AsyncJob.Status.PENDING;
-            });
+            return AsyncJob.Status.PENDING;
+        });
     }
 
     private Single<AsyncJob.Status> a2aIngestions(Integration.A2aIntegration a2aIntegration, AuditInfo auditInfo) {

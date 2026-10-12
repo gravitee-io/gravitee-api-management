@@ -632,7 +632,11 @@ class FilterAdapterTest {
                 "tcp-proxy"
             );
             assertThat(
-                mustNot.getJsonObject(1).getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD + ".keyword").getList()
+                mustNot
+                    .getJsonObject(1)
+                    .getJsonObject("terms")
+                    .getJsonArray(ENTRYPOINT_FIELD + ".keyword")
+                    .getList()
             ).containsExactly("native-kafka", "edge", "authzen", "sse", "webhook", "websocket", "tcp-proxy");
         }
 

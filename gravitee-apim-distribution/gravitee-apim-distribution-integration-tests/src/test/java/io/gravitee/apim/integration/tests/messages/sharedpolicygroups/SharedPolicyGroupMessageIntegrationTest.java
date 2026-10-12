@@ -67,9 +67,10 @@ import org.junit.jupiter.api.Test;
 class SharedPolicyGroupMessageIntegrationTest {
 
     @Nested
-    @DeploySharedPolicyGroups(
-        { "/sharedpolicygroups/messages/spg-header-message-request.json", "/sharedpolicygroups/messages/spg-header-message-response.json" }
-    )
+    @DeploySharedPolicyGroups({
+        "/sharedpolicygroups/messages/spg-header-message-request.json",
+        "/sharedpolicygroups/messages/spg-header-message-response.json",
+    })
     class GeneralCases extends TestPreparer {
 
         @Test

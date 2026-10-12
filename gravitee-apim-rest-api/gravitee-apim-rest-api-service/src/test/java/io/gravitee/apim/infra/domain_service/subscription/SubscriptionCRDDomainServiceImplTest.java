@@ -402,7 +402,9 @@ class SubscriptionCRDDomainServiceImplTest {
             )
         );
 
-        var specWithSameKey = SPEC.toBuilder().apiKeys(List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build())).build();
+        var specWithSameKey = SPEC.toBuilder()
+            .apiKeys(List.of(ApiKeyCRDSpec.builder().key(CUSTOM_API_KEY).build()))
+            .build();
 
         cut.createOrUpdate(AUDIT_INFO, specWithSameKey);
 

@@ -792,7 +792,7 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             new PageableBuilder().pageNumber(0).pageSize(1).build()
         );
 
-        return (alertEventsRepo.getPageElements() == 0) ? Optional.empty() : Optional.of(alertEventsRepo.getContent().get(0));
+        return alertEventsRepo.getPageElements() == 0 ? Optional.empty() : Optional.of(alertEventsRepo.getContent().get(0));
     }
 
     private StringCondition stringMatchesCondition(ReferenceContext.Type key, String value) {

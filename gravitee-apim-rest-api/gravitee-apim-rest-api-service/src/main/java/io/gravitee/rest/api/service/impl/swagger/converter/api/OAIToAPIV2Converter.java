@@ -165,9 +165,13 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
                 defaultEndpoint = evaluatedServerUrl.get(0);
                 defaultGroup.setEndpoints(new HashSet<>());
                 for (int i = 0; i < evaluatedServerUrl.size(); i++) {
-                    defaultGroup
-                        .getEndpoints()
-                        .add(Endpoint.builder().name("server" + (i + 1)).target(evaluatedServerUrl.get(i)).inherit(true).build());
+                    defaultGroup.getEndpoints().add(
+                        Endpoint.builder()
+                            .name("server" + (i + 1))
+                            .target(evaluatedServerUrl.get(i))
+                            .inherit(true)
+                            .build()
+                    );
                 }
             }
             proxy.setGroups(singleton(defaultGroup));
@@ -185,7 +189,7 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
                         new VirtualHost(
                             vHost.getHost(),
                             vHost.getPath(),
-                            (vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false)
+                            vHost.getOverrideEntrypoint() != null ? vHost.getOverrideEntrypoint() : false
                         )
                     )
                     .collect(Collectors.toList())
@@ -297,63 +301,61 @@ public class OAIToAPIV2Converter implements SwaggerToApiConverter<OAIDescriptor>
         Set<String> pathMappings = new HashSet();
 
         if (swaggerDescriptor.isWithPolicyPaths() || swaggerDescriptor.isWithPathMapping()) {
-            oai
-                .getPaths()
-                .forEach((key, pathItem) -> {
-                    String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
-                    if (swaggerDescriptor.isWithPathMapping()) {
-                        pathMappings.add(path);
-                    }
+            oai.getPaths().forEach((key, pathItem) -> {
+                String path = PATH_PARAMS_PATTERN.matcher(key).replaceAll(":$1");
+                if (swaggerDescriptor.isWithPathMapping()) {
+                    pathMappings.add(path);
+                }
 
-                    if (swaggerDescriptor.isWithPolicyPaths()) {
-                        Map<PathItem.HttpMethod, io.swagger.v3.oas.models.Operation> operations = pathItem.readOperationsMap();
-                        operations.forEach((httpMethod, operation) -> {
-                            final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                if (swaggerDescriptor.isWithPolicyPaths()) {
+                    Map<PathItem.HttpMethod, io.swagger.v3.oas.models.Operation> operations = pathItem.readOperationsMap();
+                    operations.forEach((httpMethod, operation) -> {
+                        final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                            getVisitors().forEach(
-                                (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
-                                    Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                    if (policy.isPresent()) {
-                                        final Step step = new Step();
-                                        String policyId = policy.get().getName();
-                                        step.setPolicy(policyId);
-                                        step.setEnabled(true);
-                                        try {
-                                            PolicyPluginEntity plugin = policyPluginService.findById(policyId);
-                                            step.setName(plugin != null ? plugin.getName() : policyId);
-                                        } catch (RuntimeException e) {
-                                            log.warn(
-                                                "An error occurred while trying to retrieve the policy plugin '{}' for API '{}'. Falling back to policy id.",
-                                                policyId,
-                                                apiEntity.getName(),
-                                                e
-                                            );
-                                            step.setName(policyId);
-                                        }
-                                        step.setDescription(
-                                            operation.getSummary() == null
-                                                ? (operation.getOperationId() == null
-                                                        ? operation.getDescription()
-                                                        : operation.getOperationId())
-                                                : operation.getSummary()
+                        getVisitors().forEach(
+                            (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                if (policy.isPresent()) {
+                                    final Step step = new Step();
+                                    String policyId = policy.get().getName();
+                                    step.setPolicy(policyId);
+                                    step.setEnabled(true);
+                                    try {
+                                        PolicyPluginEntity plugin = policyPluginService.findById(policyId);
+                                        step.setName(plugin != null ? plugin.getName() : policyId);
+                                    } catch (RuntimeException e) {
+                                        log.warn(
+                                            "An error occurred while trying to retrieve the policy plugin '{}' for API '{}'. Falling back to policy id.",
+                                            policyId,
+                                            apiEntity.getName(),
+                                            e
                                         );
+                                        step.setName(policyId);
+                                    }
+                                    step.setDescription(
+                                        operation.getSummary() == null
+                                            ? operation.getOperationId() == null
+                                                ? operation.getDescription()
+                                                : operation.getOperationId()
+                                            : operation.getSummary()
+                                    );
 
-                                        String configuration = clearNullValues(policy.get().getConfiguration());
-                                        step.setConfiguration(configuration);
+                                    String configuration = clearNullValues(policy.get().getConfiguration());
+                                    step.setConfiguration(configuration);
 
-                                        String scope = getScope(configuration);
-                                        if (scope != null && scope.toLowerCase().equals("response")) {
-                                            flow.getPost().add(step);
-                                        } else {
-                                            flow.getPre().add(step);
-                                        }
+                                    String scope = getScope(configuration);
+                                    if (scope != null && scope.toLowerCase().equals("response")) {
+                                        flow.getPost().add(step);
+                                    } else {
+                                        flow.getPre().add(step);
                                     }
                                 }
-                            );
-                            allFlows.add(flow);
-                        });
-                    }
-                });
+                            }
+                        );
+                        allFlows.add(flow);
+                    });
+                }
+            });
         }
 
         // Path Mappings

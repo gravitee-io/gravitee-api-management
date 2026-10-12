@@ -38,9 +38,10 @@ public class SearchPortalSubscriptionsUseCase {
     private final SubscriptionTargetSearchQueryService subscriptionTargetSearchQueryService;
 
     public Output execute(Input input) {
-        Set<SubscriptionReferenceType> referenceTypes = input.referenceTypes() == null || input.referenceTypes().isEmpty()
-            ? Set.of(SubscriptionReferenceType.API)
-            : Set.copyOf(input.referenceTypes());
+        Set<SubscriptionReferenceType> referenceTypes =
+            input.referenceTypes() == null || input.referenceTypes().isEmpty()
+                ? Set.of(SubscriptionReferenceType.API)
+                : Set.copyOf(input.referenceTypes());
         Set<String> apiIds = copyOrNull(input.apiIds());
         Set<String> apiProductIds = copyOrNull(input.apiProductIds());
 

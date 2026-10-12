@@ -50,7 +50,9 @@ class JsonFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.REQUEST_LOG);
 
-        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(JSON.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test
@@ -60,7 +62,9 @@ class JsonFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.REQUEST);
 
-        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(JSON.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test
@@ -70,7 +74,9 @@ class JsonFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.NODE_MONITOR);
 
-        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(JSON.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test
@@ -80,7 +86,9 @@ class JsonFormatterWithRulesTest extends AbstractFormatterTest {
 
         resetFormatter(MetricsType.HEALTH_CHECK);
 
-        assertThat(JSON.readTree(formatter.format(given).getBytes())).usingRecursiveComparison().isEqualTo(JSON.readTree(expected));
+        assertThat(JSON.readTree(formatter.format(given).getBytes()))
+            .usingRecursiveComparison()
+            .isEqualTo(JSON.readTree(expected));
     }
 
     @Test

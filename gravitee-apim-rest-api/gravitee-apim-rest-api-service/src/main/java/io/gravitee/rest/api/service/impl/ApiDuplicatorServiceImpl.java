@@ -268,13 +268,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         Map<String, String> plansIdsMap = new HashMap<>();
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
-            newApiEntity
-                .getPlans()
-                .forEach(plan -> {
-                    String newPlanId = UuidString.generateRandom();
-                    plansIdsMap.put(plan.getId(), newPlanId);
-                    plan.setId(newPlanId);
-                });
+            newApiEntity.getPlans().forEach(plan -> {
+                String newPlanId = UuidString.generateRandom();
+                plansIdsMap.put(plan.getId(), newPlanId);
+                plan.setId(newPlanId);
+            });
         }
 
         final ApiEntity duplicatedApi = apiService.createWithApiDefinition(
@@ -297,16 +295,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains(API_DEFINITION_FIELD_PLANS)) {
-            planService
-                .findByApi(executionContext, apiId)
-                .forEach(plan -> {
-                    plan.setId(plansIdsMap.get(plan.getId()));
-                    plan.setReferenceId(duplicatedApi.getId());
-                    if (plan.getGeneralConditions() != null) {
-                        plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
-                    }
-                    planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
-                });
+            planService.findByApi(executionContext, apiId).forEach(plan -> {
+                plan.setId(plansIdsMap.get(plan.getId()));
+                plan.setReferenceId(duplicatedApi.getId());
+                if (plan.getGeneralConditions() != null) {
+                    plan.setGeneralConditions(pagesIdsMap.get(plan.getGeneralConditions()));
+                }
+                planService.create(executionContext, planConverter.toNewPlanEntity(plan, true));
+            });
         }
 
         return duplicatedApi;
@@ -431,7 +427,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
             // get the current PO
             RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
-            assert (poRole != null);
+            assert poRole != null;
             String poRoleId = poRole.getId();
             MemberToImport currentPo = membersAlreadyPresent
                 .stream()
@@ -531,7 +527,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             if (!membersAlreadyPresent.isEmpty()) {
                 // get the current PO
                 RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
-                assert (poRole != null);
+                assert poRole != null;
                 String poRoleId = poRole.getId();
 
                 // delete members that no longer referenced inside this API
@@ -565,15 +561,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return (
             memberToImport.getRoles() != null &&
             !memberToImport.getRoles().isEmpty() &&
-            membersAlreadyPresent
-                .stream()
-                .anyMatch(m -> {
-                    m.getRoles().sort(Comparator.naturalOrder());
-                    return (
-                        m.getRoles().equals(memberToImport.getRoles()) &&
-                        (m.getSourceId().equals(memberToImport.getSourceId()) && m.getSource().equals(memberToImport.getSource()))
-                    );
-                })
+            membersAlreadyPresent.stream().anyMatch(m -> {
+                m.getRoles().sort(Comparator.naturalOrder());
+                return (
+                    m.getRoles().equals(memberToImport.getRoles()) &&
+                    m.getSourceId().equals(memberToImport.getSourceId()) &&
+                    m.getSource().equals(memberToImport.getSource())
+                );
+            })
         );
     }
 
@@ -632,7 +627,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         //  - not the current PO
         if (
             !presentWithSameRole &&
-            (memberToImport.getRoles() != null && !memberToImport.getRoles().isEmpty() && !memberToImport.getRoles().contains(poRoleId)) &&
+            memberToImport.getRoles() != null &&
+            !memberToImport.getRoles().isEmpty() &&
+            !memberToImport.getRoles().contains(poRoleId) &&
             !(memberToImport.getSourceId().equals(currentPo.getSourceId()) && memberToImport.getSource().equals(currentPo.getSource()))
         ) {
             try {

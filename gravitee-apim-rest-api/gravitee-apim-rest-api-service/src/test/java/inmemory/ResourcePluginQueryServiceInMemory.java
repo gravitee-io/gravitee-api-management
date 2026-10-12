@@ -33,20 +33,18 @@ public class ResourcePluginQueryServiceInMemory implements ResourcePluginQuerySe
 
     @Override
     public String getSchema(String resourceId) {
-        return (
-            String.format(
-                """
-                  {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "This is a schema for %s resource plugin."
-                    }
-                  }
-                }""",
-                resourceId
-            )
+        return String.format(
+            """
+              {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "This is a schema for %s resource plugin."
+                }
+              }
+            }""",
+            resourceId
         );
     }
 

@@ -108,7 +108,11 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
                 Entity.entity(
                     DebugApiEntity.builder()
                         .graviteeDefinitionVersion("2.0.0")
-                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
+                        .proxy(
+                            Proxy.builder()
+                                .virtualHosts(List.of(new VirtualHost("/")))
+                                .build()
+                        )
                         .build(),
                     MediaType.APPLICATION_JSON
                 )
@@ -140,7 +144,11 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
                     DebugApiEntity.builder()
                         .id(API)
                         .graviteeDefinitionVersion("2.0.0")
-                        .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
+                        .proxy(
+                            Proxy.builder()
+                                .virtualHosts(List.of(new VirtualHost("/")))
+                                .build()
+                        )
                         .plans(
                             Set.of(PlanEntity.builder().id("plan").status(PlanStatus.PUBLISHED).security(PlanSecurityType.KEY_LESS).build())
                         )

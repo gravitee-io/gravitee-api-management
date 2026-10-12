@@ -134,7 +134,7 @@ public class JdbcPageRepository extends JdbcAbstractCrudRepository<Page, String>
             getOrm().setFromResultSet(page, rs);
             String sourceType = rs.getString("source_type");
             String sourceConfiguration = rs.getString("source_configuration");
-            if ((sourceType != null) || (sourceConfiguration != null)) {
+            if (sourceType != null || sourceConfiguration != null) {
                 PageSource pageSource = new PageSource();
                 pageSource.setType(sourceType);
                 pageSource.setConfiguration(sourceConfiguration);

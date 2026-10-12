@@ -68,8 +68,7 @@ class DictionaryMapperTest {
 
     @Test
     void should_return_distributed_event() {
-        cut
-            .to(distributedEvent)
+        cut.to(distributedEvent)
             .test()
             .assertValue(dictionaryDeployable -> {
                 assertThat(dictionaryDeployable).isEqualTo(this.dictionaryDeployable);
@@ -84,8 +83,7 @@ class DictionaryMapperTest {
 
     @Test
     void should_map_dictionary_deployable() {
-        cut
-            .to(dictionaryDeployable)
+        cut.to(dictionaryDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

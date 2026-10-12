@@ -73,11 +73,9 @@ public class CreateOrUpdatePortalUseCase {
             new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.structure())
         );
 
-        validation
-            .severe()
-            .ifPresent(errors -> {
-                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
-            });
+        validation.severe().ifPresent(errors -> {
+            throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+        });
 
         var warnings = validation.warning().orElseGet(List::of);
 
@@ -119,9 +117,8 @@ public class CreateOrUpdatePortalUseCase {
     }
 
     private String resolveActiveThemeId(Input input, String currentActiveThemeId) {
-        var targetThemeId = input.activeThemeHrid() == null
-            ? null
-            : HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.activeThemeHrid()).id();
+        var targetThemeId =
+            input.activeThemeHrid() == null ? null : HRIDToUUID.portalTheme().context(input.auditInfo()).hrid(input.activeThemeHrid()).id();
         if (Objects.equals(targetThemeId, currentActiveThemeId)) {
             return targetThemeId;
         }

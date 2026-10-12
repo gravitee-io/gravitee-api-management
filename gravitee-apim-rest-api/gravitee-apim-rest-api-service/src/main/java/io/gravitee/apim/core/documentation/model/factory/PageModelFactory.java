@@ -51,19 +51,19 @@ public class PageModelFactory {
                 pageCRD.getAccessControls() == null
                     ? Set.of()
                     : pageCRD
-                        .getAccessControls()
-                        .stream()
-                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
-                        .collect(Collectors.toSet())
+                          .getAccessControls()
+                          .stream()
+                          .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                          .collect(Collectors.toSet())
             )
             .source(
                 pageCRD.getSource() == null
                     ? null
                     : new PageSource(
-                        pageCRD.getSource().getType(),
-                        pageCRD.getSource().getConfiguration(),
-                        pageCRD.getSource().getConfigurationMap()
-                    )
+                          pageCRD.getSource().getType(),
+                          pageCRD.getSource().getConfiguration(),
+                          pageCRD.getSource().getConfigurationMap()
+                      )
             )
             .build();
     }
@@ -88,19 +88,19 @@ public class PageModelFactory {
                 page.getAccessControls() == null
                     ? Set.of()
                     : page
-                        .getAccessControls()
-                        .stream()
-                        .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
-                        .collect(Collectors.toSet())
+                          .getAccessControls()
+                          .stream()
+                          .map(ac -> new AccessControl(ac.getReferenceId(), ac.getReferenceType()))
+                          .collect(Collectors.toSet())
             )
             .source(
                 page.getSource() == null
                     ? null
                     : new PageCRD.PageSource(
-                        page.getSource().getType(),
-                        page.getSource().getConfiguration(),
-                        page.getSource().getConfigurationMap()
-                    )
+                          page.getSource().getType(),
+                          page.getSource().getConfiguration(),
+                          page.getSource().getConfigurationMap()
+                      )
             )
             .build();
     }

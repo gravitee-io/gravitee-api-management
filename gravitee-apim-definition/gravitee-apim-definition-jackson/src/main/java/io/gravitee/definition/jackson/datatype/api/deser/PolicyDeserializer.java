@@ -37,13 +37,11 @@ public class PolicyDeserializer extends StdScalarDeserializer<Policy> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         Policy policy = new Policy();
-        node
-            .fieldNames()
-            .forEachRemaining(field -> {
-                JsonNode subNode = node.findValue(field);
-                policy.setName(field);
-                policy.setConfiguration(subNode.toString());
-            });
+        node.fieldNames().forEachRemaining(field -> {
+            JsonNode subNode = node.findValue(field);
+            policy.setName(field);
+            policy.setConfiguration(subNode.toString());
+        });
 
         return policy;
     }

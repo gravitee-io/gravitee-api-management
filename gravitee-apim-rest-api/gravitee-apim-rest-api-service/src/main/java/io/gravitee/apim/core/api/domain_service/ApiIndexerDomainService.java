@@ -98,11 +98,11 @@ public class ApiIndexerDomainService {
                 .primaryOwner(
                     primaryOwner != null
                         ? new PrimaryOwnerApiTemplateData(
-                            primaryOwner.id(),
-                            primaryOwner.displayName(),
-                            primaryOwner.email(),
-                            primaryOwner.type().name()
-                        )
+                              primaryOwner.id(),
+                              primaryOwner.displayName(),
+                              primaryOwner.email(),
+                              primaryOwner.type().name()
+                          )
                         : null
                 )
                 .build()

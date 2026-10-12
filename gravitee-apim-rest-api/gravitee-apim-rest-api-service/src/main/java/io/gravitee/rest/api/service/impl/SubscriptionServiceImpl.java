@@ -319,24 +319,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         final Map<String, GenericApiEntity> apisById = apiIds.isEmpty()
             ? Collections.emptyMap()
             : apiSearchService
-                .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
-                .stream()
-                .collect(toMap(GenericApiEntity::getId, Function.identity()));
+                  .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
+                  .stream()
+                  .collect(toMap(GenericApiEntity::getId, Function.identity()));
         final Map<String, ApiProduct> apiProductsById = apiProductIds.isEmpty()
             ? Collections.emptyMap()
             : apiProductIds
-                .stream()
-                .flatMap(id -> {
-                    try {
-                        return apiProductsRepository.findById(id).stream();
-                    } catch (TechnicalException e) {
-                        throw new TechnicalManagementException(
-                            String.format("An error occurs while trying to find API Products using IDs [%s]", apiProductIds),
-                            e
-                        );
-                    }
-                })
-                .collect(toMap(ApiProduct::getId, Function.identity()));
+                  .stream()
+                  .flatMap(id -> {
+                      try {
+                          return apiProductsRepository.findById(id).stream();
+                      } catch (TechnicalException e) {
+                          throw new TechnicalManagementException(
+                              String.format("An error occurs while trying to find API Products using IDs [%s]", apiProductIds),
+                              e
+                          );
+                      }
+                  })
+                  .collect(toMap(ApiProduct::getId, Function.identity()));
 
         return subscribedRefKeys
             .stream()
@@ -388,18 +388,16 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     private Optional<ReferenceDisplayInfo> getApiProductReferenceDisplayInfo(ExecutionContext executionContext, String referenceId)
         throws TechnicalException {
-        return apiProductsRepository
-            .findById(referenceId)
-            .map(apiProduct -> {
-                String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, apiProduct.getId());
-                return ReferenceDisplayInfo.builder()
-                    .id(apiProduct.getId())
-                    .name(apiProduct.getName())
-                    .version(Objects.requireNonNullElse(apiProduct.getVersion(), ""))
-                    .ownerId(Objects.requireNonNullElse(ownerUserId, ""))
-                    .ownerDisplayName(getDisplayNameForUserId(executionContext, ownerUserId))
-                    .build();
-            });
+        return apiProductsRepository.findById(referenceId).map(apiProduct -> {
+            String ownerUserId = getPrimaryOwnerUserIdOrNull(executionContext, apiProduct.getId());
+            return ReferenceDisplayInfo.builder()
+                .id(apiProduct.getId())
+                .name(apiProduct.getName())
+                .version(Objects.requireNonNullElse(apiProduct.getVersion(), ""))
+                .ownerId(Objects.requireNonNullElse(ownerUserId, ""))
+                .ownerDisplayName(getDisplayNameForUserId(executionContext, ownerUserId))
+                .build();
+        });
     }
 
     private String getPrimaryOwnerDisplayName(ExecutionContext executionContext, String productId) {
@@ -554,8 +552,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (genericPlanEntity.getGeneralConditions() != null && !genericPlanEntity.getGeneralConditions().isEmpty()) {
                 if (
-                    (Boolean.FALSE.equals(newSubscriptionEntity.getGeneralConditionsAccepted()) ||
-                        (newSubscriptionEntity.getGeneralConditionsContentRevision() == null))
+                    Boolean.FALSE.equals(newSubscriptionEntity.getGeneralConditionsAccepted()) ||
+                    newSubscriptionEntity.getGeneralConditionsContentRevision() == null
                 ) {
                     throw new PlanGeneralConditionAcceptedException(genericPlanEntity.getName());
                 }
@@ -585,10 +583,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             String refId = genericPlanEntity.getReferenceId();
             if (refId != null) {
-                SubscriptionReferenceType referenceType = genericPlanEntity.getReferenceType() ==
-                    GenericPlanEntity.ReferenceType.API_PRODUCT
-                    ? SubscriptionReferenceType.API_PRODUCT
-                    : SubscriptionReferenceType.API;
+                SubscriptionReferenceType referenceType =
+                    genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT
+                        ? SubscriptionReferenceType.API_PRODUCT
+                        : SubscriptionReferenceType.API;
                 criteriaBuilder.referenceIds(Collections.singleton(refId)).referenceType(referenceType);
             }
 
@@ -697,13 +695,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             String clientId = null;
             if (planSecurityType == PlanSecurityType.OAUTH2 || planSecurityType == PlanSecurityType.JWT) {
                 if (ApplicationType.SIMPLE.name().equals(applicationEntity.getType())) {
-                    clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null)
-                        ? applicationEntity.getSettings().getApp().getClientId()
-                        : null;
+                    clientId =
+                        applicationEntity.getSettings() != null && applicationEntity.getSettings().getApp() != null
+                            ? applicationEntity.getSettings().getApp().getClientId()
+                            : null;
                 } else {
-                    clientId = (applicationEntity.getSettings() != null && applicationEntity.getSettings().getOauth() != null)
-                        ? applicationEntity.getSettings().getOauth().getClientId()
-                        : null;
+                    clientId =
+                        applicationEntity.getSettings() != null && applicationEntity.getSettings().getOauth() != null
+                            ? applicationEntity.getSettings().getOauth().getClientId()
+                            : null;
                 }
 
                 // Check that the application contains a client_id
@@ -793,7 +793,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 }
 
                 String resourceType = isApiProduct ? "api-products" : "apis";
-                String resourceId = isApiProduct ? referenceId : (api != null ? api.getId() : null);
+                String resourceId = isApiProduct ? referenceId : api != null ? api.getId() : null;
 
                 if (resourceId != null) {
                     subscriptionsUrl = String.format(
@@ -1876,9 +1876,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             builder.ids(subscriptionsIds);
 
             var criteria = builder.build();
-            var subscriptions = query.getSortable() == null
-                ? subscriptionRepository.search(criteria)
-                : subscriptionRepository.search(criteria, convert(query.getSortable()));
+            var subscriptions =
+                query.getSortable() == null
+                    ? subscriptionRepository.search(criteria)
+                    : subscriptionRepository.search(criteria, convert(query.getSortable()));
             Stream<SubscriptionEntity> subscriptionsStream = subscriptions.stream().map(this::convert);
 
             return subscriptionsStream.collect(toList());
@@ -1928,7 +1929,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     .search(
                         builder.build(),
                         convert(query.getSortable()),
-                        new PageableBuilder().pageNumber(pageable.getPageNumber() - 1).pageSize(pageable.getPageSize()).build()
+                        new PageableBuilder()
+                            .pageNumber(pageable.getPageNumber() - 1)
+                            .pageSize(pageable.getPageSize())
+                            .build()
                     )
                     .map(this::convert);
 
@@ -1962,15 +1966,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .filter(subscription -> subscription.getPlan() != null)
             .collect(groupingBy(SubscriptionEntity::getPlan));
 
-        planSearchService
-            .findByIdIn(executionContext, subscriptionsByPlan.keySet())
-            .forEach(plan -> {
-                PlanSecurity planSecurity = plan.getPlanSecurity();
-                if (planSecurity != null) {
-                    PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
-                    subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
-                }
-            });
+        planSearchService.findByIdIn(executionContext, subscriptionsByPlan.keySet()).forEach(plan -> {
+            PlanSecurity planSecurity = plan.getPlanSecurity();
+            if (planSecurity != null) {
+                PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(planSecurity.getType());
+                subscriptionsByPlan.get(plan.getId()).forEach(subscription -> subscription.setSecurity(planSecurityType.name()));
+            }
+        });
     }
 
     private void fillApiKeys(ExecutionContext executionContext, List<SubscriptionEntity> subscriptions) {
@@ -2223,79 +2225,57 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         Metadata metadata = new Metadata();
         Collection<SubscriptionEntity> subscriptions = query.getSubscriptions();
 
-        final Optional<Map<String, ApplicationListItem>> applicationsById = query
-            .ifApplications()
-            .map(withApplications -> {
-                Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
-                return applicationService
-                    .findByIdsAndStatus(
-                        new ExecutionContext(query.getOrganization(), query.getEnvironment()),
-                        appIds,
-                        ApplicationStatus.ACTIVE
-                    )
-                    .stream()
-                    .collect(toMap(ApplicationListItem::getId, Function.identity()));
-            });
+        final Optional<Map<String, ApplicationListItem>> applicationsById = query.ifApplications().map(withApplications -> {
+            Set<String> appIds = subscriptions.stream().map(SubscriptionEntity::getApplication).collect(toSet());
+            return applicationService
+                .findByIdsAndStatus(new ExecutionContext(query.getOrganization(), query.getEnvironment()), appIds, ApplicationStatus.ACTIVE)
+                .stream()
+                .collect(toMap(ApplicationListItem::getId, Function.identity()));
+        });
 
-        final Optional<Map<String, GenericApiEntity>> apisById = query
-            .ifApis()
-            .map(withApis -> {
-                Set<String> apiIds = subscriptions
-                    .stream()
-                    .filter(sub -> SubscriptionReferenceType.API.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null)
-                    .map(SubscriptionEntity::getReferenceId)
-                    .collect(toSet());
-                return apiSearchService
-                    .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
-                    .stream()
-                    .collect(toMap(GenericApiEntity::getId, Function.identity()));
-            });
+        final Optional<Map<String, GenericApiEntity>> apisById = query.ifApis().map(withApis -> {
+            Set<String> apiIds = subscriptions
+                .stream()
+                .filter(sub -> SubscriptionReferenceType.API.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                .map(SubscriptionEntity::getReferenceId)
+                .collect(toSet());
+            return apiSearchService
+                .findGenericByEnvironmentAndIdIn(executionContext, apiIds)
+                .stream()
+                .collect(toMap(GenericApiEntity::getId, Function.identity()));
+        });
 
-        final Optional<Map<String, ApiProduct>> apiProductsById = query
-            .ifApiProducts()
-            .map(withApiProducts -> {
-                Set<String> apiProductIds = subscriptions
-                    .stream()
-                    .filter(
-                        sub -> SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null
-                    )
-                    .map(SubscriptionEntity::getReferenceId)
-                    .collect(toSet());
-                if (apiProductIds.isEmpty()) {
-                    return Collections.<String, ApiProduct>emptyMap();
-                }
-                try {
-                    return apiProductsRepository.findByIds(apiProductIds).stream().collect(toMap(ApiProduct::getId, Function.identity()));
-                } catch (TechnicalException ex) {
-                    throw new TechnicalManagementException(
-                        "An error occurs while trying to find API Products for subscription metadata",
-                        ex
-                    );
-                }
-            });
+        final Optional<Map<String, ApiProduct>> apiProductsById = query.ifApiProducts().map(withApiProducts -> {
+            Set<String> apiProductIds = subscriptions
+                .stream()
+                .filter(sub -> SubscriptionReferenceType.API_PRODUCT.name().equals(sub.getReferenceType()) && sub.getReferenceId() != null)
+                .map(SubscriptionEntity::getReferenceId)
+                .collect(toSet());
+            if (apiProductIds.isEmpty()) {
+                return Collections.<String, ApiProduct>emptyMap();
+            }
+            try {
+                return apiProductsRepository.findByIds(apiProductIds).stream().collect(toMap(ApiProduct::getId, Function.identity()));
+            } catch (TechnicalException ex) {
+                throw new TechnicalManagementException("An error occurs while trying to find API Products for subscription metadata", ex);
+            }
+        });
         final Optional<Map<String, String>> productIdToPrimaryOwnerDisplayName = apiProductsById.map(products ->
             getProductIdToPrimaryOwnerDisplayNameMap(executionContext, products.keySet())
         );
 
-        final Optional<Map<String, GenericPlanEntity>> plansById = query
-            .ifPlans()
-            .map(withPlans -> {
-                Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
-                return planSearchService
-                    .findByIdIn(executionContext, planIds)
-                    .stream()
-                    .collect(toMap(GenericPlanEntity::getId, Function.identity()));
-            });
+        final Optional<Map<String, GenericPlanEntity>> plansById = query.ifPlans().map(withPlans -> {
+            Set<String> planIds = subscriptions.stream().map(SubscriptionEntity::getPlan).collect(toSet());
+            return planSearchService
+                .findByIdIn(executionContext, planIds)
+                .stream()
+                .collect(toMap(GenericPlanEntity::getId, Function.identity()));
+        });
 
-        final Optional<Map<String, UserEntity>> subscribersById = query
-            .ifSubscribers()
-            .map(withSubscribers -> {
-                Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
-                return userService
-                    .findByIds(executionContext, subscriberIds)
-                    .stream()
-                    .collect(toMap(UserEntity::getId, Function.identity()));
-            });
+        final Optional<Map<String, UserEntity>> subscribersById = query.ifSubscribers().map(withSubscribers -> {
+            Set<String> subscriberIds = subscriptions.stream().map(SubscriptionEntity::getSubscribedBy).collect(toSet());
+            return userService.findByIds(executionContext, subscriberIds).stream().collect(toMap(UserEntity::getId, Function.identity()));
+        });
 
         subscriptions.forEach(subscription -> {
             applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
@@ -2436,7 +2416,9 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setReferenceType(subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null);
         entity.setApi(
             subscription.getReferenceType() != SubscriptionReferenceType.API_PRODUCT
-                ? (subscription.getApi() != null ? subscription.getApi() : subscription.getReferenceId())
+                ? subscription.getApi() != null
+                    ? subscription.getApi()
+                    : subscription.getReferenceId()
                 : null
         );
         entity.setPlan(subscription.getPlan());

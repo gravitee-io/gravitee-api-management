@@ -228,7 +228,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
         @Test
         void should_not_update_a_product_this_surface_does_not_manage() {
-            final Response response = rootTarget().request().put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
+            final Response response = rootTarget()
+                .request()
+                .put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
 
             assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
             verify(updateApiProductUseCase, never()).execute(any());

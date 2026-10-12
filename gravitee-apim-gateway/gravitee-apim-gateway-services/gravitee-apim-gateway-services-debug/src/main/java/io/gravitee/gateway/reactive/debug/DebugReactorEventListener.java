@@ -93,9 +93,8 @@ public class DebugReactorEventListener extends ReactorEventListener {
     public void onEvent(final Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             log.debug("Deploying api for debug");
-            ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent = (ReactableEvent<
-                io.gravitee.repository.management.model.Event
-            >) reactorEvent.content();
+            ReactableEvent<io.gravitee.repository.management.model.Event> reactableEvent =
+                (ReactableEvent<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableEvent.getContent();
             ReactableDebugApi<?> debugApi = toDebugApi(reactableEvent);
             if (debugApi != null) {
@@ -131,8 +130,9 @@ public class DebugReactorEventListener extends ReactorEventListener {
                                         .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
                                 )
                                 .map(httpClientRequest ->
-                                    // Always set chunked mode for gRPC transport
-                                    httpClientRequest.setChunked(true)
+                                    httpClientRequest
+                                        // Always set chunked mode for gRPC transport
+                                        .setChunked(true)
                                 )
                                 .flatMap(httpClientRequest ->
                                     debugApiRequest.getBody() == null
@@ -218,16 +218,14 @@ public class DebugReactorEventListener extends ReactorEventListener {
                 decryptProperties(eventDebugApi.getApiDefinition().getId(), eventDebugApi.getApiDefinition().getProperties());
             }
 
-            eventDebugApi
-                .getApiDefinition()
-                .setPlans(
-                    eventDebugApi
-                        .getApiDefinition()
-                        .getPlans()
-                        .stream()
-                        .filter(plan -> !PlanStatus.CLOSED.equals(plan.getStatus()))
-                        .toList()
-                );
+            eventDebugApi.getApiDefinition().setPlans(
+                eventDebugApi
+                    .getApiDefinition()
+                    .getPlans()
+                    .stream()
+                    .filter(plan -> !PlanStatus.CLOSED.equals(plan.getStatus()))
+                    .toList()
+            );
 
             var debugApi = new io.gravitee.gateway.debug.definition.DebugApiV4(reactableEvent.getId(), eventDebugApi);
             debugApi.setDeployedAt(reactableEvent.getDeployedAt());

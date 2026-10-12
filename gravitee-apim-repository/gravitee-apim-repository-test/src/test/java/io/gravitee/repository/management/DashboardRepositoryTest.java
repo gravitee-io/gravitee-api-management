@@ -160,8 +160,12 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(dashboardSaved.getOrder()).as("Invalid saved dashboard order.", 3).isEqualTo(3);
         assertThat(dashboardSaved.isEnabled()).as("Invalid saved dashboard enabled.").isTrue();
         assertThat(dashboardSaved.getDefinition()).as("Invalid saved dashboard definition.").isEqualTo("{\"def\": \"new value\"}");
-        assertThat(compareDate(new Date(1111111111111L), dashboardSaved.getCreatedAt())).as("Invalid saved dashboard created at.").isTrue();
-        assertThat(compareDate(new Date(1000000000000L), dashboardSaved.getUpdatedAt())).as("Invalid saved dashboard updated at.").isTrue();
+        assertThat(compareDate(new Date(1111111111111L), dashboardSaved.getCreatedAt()))
+            .as("Invalid saved dashboard created at.")
+            .isTrue();
+        assertThat(compareDate(new Date(1000000000000L), dashboardSaved.getUpdatedAt()))
+            .as("Invalid saved dashboard updated at.")
+            .isTrue();
     }
 
     @Test

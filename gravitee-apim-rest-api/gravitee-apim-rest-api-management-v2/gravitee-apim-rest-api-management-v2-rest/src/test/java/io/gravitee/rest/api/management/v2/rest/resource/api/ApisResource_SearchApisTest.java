@@ -402,8 +402,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
             soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
-            soft
-                .assertThat(apiQuery.getFilters().values())
+            soft.assertThat(apiQuery.getFilters().values())
                 .first()
                 .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
                 .containsOnly("4.0.0");
@@ -447,8 +446,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(apiQuery.getQuery()).isNull();
             soft.assertThat(apiQuery.getFilters()).containsOnlyKeys("definition_version");
-            soft
-                .assertThat(apiQuery.getFilters().values())
+            soft.assertThat(apiQuery.getFilters().values())
                 .first()
                 .asInstanceOf(InstanceOfAssertFactories.COLLECTION)
                 .containsOnly("4.0.0");
@@ -671,9 +669,10 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
 
         var apiQuery = apiQueryBuilderCaptor.getValue().build();
         SoftAssertions.assertSoftly(soft -> {
-            soft
-                .assertThat(apiQuery.getExcludedFilters().get(FIELD_ID))
-                .containsExactlyInAnyOrder("workspace-proxy-a", "workspace-proxy-b");
+            soft.assertThat(apiQuery.getExcludedFilters().get(FIELD_ID)).containsExactlyInAnyOrder(
+                "workspace-proxy-a",
+                "workspace-proxy-b"
+            );
             soft.assertThat(apiQuery.getExcludedFilters().get(FIELD_ID)).doesNotContain("regular-api");
         });
     }

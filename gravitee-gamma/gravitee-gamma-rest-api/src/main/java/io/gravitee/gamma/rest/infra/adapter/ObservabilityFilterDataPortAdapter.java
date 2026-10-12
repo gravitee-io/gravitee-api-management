@@ -67,12 +67,13 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
         try {
             Instant fromInstant = from != null ? Instant.ofEpochMilli(from) : null;
             Instant toInstant = to != null ? Instant.ofEpochMilli(to) : null;
-            Set<io.gravitee.definition.model.v4.ApiType> platformApiTypes = apiTypes == null || apiTypes.isEmpty()
-                ? Set.of()
-                : apiTypes
-                    .stream()
-                    .flatMap(apiType -> ApiTypeAdapter.toDefinition(apiType).stream())
-                    .collect(Collectors.toSet());
+            Set<io.gravitee.definition.model.v4.ApiType> platformApiTypes =
+                apiTypes == null || apiTypes.isEmpty()
+                    ? Set.of()
+                    : apiTypes
+                          .stream()
+                          .flatMap(apiType -> ApiTypeAdapter.toDefinition(apiType).stream())
+                          .collect(Collectors.toSet());
             var output = getFilterValuesUseCase.execute(
                 new GetFilterValuesUseCase.Input(
                     currentAuditInfo(),
@@ -89,9 +90,8 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
             List<FilterValue> data = valuesPage.data().stream().map(ObservabilityFilterDataPortAdapter::toCoreValue).toList();
             // The ES composite-aggregation paths report no exact total (cursor pagination), so fall back
             // to a lower bound derived from the current slice.
-            long total = valuesPage.totalFilteredCount() != null
-                ? valuesPage.totalFilteredCount()
-                : (long) (page - 1) * perPage + data.size();
+            long total =
+                valuesPage.totalFilteredCount() != null ? valuesPage.totalFilteredCount() : (long) (page - 1) * perPage + data.size();
             return new FilterValuesPage(data, total);
         } catch (ValidationDomainException | UnsupportedOperationException e) {
             // Page bounds and unlistable filters are refused by the use case before this call, so what the
@@ -130,9 +130,8 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails user) {
             actor = AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build();
         } else {
-            String userId = (authentication != null && authentication.getPrincipal() != null)
-                ? authentication.getPrincipal().toString()
-                : "unknown";
+            String userId =
+                authentication != null && authentication.getPrincipal() != null ? authentication.getPrincipal().toString() : "unknown";
             actor = AuditActor.builder().userId(userId).build();
         }
         return AuditInfo.builder()

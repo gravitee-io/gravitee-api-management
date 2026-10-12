@@ -76,9 +76,8 @@ public class GenericPlanMapper {
             case V4 -> switch (api.getType()) {
                 case EDGE -> throw new IllegalStateException("EDGE API does not support plans");
                 case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> {
-                    final Map<String, List<Flow>> flowsByPlanId = flowService != null
-                        ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
-                        : Map.of();
+                    final Map<String, List<Flow>> flowsByPlanId =
+                        flowService != null ? flowService.findByReferences(FlowReferenceType.PLAN, planIds) : Map.of();
 
                     yield plans
                         .stream()
@@ -86,9 +85,8 @@ public class GenericPlanMapper {
                         .collect(Collectors.toSet());
                 }
                 case NATIVE -> {
-                    final Map<String, List<NativeFlow>> nativeFlowsByPlanId = flowCrudService != null
-                        ? flowCrudService.getNativePlanFlows(planIds)
-                        : Map.of();
+                    final Map<String, List<NativeFlow>> nativeFlowsByPlanId =
+                        flowCrudService != null ? flowCrudService.getNativePlanFlows(planIds) : Map.of();
 
                     yield plans
                         .stream()
@@ -100,9 +98,8 @@ public class GenericPlanMapper {
             };
             case FEDERATED, FEDERATED_AGENT -> handleGenericPlanWithoutFlow(plans);
             default -> {
-                final Map<String, List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId = flowCrudService != null
-                    ? flowCrudService.getPlanV2Flows(planIds)
-                    : Map.of();
+                final Map<String, List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId =
+                    flowCrudService != null ? flowCrudService.getPlanV2Flows(planIds) : Map.of();
                 yield plans
                     .stream()
                     .map(plan -> planConverter.toPlanEntity(plan, v2FlowsByPlanId.getOrDefault(plan.getId(), Collections.emptyList())))

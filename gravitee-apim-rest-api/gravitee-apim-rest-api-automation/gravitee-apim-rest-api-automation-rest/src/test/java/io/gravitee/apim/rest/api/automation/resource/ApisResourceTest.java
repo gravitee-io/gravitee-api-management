@@ -126,9 +126,9 @@ class ApisResourceTest extends AbstractResourceTest {
             var state = expectEntity("api-with-long-fields.json", dryRun, false);
 
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getLabels())
-                    .containsExactly("repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789");
+                soft.assertThat(state.getLabels()).containsExactly(
+                    "repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789"
+                );
                 soft.assertThat(state.getVersion()).hasSize(65);
                 soft.assertThat(state.getPlans().getFirst().getName()).hasSize(65);
                 soft.assertThat(state.getPages().getFirst().getName()).hasSize(65);
@@ -324,12 +324,12 @@ class ApisResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("api-with-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getCrossId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").crossId());
-                soft
-                    .assertThat(state.getId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
+                soft.assertThat(state.getCrossId()).isEqualTo(
+                    HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").crossId()
+                );
+                soft.assertThat(state.getId()).isEqualTo(
+                    HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id()
+                );
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
@@ -344,9 +344,9 @@ class ApisResourceTest extends AbstractResourceTest {
 
             var state = expectEntity("api-with-cross-id-and-hrid.json", dryRun);
             SoftAssertions.assertSoftly(soft -> {
-                soft
-                    .assertThat(state.getId())
-                    .isEqualTo(HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id());
+                soft.assertThat(state.getId()).isEqualTo(
+                    HRIDToUUID.api().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("api-hrid").id()
+                );
                 soft.assertThat(state.getCrossId()).isEqualTo("api-cross-id");
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
@@ -466,7 +466,12 @@ class ApisResourceTest extends AbstractResourceTest {
             if (ignoreGroups != null) {
                 target = target.queryParam("ignoreGroups", ignoreGroups);
             }
-            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+            try (
+                var response = target
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON(spec)))
+            ) {
                 assertThat(response.getStatus()).isEqualTo(200);
             }
         }

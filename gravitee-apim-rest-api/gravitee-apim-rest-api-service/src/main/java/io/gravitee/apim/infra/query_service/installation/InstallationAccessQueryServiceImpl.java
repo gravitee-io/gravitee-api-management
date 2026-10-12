@@ -181,7 +181,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             boolean hasNext = true;
             while (hasNext) {
                 String id = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
-                hasNext = (id != null);
+                hasNext = id != null;
                 if (hasNext) {
                     String url = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "].url");
                     validateUrl(keyUI, url);

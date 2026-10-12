@@ -33,15 +33,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 class ClientAuthenticationMethodTest {
 
     @ParameterizedTest
-    @CsvSource(
-        {
-            "client_secret_basic, CLIENT_SECRET_BASIC",
-            "client_secret_post, CLIENT_SECRET_POST",
-            "CLIENT_SECRET_BASIC, CLIENT_SECRET_BASIC",
-            "CLIENT_SECRET_POST, CLIENT_SECRET_POST",
-            "Client_Secret_Basic, CLIENT_SECRET_BASIC",
-        }
-    )
+    @CsvSource({
+        "client_secret_basic, CLIENT_SECRET_BASIC",
+        "client_secret_post, CLIENT_SECRET_POST",
+        "CLIENT_SECRET_BASIC, CLIENT_SECRET_BASIC",
+        "CLIENT_SECRET_POST, CLIENT_SECRET_POST",
+        "Client_Secret_Basic, CLIENT_SECRET_BASIC",
+    })
     void should_resolve_the_oidc_name_and_the_enum_constant_in_any_case(String configured, ClientAuthenticationMethod expected) {
         assertThat(ClientAuthenticationMethod.fromValue(configured)).isEqualTo(expected);
     }

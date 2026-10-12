@@ -26,8 +26,8 @@ import io.reactivex.rxjava3.core.Maybe;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface HttpMessageConditionFilter<T extends MessageConditionSupplier>
-    extends MessageConditionFilter<HttpBaseExecutionContext, T> {
+public interface HttpMessageConditionFilter<T extends MessageConditionSupplier> extends
+    MessageConditionFilter<HttpBaseExecutionContext, T> {
     /**
      * Filters the given element by applying a message condition on it.
      *

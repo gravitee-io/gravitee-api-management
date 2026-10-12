@@ -115,13 +115,11 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
     ) {
         if (pathItem == null) return;
         List<Parameter> pathLevelParams = Optional.ofNullable(pathItem.getParameters()).orElse(List.of());
-        pathItem
-            .readOperationsMap()
-            .forEach((httpMethod, op) -> {
-                if (op == null) return;
-                String method = httpMethod.name().toLowerCase(Locale.ROOT);
-                tools.add(buildTool(path, method, op, pathLevelParams, usedNames, errors));
-            });
+        pathItem.readOperationsMap().forEach((httpMethod, op) -> {
+            if (op == null) return;
+            String method = httpMethod.name().toLowerCase(Locale.ROOT);
+            tools.add(buildTool(path, method, op, pathLevelParams, usedNames, errors));
+        });
     }
 
     private static McpTool buildTool(
@@ -286,16 +284,14 @@ public class OpenApiToMcpToolsDomainServiceImpl implements OpenApiToMcpToolsDoma
             return Map.of();
         }
         Map<String, JsonNode> headers = new LinkedHashMap<>();
-        response
-            .getHeaders()
-            .forEach((name, header) -> {
-                if (header == null || header.getSchema() == null) return;
-                ObjectNode property = schemaToObjectNode(header.getSchema());
-                if (header.getDescription() != null) {
-                    property.put("description", header.getDescription());
-                }
-                headers.put(name, property);
-            });
+        response.getHeaders().forEach((name, header) -> {
+            if (header == null || header.getSchema() == null) return;
+            ObjectNode property = schemaToObjectNode(header.getSchema());
+            if (header.getDescription() != null) {
+                property.put("description", header.getDescription());
+            }
+            headers.put(name, property);
+        });
         return headers;
     }
 
