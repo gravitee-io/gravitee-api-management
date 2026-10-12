@@ -127,6 +127,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException recordTypeOnMetric() {
+        return new UnsupportedObservabilityFilterException(
+            "Filter 'RECORD_TYPE' cannot be set on a metric: a metric already fixes the kind of record it counts. Set it on the request filters.",
+            "observability.filter.record_type_on_metric"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException requiresDecisionRecordType(String filterName) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION",

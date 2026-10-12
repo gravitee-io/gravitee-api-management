@@ -19,14 +19,17 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,11 +40,12 @@ import lombok.AllArgsConstructor;
 
 /**
  * Shared pipeline for the three analytics use cases: validates incoming filter conditions against
- * the {@link Signal#ANALYTICS} catalog, computes the RBAC-scoped API set, strips the scope-only
- * conditions, and returns a prepared scope using only Gamma-native types. The entrypoint scope is the
- * engine's: it applies its fail-open default to a query without an {@code ENTRYPOINT} condition and
- * honours an explicit one exactly. All APIM analytics-engine type translation is deferred to the infra
- * adapter.
+ * the {@link Signal#ANALYTICS} catalog, loads the caller's readable APIs once, and builds the scope of
+ * each engine query using only Gamma-native types. Every condition is ANDed, the same field included:
+ * the scope-only conditions ({@code API}, {@code API_TYPE}) each narrow the readable APIs, and the
+ * others reach the engine one clause each. The entrypoint scope is the engine's: it applies its
+ * fail-open default to a query without an {@code ENTRYPOINT} condition and honours an explicit one
+ * exactly. All APIM analytics-engine type translation is deferred to the infra adapter.
  *
  * @author GraviteeSource Team
  */
@@ -51,7 +55,10 @@ public class AnalyticsRequestPipeline {
 
     static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
 
+    private static final String API = "API";
+    private static final String API_TYPE = "API_TYPE";
     private static final String RECORD_TYPE = "RECORD_TYPE";
+    private static final Set<String> SCOPE_ONLY = Set.of(API, API_TYPE, RECORD_TYPE);
 
     /** The metrics served from authorization decision records; pinned to the engine's routing by a test. */
     static final Set<String> AUTHZ_DECISION_METRICS = Set.of(
@@ -67,8 +74,8 @@ public class AnalyticsRequestPipeline {
     private final AccessibleApiScopeDomainService accessibleApiScope;
 
     /**
-     * Validated and RBAC-scoped request data, expressed entirely in Gamma-native types. The infra
-     * adapter is responsible for translating {@link #filters()} to the analytics-engine model.
+     * The scope of one engine query, expressed entirely in Gamma-native types. The infra adapter is
+     * responsible for translating {@link #filters()} to the analytics-engine model.
      */
     public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {
         /** Nothing the caller can read. Keeps the time range, so the query can still be validated. */
@@ -81,7 +88,55 @@ public class AnalyticsRequestPipeline {
         }
     }
 
-    public PreparedScope prepare(
+    /**
+     * A validated request and the APIs its caller can read, from which each engine query takes its scope.
+     * The request's own conditions are never re-validated once a group's are appended.
+     */
+    public record PreparedRequest(Instant from, Instant to, List<FilterCondition> conditions, List<AccessibleApi> readableApis) {
+        /**
+         * The scope of a query filtered by the request's conditions and the given ones. The API scope is
+         * the readable APIs narrowed by every {@code API} condition and by the APIs of every
+         * {@code API_TYPE} condition: disjoint conditions answer the empty scope, never every readable API.
+         */
+        public PreparedScope scopeWith(List<FilterCondition> groupConditions) {
+            var all = new ArrayList<>(conditions);
+            all.addAll(groupConditions);
+
+            var apiIds = readableApis.stream().map(AccessibleApi::id).collect(Collectors.toCollection(HashSet::new));
+            for (var condition : all) {
+                if (API.equals(condition.name())) {
+                    apiIds.retainAll(condition.values());
+                } else if (API_TYPE.equals(condition.name())) {
+                    apiIds.retainAll(apisOfType(condition));
+                }
+            }
+            if (apiIds.isEmpty()) {
+                return PreparedScope.empty(from, to);
+            }
+
+            var filters = all
+                .stream()
+                .filter(condition -> !isScopeOnly(condition))
+                .collect(Collectors.toCollection(ArrayList::new));
+            filters.add(new FilterCondition(API, FilterOperator.IN, List.copyOf(apiIds)));
+            return new PreparedScope(from, to, List.copyOf(filters), Set.copyOf(apiIds));
+        }
+
+        // Resolved to API ids rather than handed to the engine, which reads one API_TYPE condition only.
+        private Set<String> apisOfType(FilterCondition apiType) {
+            return readableApis
+                .stream()
+                .filter(api -> apiType.values().contains(api.type().name()))
+                .map(AccessibleApi::id)
+                .collect(Collectors.toSet());
+        }
+
+        private static boolean isScopeOnly(FilterCondition condition) {
+            return SCOPE_ONLY.contains(condition.name());
+        }
+    }
+
+    public PreparedRequest prepare(
         String organizationId,
         String environmentId,
         List<FilterCondition> rawFilters,
@@ -95,63 +150,81 @@ public class AnalyticsRequestPipeline {
         validateTimeRange(from, to);
 
         var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId);
-        var userApiFilter = extractApiFilter(conditions);
-        var scope = accessibleApiScope.computeScope(accessibleApis, ANALYTICS_SUPPORTED_API_TYPES, userApiFilter);
+        var readable = accessibleApiScope.computeScope(accessibleApis, ANALYTICS_SUPPORTED_API_TYPES, null).apiIds();
+        var readableApis = accessibleApis
+            .stream()
+            .filter(api -> readable.contains(api.id()))
+            .toList();
 
-        // Nothing readable means nothing to query, whether the caller named APIs it cannot read or none at
-        // all: an analytics query never runs environment-wide.
-        if (scope.apiIds().isEmpty()) {
-            return PreparedScope.empty(from, to);
-        }
-
-        var effectiveConditions = removeRecordTypeConditions(removeApiConditions(conditions));
-
-        var allFilters = new ArrayList<>(effectiveConditions);
-        allFilters.add(new FilterCondition("API", FilterOperator.IN, List.copyOf(scope.apiIds())));
-
-        return new PreparedScope(from, to, List.copyOf(allFilters), scope.apiIds());
+        return new PreparedRequest(from, to, List.copyOf(conditions), readableApis);
     }
 
     /**
-     * Per metric, the conditions Gamma never hands to the engine, which the response must still name as
-     * not applied:
-     *
-     * <ul>
-     *   <li>a {@code RECORD_TYPE} that does not select the metric's kind of record: {@link #prepare} strips
-     *       it whatever its value;</li>
-     *   <li>every metric-level condition: they are validated like the top-level ones, but not wired to the
-     *       engine yet.</li>
-     * </ul>
-     *
-     * Metrics with nothing to report are left out.
+     * Validates each metric's own conditions on their own, never combined with the request's. A
+     * {@code RECORD_TYPE} is refused there: a metric already fixes the kind of record it counts.
      */
-    public Map<String, List<String>> conditionsNotApplied(List<FilterCondition> rawFilters, List<MetricConditions> metrics) {
-        metrics.forEach(metric -> filterValidator.validate(metric.conditions(), Signal.ANALYTICS));
-        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of()).stream()
-            .filter(c -> RECORD_TYPE.equals(c.name()))
-            .toList();
+    public void validateMetricConditions(List<List<FilterCondition>> metricConditions) {
+        for (var conditions : metricConditions) {
+            filterValidator.validate(conditions, Signal.ANALYTICS);
+            if (conditions.stream().anyMatch(condition -> RECORD_TYPE.equals(condition.name()))) {
+                throw UnsupportedObservabilityFilterException.recordTypeOnMetric();
+            }
+        }
+    }
 
+    /**
+     * The metric-level conditions of a facets or time-series request, which runs as one query: every
+     * metric must carry the same set, in the sense of {@link #conditionSet}.
+     */
+    public List<FilterCondition> sharedMetricConditions(List<List<FilterCondition>> metricConditions) {
+        var shared = metricConditions.isEmpty() ? List.<FilterCondition>of() : metricConditions.getFirst();
+        var sharedSet = conditionSet(shared);
+        if (metricConditions.stream().anyMatch(conditions -> !conditionSet(conditions).equals(sharedSet))) {
+            throw InvalidObservabilityQueryException.differingMetricConditions();
+        }
+        return shared;
+    }
+
+    /**
+     * The identity of a set of conditions: their order does not matter, nor the order of an {@code IN}'s
+     * values, since every condition is ANDed and an {@code IN} reads as a set.
+     */
+    public static Set<FilterCondition> conditionSet(List<FilterCondition> conditions) {
+        return conditions
+            .stream()
+            .map(condition -> new FilterCondition(condition.name(), condition.operator(), condition.values().stream().sorted().toList()))
+            .collect(Collectors.toSet());
+    }
+
+    /**
+     * Per metric name, the {@code RECORD_TYPE} conditions that do not select the metric's kind of record:
+     * {@link PreparedRequest#scopeWith} strips them whatever their value, so the response must name them as
+     * not applied. Metrics with nothing to report are left out.
+     */
+    public Map<String, List<String>> conditionsNotApplied(List<FilterCondition> rawFilters, List<String> metrics) {
         var notApplied = new LinkedHashMap<String, List<String>>();
         for (var metric : metrics) {
-            var names = new LinkedHashSet<String>();
-            recordTypes
-                .stream()
-                .filter(condition -> !selects(condition, recordTypeOf(metric.metric())))
-                .forEach(condition -> names.add(condition.name()));
-            metric.conditions().forEach(condition -> names.add(condition.name()));
+            var names = recordTypesNotApplied(rawFilters, metric);
             if (!names.isEmpty()) {
-                // A metric queried twice is one entry per name in the response: it carries both lists.
-                notApplied.merge(metric.metric(), List.copyOf(names), AnalyticsRequestPipeline::union);
+                notApplied.merge(metric, names, AnalyticsRequestPipeline::union);
             }
         }
         return notApplied;
     }
 
-    public record MetricConditions(String metric, List<FilterCondition> conditions) {}
+    /** The names of the {@code RECORD_TYPE} conditions that do not select the given metric's kind of record. */
+    public List<String> recordTypesNotApplied(List<FilterCondition> rawFilters, String metric) {
+        return (rawFilters != null ? rawFilters : List.<FilterCondition>of()).stream()
+            .filter(condition -> RECORD_TYPE.equals(condition.name()))
+            .filter(condition -> !selects(condition, recordTypeOf(metric)))
+            .map(FilterCondition::name)
+            .distinct()
+            .toList();
+    }
 
     /** The kind of record a metric counts: authorization decisions for the decision metrics, requests otherwise. */
     static RecordType recordTypeOf(String metric) {
-        return AUTHZ_DECISION_METRICS.contains(metric) ? RecordType.AUTHZ_DECISION : RecordType.REQUEST;
+        return metric != null && AUTHZ_DECISION_METRICS.contains(metric) ? RecordType.AUTHZ_DECISION : RecordType.REQUEST;
     }
 
     private static boolean selects(FilterCondition recordType, RecordType kind) {
@@ -176,27 +249,5 @@ public class AnalyticsRequestPipeline {
         if (from.isAfter(to)) {
             throw InvalidObservabilityQueryException.invalidTimeRange();
         }
-    }
-
-    private static Set<String> extractApiFilter(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> "API".equals(c.name()))
-            .flatMap(c -> c.values().stream())
-            .collect(Collectors.toSet());
-    }
-
-    private static List<FilterCondition> removeApiConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> !"API".equals(c.name()))
-            .toList();
-    }
-
-    private static List<FilterCondition> removeRecordTypeConditions(List<FilterCondition> conditions) {
-        return conditions
-            .stream()
-            .filter(c -> !RECORD_TYPE.equals(c.name()))
-            .toList();
     }
 }

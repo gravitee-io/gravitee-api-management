@@ -17,17 +17,21 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
@@ -51,8 +55,12 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -64,6 +72,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Gamma-native types to the analytics-engine model, builds the {@link AuditInfo} from the ambient
  * request context, and serializes APIM responses to {@link JsonNode} for framework independence.
  *
+ * <p>A measures query runs one engine query per group, one after the other. The engine answers one
+ * entry per metric name, measures merged, in no particular order: the response is rebuilt in request
+ * order, per metric when they carry ids, per name otherwise.
+ *
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
@@ -73,6 +85,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     private final ComputeFacetsUseCase computeFacetsUseCase;
     private final ComputeTimeSeriesUseCase computeTimeSeriesUseCase;
     private final AnalyticsQueryValidator analyticsQueryValidator;
+    private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
     private final UserContextLoader userContextLoader;
     private final ObjectMapper objectMapper;
 
@@ -90,7 +103,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
 
     @Override
     public void validate(MeasuresQuery query) {
-        analyticsQueryValidator.validateMeasuresRequest(toApimRequest(query));
+        for (int group = 0; group < query.groups().size(); group++) {
+            analyticsQueryValidator.validateMeasuresRequest(toApimRequest(query.groups().get(group), query.metricsOf(group)));
+        }
     }
 
     @Override
@@ -106,10 +121,97 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     @Override
     public JsonNode computeMeasures(MeasuresQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
-        var response = computeMeasuresUseCase.execute(new ComputeMeasuresUseCase.Input(auditInfo, toApimRequest(query))).response();
-        JsonNode node = objectMapper.valueToTree(response);
-        ConditionsNotAppliedEnricher.enrichMeasures(node, query.conditionsNotApplied());
+        var responses = new ArrayList<MeasuresResponse>();
+        for (int group = 0; group < query.groups().size(); group++) {
+            var scope = query.groups().get(group);
+            var request = toApimRequest(scope, query.metricsOf(group));
+            // The group scope is already narrowed from the readable APIs, which Gamma loads with the same
+            // rule as the engine's context: reloading that context per group would repeat the same search.
+            responses.add(
+                scope.isEmpty() ? zeroValued(request) : computeMeasuresUseCase.executeForApis(auditInfo, request, scope.apiIds()).response()
+            );
+        }
+        var node = objectMapper.createObjectNode();
+        node.set("metrics", query.identified() ? entriesById(query, responses) : entriesByName(query, responses));
         return node;
+    }
+
+    // What the engine answers when no document matches, without asking it: no readable API meets the conditions.
+    private MeasuresResponse zeroValued(MeasuresRequest request) {
+        var measuresByMetric = new LinkedHashMap<MetricSpec.Name, LinkedHashSet<MetricSpec.Measure>>();
+        request
+            .metrics()
+            .forEach(metric -> measuresByMetric.computeIfAbsent(metric.name(), name -> new LinkedHashSet<>()).addAll(metric.measures()));
+        return unitEnrichmentPostProcessor.enrichUnits(
+            new MeasuresResponse(
+                measuresByMetric
+                    .entrySet()
+                    .stream()
+                    .map(metric ->
+                        new MetricMeasuresResponse(
+                            metric.getKey(),
+                            null,
+                            metric
+                                .getValue()
+                                .stream()
+                                .map(measure -> new Measure(measure, 0))
+                                .toList(),
+                            List.of()
+                        )
+                    )
+                    .toList()
+            )
+        );
+    }
+
+    private ArrayNode entriesById(MeasuresQuery query, List<MeasuresResponse> responses) {
+        var entries = objectMapper.createArrayNode();
+        for (var metric : query.metrics()) {
+            findEntry(responses.get(metric.group()), metric.query().metricName()).ifPresent(entry -> {
+                var requested = metric.query().measures();
+                var own = entry
+                    .measures()
+                    .stream()
+                    .filter(measure -> requested.contains(measure.name().name()))
+                    .toList();
+                var node = objectMapper.createObjectNode().put("id", metric.query().id());
+                node.setAll(
+                    (ObjectNode) objectMapper.valueToTree(
+                        new MetricMeasuresResponse(entry.name(), entry.unit(), own, entry.ignoredFilters())
+                    )
+                );
+                ConditionsNotAppliedEnricher.enrichMetric(node, metric.conditionsNotApplied());
+                entries.add(node);
+            });
+        }
+        return entries;
+    }
+
+    private ArrayNode entriesByName(MeasuresQuery query, List<MeasuresResponse> responses) {
+        var notAppliedByName = new LinkedHashMap<String, LinkedHashSet<String>>();
+        var groupByName = new HashMap<String, Integer>();
+        for (var metric : query.metrics()) {
+            var name = metric.query().metricName();
+            notAppliedByName.computeIfAbsent(name, key -> new LinkedHashSet<>()).addAll(metric.conditionsNotApplied());
+            groupByName.putIfAbsent(name, metric.group());
+        }
+        var entries = objectMapper.createArrayNode();
+        notAppliedByName.forEach((name, notApplied) ->
+            findEntry(responses.get(groupByName.get(name)), name).ifPresent(entry -> {
+                ObjectNode node = objectMapper.valueToTree(entry);
+                ConditionsNotAppliedEnricher.enrichMetric(node, List.copyOf(notApplied));
+                entries.add(node);
+            })
+        );
+        return entries;
+    }
+
+    private static Optional<MetricMeasuresResponse> findEntry(MeasuresResponse response, String metricName) {
+        return response
+            .metrics()
+            .stream()
+            .filter(entry -> entry.name().name().equals(metricName))
+            .findFirst();
     }
 
     @Override
@@ -133,11 +235,6 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     }
 
     @Override
-    public JsonNode emptyMeasuresResponse() {
-        return objectMapper.valueToTree(new MeasuresResponse(List.of()));
-    }
-
-    @Override
     public JsonNode emptyFacetsResponse() {
         return objectMapper.valueToTree(new FacetsResponse(List.of()));
     }
@@ -149,8 +246,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
 
     // ---- Translation: Gamma → APIM ----
 
-    private static MeasuresRequest toApimRequest(MeasuresQuery query) {
-        return new MeasuresRequest(toTimeRange(query.scope()), translateFilters(query.scope()), toApimMetrics(query.metrics()));
+    private static MeasuresRequest toApimRequest(AnalyticsRequestPipeline.PreparedScope scope, List<AnalyticsMetricQuery> metrics) {
+        return new MeasuresRequest(toTimeRange(scope), translateFilters(scope), toApimMetrics(metrics));
     }
 
     private static FacetsRequest toApimRequest(FacetsQuery query) {
@@ -193,8 +290,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         return new Filter(name, operator, value);
     }
 
-    // Metric-level conditions are not handed to the engine: the response names them as not applied
-    // (ConditionsNotAppliedEnricher) rather than pretending they filtered anything.
+    // A metric's own conditions are already in its query's scope, one clause each: the engine's per-metric
+    // filters are applied on HTTP measures only and collide when one metric appears twice.
     private static List<MetricMeasuresRequest> toApimMetrics(List<AnalyticsMetricQuery> metrics) {
         if (metrics == null) {
             return List.of();

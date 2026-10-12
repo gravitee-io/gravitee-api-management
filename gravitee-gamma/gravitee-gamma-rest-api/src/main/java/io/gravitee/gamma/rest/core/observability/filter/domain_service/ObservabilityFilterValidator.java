@@ -47,9 +47,10 @@ import lombok.RequiredArgsConstructor;
  *       out-of-range number.</li>
  * </ul>
  *
- * <p>A request names each filter once. The only repetition is a {@code GTE} and an {@code LTE} on the
- * same NUMBER filter, a closed range both signals read as AND. Anything else would read differently
- * per signal: analytics used to AND repeated conditions, logs to OR them.
+ * <p>An analytics request ANDs every condition, the same filter included: a widget's own filters are
+ * appended to the dashboard's, and conditions that cannot overlap answer an empty result. Any other
+ * request names each filter once, the only repetition being a {@code GTE} and an {@code LTE} on the
+ * same NUMBER filter, a closed range read as AND: the logs search would OR anything else.
  *
  * @author GraviteeSource Team
  */
@@ -77,7 +78,9 @@ public class ObservabilityFilterValidator {
             }
             validateValues(condition, spec);
         }
-        validateRepetition(conditions, specsByName);
+        if (signal != Signal.ANALYTICS) {
+            validateRepetition(conditions, specsByName);
+        }
     }
 
     /**

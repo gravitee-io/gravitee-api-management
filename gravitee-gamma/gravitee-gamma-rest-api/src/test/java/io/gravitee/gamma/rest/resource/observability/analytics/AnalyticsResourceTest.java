@@ -164,14 +164,20 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             assertBadRequest(response, "observability.filter.invalid_value_shape");
         }
 
+        // A widget's own filters are appended to the dashboard's: the conditions are ANDed, not refused.
         @Test
-        void should_answer_400_when_a_filter_is_repeated() {
+        void should_hand_a_repeated_filter_over_to_be_anded() {
             var response = post(
                 "measures",
                 measures(List.of(filter("HTTP_METHOD", "IN", List.of("GET")), filter("HTTP_METHOD", "IN", List.of("POST"))))
             );
 
-            assertBadRequest(response, "observability.filter.repeated");
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
+            verify(analyticsDataPort).computeMeasures(captor.capture());
+            assertThat(captor.getValue().groups().getFirst().filters())
+                .filteredOn(c -> "HTTP_METHOD".equals(c.name()))
+                .hasSize(2);
         }
 
         @Test
@@ -182,7 +188,7 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_hand_a_metric_level_condition_over_as_not_applied() {
+        void should_apply_a_metric_level_condition() {
             var metric = Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT"), "filters", List.of(filter("PLAN", "EQ", "plan-1")));
 
             var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric)));
@@ -190,7 +196,43 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
             var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
             verify(analyticsDataPort).computeMeasures(captor.capture());
-            assertThat(captor.getValue().conditionsNotApplied()).isEqualTo(Map.of("HTTP_REQUESTS", List.of("PLAN")));
+            assertThat(captor.getValue().groups().getFirst().filters()).anyMatch(c -> "PLAN".equals(c.name()));
+            assertThat(captor.getValue().metrics().getFirst().conditionsNotApplied()).isEmpty();
+        }
+
+        @Test
+        void should_hand_the_metric_ids_over() {
+            var total = Map.of("id", "total", "name", "HTTP_REQUESTS", "measures", List.of("COUNT"));
+            var errors = Map.of(
+                "id",
+                "errors",
+                "name",
+                "HTTP_REQUESTS",
+                "measures",
+                List.of("COUNT"),
+                "filters",
+                List.of(filter("HTTP_STATUS", "GTE", 500))
+            );
+
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(total, errors)));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
+            verify(analyticsDataPort).computeMeasures(captor.capture());
+            assertThat(captor.getValue().metrics())
+                .extracting(m -> m.query().id())
+                .containsExactly("total", "errors");
+            assertThat(captor.getValue().groups()).hasSize(2);
+        }
+
+        @Test
+        void should_answer_400_to_ids_on_some_metrics_only() {
+            var total = Map.of("id", "total", "name", "HTTP_REQUESTS", "measures", List.of("COUNT"));
+            var errors = Map.of("name", "HTTP_ERRORS", "measures", List.of("COUNT"));
+
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(total, errors)));
+
+            assertBadRequest(response, "observability.query.partial_metric_ids");
         }
 
         @Test

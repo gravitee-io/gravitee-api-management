@@ -30,11 +30,17 @@ import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -43,6 +49,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -117,6 +124,59 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
 
         assertThatThrownBy(() -> useCase.execute(input(60_000L, METRICS))).isInstanceOf(InvalidObservabilityQueryException.class);
         verify(analyticsDataPort, never()).emptyTimeSeriesResponse();
+    }
+
+    @Test
+    void should_append_the_metric_conditions_every_metric_shares_to_the_query_filters() {
+        givenTheStatusFilter();
+        when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+            List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+        );
+        var metrics = List.of(
+            new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of(STATUS_500)),
+            new AnalyticsFacetMetricQuery("HTTP_ERRORS", List.of("COUNT"), List.of(), List.of(STATUS_500))
+        );
+
+        useCase.execute(input(60_000L, metrics));
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class);
+        verify(analyticsDataPort).computeTimeSeries(captor.capture());
+        assertThat(captor.getValue().scope().filters()).contains(STATUS_500);
+        assertThat(captor.getValue().conditionsNotApplied()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_metrics_carrying_different_conditions_before_any_data_access() {
+        givenTheStatusFilter();
+        var metrics = List.of(
+            new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of(STATUS_500)),
+            new AnalyticsFacetMetricQuery("HTTP_ERRORS", List.of("COUNT"), List.of(), List.of())
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input(60_000L, metrics)))
+            .isInstanceOf(InvalidObservabilityQueryException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.query.differing_metric_conditions");
+        verifyNoInteractions(analyticsDataPort);
+    }
+
+    private static final FilterCondition STATUS_500 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
+
+    private void givenTheStatusFilter() {
+        when(filterRegistry.getFilters(any(), any())).thenReturn(
+            List.of(
+                new FilterSpec(
+                    "HTTP_STATUS",
+                    "Status Code",
+                    FilterType.NUMBER,
+                    List.of(FilterOperator.EQ),
+                    null,
+                    new FilterSpec.Range(100, 599),
+                    Set.of(Signal.ANALYTICS),
+                    Set.of(ApiType.HTTP_PROXY)
+                )
+            )
+        );
     }
 
     private static ComputeObservabilityTimeSeriesUseCase.Input input(Long interval, List<AnalyticsFacetMetricQuery> metrics) {

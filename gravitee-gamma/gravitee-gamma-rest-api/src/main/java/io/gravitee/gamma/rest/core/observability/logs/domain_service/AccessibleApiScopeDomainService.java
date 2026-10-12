@@ -47,9 +47,10 @@ public class AccessibleApiScopeDomainService {
     /**
      * @param accessibleApis   All APIs the caller can read (from the data port).
      * @param wantedApiTypes   API kinds the caller may see for the current request: every kind by
-     *                         default on both signals, or the kinds an {@code API_TYPE} condition names.
-     * @param userApiFilter    API IDs explicitly requested by the caller (from an {@code API}
-     *                         filter condition). {@code null} or empty means "all accessible".
+     *                         default, or on logs the kinds an {@code API_TYPE} condition names.
+     *                         Analytics narrows by its {@code API_TYPE} conditions afterwards, per query.
+     * @param userApiFilter    API IDs explicitly requested by the caller (from the {@code API} filter
+     *                         condition of a logs search). {@code null} or empty means "all accessible".
      * @return The intersection of the three constraints. An empty {@code apiIds} means the caller
      *         has no data to see (→ empty result, not 403).
      */
