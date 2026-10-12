@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.rest.api.mcp.tools;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.use_case.BreakDownTrafficUseCase;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 
 public class BreakDownTrafficTool extends TriageTool<BreakDownTrafficTool.Arguments> {
 
@@ -27,14 +27,15 @@ public class BreakDownTrafficTool extends TriageTool<BreakDownTrafficTool.Argume
         this.useCase = useCase;
     }
 
-    public record Arguments(String by, String api, String statusGroup, String window, String until) {}
+    public record Arguments(String by, String environment, String api, String statusGroup, String window, String until) {}
 
     @Override
-    Object execute(AuditInfo caller, Arguments arguments) {
+    Object execute(McpCaller caller, Arguments arguments) {
         return useCase.execute(
             new BreakDownTrafficUseCase.Input(
                 caller,
                 arguments.by(),
+                arguments.environment(),
                 arguments.api(),
                 arguments.statusGroup(),
                 arguments.window(),

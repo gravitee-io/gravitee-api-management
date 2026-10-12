@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.rest.api.mcp.tools;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 
 public class GetTrafficTimelineTool extends TriageTool<GetTrafficTimelineTool.Arguments> {
 
@@ -27,10 +27,12 @@ public class GetTrafficTimelineTool extends TriageTool<GetTrafficTimelineTool.Ar
         this.useCase = useCase;
     }
 
-    public record Arguments(String api, String window, String until) {}
+    public record Arguments(String environment, String api, String window, String until) {}
 
     @Override
-    Object execute(AuditInfo caller, Arguments arguments) {
-        return useCase.execute(new GetTrafficTimelineUseCase.Input(caller, arguments.api(), arguments.window(), arguments.until()));
+    Object execute(McpCaller caller, Arguments arguments) {
+        return useCase.execute(
+            new GetTrafficTimelineUseCase.Input(caller, arguments.environment(), arguments.api(), arguments.window(), arguments.until())
+        );
     }
 }

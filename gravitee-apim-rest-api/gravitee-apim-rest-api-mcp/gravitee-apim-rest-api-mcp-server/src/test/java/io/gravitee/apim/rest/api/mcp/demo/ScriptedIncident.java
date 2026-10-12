@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Change;
 import io.gravitee.apim.rest.api.mcp.core.model.Dimension;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.FailedRequest;
 import io.gravitee.apim.rest.api.mcp.core.model.StatusGroup;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
@@ -28,8 +29,10 @@ import io.gravitee.apim.rest.api.mcp.core.model.TrafficScope;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficStats;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
 import io.gravitee.apim.rest.api.mcp.core.port.TrafficAnalytics;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -37,32 +40,46 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The demo scenario, computed instead of measured: two APIs under steady traffic, and the API key of the one
- * application of "Orders" revoked at a given instant while its client keeps sending it.
+ * The demo scenario, computed instead of measured. Two environments: in production, "Orders" and "Stock" under
+ * steady traffic and the API key of the one application of Orders revoked at a given instant while its client
+ * keeps sending it; in staging, a quiet "Stock". A third environment, dev, the caller may not read.
  */
-class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, ChangeLog {
+public class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, ChangeLog, EnvironmentDirectory {
 
-    static final ApiRef ORDERS = new ApiRef("0f3c9a52-orders", "Orders");
-    static final ApiRef STOCK = new ApiRef("7b1e44d0-stock", "Stock");
+    public static final EnvRef PROD = new EnvRef("3c1f-prod", "prod", "Production");
+    public static final EnvRef STAGING = new EnvRef("9a7e-staging", "staging", "Staging");
+    public static final EnvRef DEV = new EnvRef("51d2-dev", "dev", "Dev");
+    public static final ApiRef ORDERS = new ApiRef("0f3c9a52-orders", "Orders");
+    public static final ApiRef STOCK = new ApiRef("7b1e44d0-stock", "Stock");
+    public static final ApiRef STOCK_STAGING = new ApiRef("c4d8e0a1-stock", "Stock");
 
     private static final double ORDERS_PER_SECOND = 8;
     private static final double STOCK_PER_SECOND = 5;
+    private static final double STAGING_PER_SECOND = 1;
     private static final String CLIENT_IP = "10.244.0.31";
     private static final String GATEWAY = "gateway-7d9f";
 
     private final Instant revokedAt;
 
-    ScriptedIncident(Instant revokedAt) {
+    public ScriptedIncident(Instant revokedAt) {
         this.revokedAt = revokedAt;
     }
 
     @Override
+    public Environments environments(McpCaller caller) {
+        return new Environments(List.of(PROD, STAGING), List.of(DEV));
+    }
+
+    @Override
     public List<ApiRef> visibleTo(AuditInfo caller) {
-        return List.of(ORDERS, STOCK);
+        return inProd(caller) ? List.of(ORDERS, STOCK) : List.of(STOCK_STAGING);
     }
 
     @Override
     public TrafficStats total(AuditInfo caller, TimeWindow window, TrafficScope scope) {
+        if (!inProd(caller)) {
+            return staging(window.from(), window.to(), scope.statusGroup());
+        }
         var orders = orders(window.from(), window.to(), scope.statusGroup());
         if (ORDERS.id().equals(scope.apiId())) {
             return orders;
@@ -77,6 +94,16 @@ class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, C
     @Override
     public List<TrafficSample> by(AuditInfo caller, TimeWindow window, TrafficScope scope, Dimension dimension) {
         var samples = new ArrayList<TrafficSample>();
+        if (!inProd(caller)) {
+            var stagingStock = staging(window.from(), window.to(), scope.statusGroup());
+            switch (dimension) {
+                case API -> add(samples, true, STOCK_STAGING.id(), STOCK_STAGING.name(), stagingStock);
+                case STATUS -> add(samples, true, "200", "200 OK", stagingStock);
+                case APPLICATION -> add(samples, true, "1", "Unknown", stagingStock);
+                default -> add(samples, true, "staging-" + dimension.name().toLowerCase(), "staging", stagingStock);
+            }
+            return samples;
+        }
         boolean withOrders = scope.apiId() == null || ORDERS.id().equals(scope.apiId());
         boolean withStock = scope.apiId() == null || STOCK.id().equals(scope.apiId());
         var rejected = rejected(window.from(), window.to());
@@ -132,6 +159,7 @@ class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, C
     @Override
     public Page failures(AuditInfo caller, TimeWindow window, Query query, int limit) {
         boolean concerned =
+            inProd(caller) &&
             (query.apiId() == null || ORDERS.id().equals(query.apiId())) &&
             query.statusGroup() != StatusGroup.SERVER_ERROR &&
             (query.errorKey() == null || "API_KEY_INVALID".equals(query.errorKey()));
@@ -180,6 +208,10 @@ class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, C
             : List.of();
     }
 
+    private static boolean inProd(AuditInfo caller) {
+        return PROD.id().equals(caller.environmentId());
+    }
+
     private TrafficStats orders(Instant from, Instant to, StatusGroup group) {
         return sum(accepted(from, to, group), group == StatusGroup.SERVER_ERROR ? TrafficStats.NONE : rejected(from, to));
     }
@@ -199,6 +231,11 @@ class ScriptedIncident implements TrafficAnalytics, ApiDirectory, RequestLogs, C
     private static TrafficStats stock(Instant from, Instant to, StatusGroup group) {
         long requests = group == null ? Math.round(seconds(from, to) * STOCK_PER_SECOND) : 0;
         return requests == 0 ? TrafficStats.NONE : TrafficStats.of(requests, 0, 0, 43.0, 39.0);
+    }
+
+    private static TrafficStats staging(Instant from, Instant to, StatusGroup group) {
+        long requests = group == null ? Math.round(seconds(from, to) * STAGING_PER_SECOND) : 0;
+        return requests == 0 ? TrafficStats.NONE : TrafficStats.of(requests, 0, 0, 51.0, 47.0);
     }
 
     private static TrafficStats sum(TrafficStats one, TrafficStats other) {

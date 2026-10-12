@@ -65,7 +65,7 @@ class EventAndAuditChangeLogTest {
         );
         var query = ArgumentCaptor.forClass(EventQueryService.SearchQuery.class);
         verify(events).search(query.capture(), any());
-        assertThat(query.getValue().environmentId()).isEqualTo("DEFAULT");
+        assertThat(query.getValue().environmentId()).isEqualTo("e-prod");
         assertThat(query.getValue().apiId()).contains("orders-id");
         assertThat(query.getValue().types()).containsExactly(
             EventType.PUBLISH_API,
@@ -102,7 +102,7 @@ class EventAndAuditChangeLogTest {
         verify(searchApiAudit).execute(input.capture());
         var filters = input.getValue().query();
         assertThat(filters.apiId()).isEqualTo("orders-id");
-        assertThat(filters.environmentId()).isEqualTo("DEFAULT");
+        assertThat(filters.environmentId()).isEqualTo("e-prod");
         assertThat(filters.from()).isEqualTo(Optional.of(WINDOW.from().toEpochMilli()));
         assertThat(filters.to()).isEqualTo(Optional.of(NOW.toEpochMilli()));
     }

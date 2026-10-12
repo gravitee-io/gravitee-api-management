@@ -16,37 +16,15 @@
 package io.gravitee.apim.rest.api.mcp.sdk;
 
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.traffic;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
-import io.gravitee.apim.rest.api.mcp.core.model.Change;
-import io.gravitee.apim.rest.api.mcp.core.model.FailedRequest;
-import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
-import io.gravitee.apim.rest.api.mcp.core.model.TimelinePoint;
-import io.gravitee.apim.rest.api.mcp.core.model.TrafficSample;
-import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
-import io.gravitee.apim.rest.api.mcp.core.use_case.BreakDownTrafficUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.GetHealthOverviewUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
-import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
-import io.gravitee.apim.rest.api.mcp.fakes.Fakes;
-import io.gravitee.apim.rest.api.mcp.fakes.InMemoryTrafficAnalytics;
+import io.gravitee.apim.rest.api.mcp.demo.ScriptedIncident;
+import io.gravitee.apim.rest.api.mcp.demo.ScriptedIncidentServer;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.apim.rest.api.mcp.spi.McpTool;
 import io.gravitee.apim.rest.api.mcp.spi.ToolDescriptor;
-import io.gravitee.apim.rest.api.mcp.tools.BreakDownTrafficTool;
-import io.gravitee.apim.rest.api.mcp.tools.GetHealthOverviewTool;
-import io.gravitee.apim.rest.api.mcp.tools.GetTrafficTimelineTool;
-import io.gravitee.apim.rest.api.mcp.tools.IncidentTriageGuide;
-import io.gravitee.apim.rest.api.mcp.tools.ListRecentChangesTool;
-import io.gravitee.apim.rest.api.mcp.tools.SearchFailedRequestsTool;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
@@ -56,21 +34,15 @@ import io.modelcontextprotocol.spec.McpSchema.ReadResourceRequest;
 import io.modelcontextprotocol.spec.McpSchema.TextContent;
 import io.modelcontextprotocol.spec.McpSchema.TextResourceContents;
 import io.modelcontextprotocol.spec.McpSchema.Tool;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.Filter;
-import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.ZoneOffset;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import org.eclipse.jetty.ee10.servlet.FilterHolder;
-import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.jupiter.api.AfterAll;
@@ -79,17 +51,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Talks to the mounted servlet with the SDK's own client, over HTTP.
+ * Talks to the mounted servlet with the SDK's own client, over HTTP, about the scripted incident.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class McpEndpointTest {
 
-    private static final String ENDPOINT = "/mcp/organizations/DEFAULT/environments/DEFAULT";
-    private static final ApiRef ORDERS = new ApiRef("orders-id", "Orders");
     private static final ObjectMapper JSON = new ObjectMapper();
 
     private Server server;
@@ -99,18 +68,16 @@ class McpEndpointTest {
     @BeforeAll
     void start() throws Exception {
         TimeProvider.overrideClock(Clock.fixed(NOW, ZoneOffset.UTC));
-
-        var context = new ServletContextHandler("/mcp");
-        context.addFilter(new FilterHolder(authenticatedAs("api-owner")), "/*", EnumSet.allOf(DispatcherType.class));
-        context.addServlet(new ServletHolder(servlet()), "/*");
-        server = new Server();
-        var connector = new ServerConnector(server);
-        server.addConnector(connector);
-        server.setHandler(context);
-        server.start();
-        baseUrl = "http://localhost:" + connector.getLocalPort();
-
-        client = McpClient.sync(HttpClientStreamableHttpTransport.builder(baseUrl).endpoint(ENDPOINT).build()).build();
+        var incident = new ScriptedIncident(NOW.minus(Duration.ofMinutes(5)));
+        server = ScriptedIncidentServer.start(
+            "localhost",
+            0,
+            ScriptedIncidentServer.servlet(incident, List.of(new WhoAmI(), new Broken()))
+        );
+        baseUrl = "http://localhost:" + ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+        client = McpClient.sync(
+            HttpClientStreamableHttpTransport.builder(baseUrl).endpoint(ScriptedIncidentServer.ENDPOINT).build()
+        ).build();
     }
 
     @AfterAll
@@ -149,6 +116,9 @@ class McpEndpointTest {
             assertThat(tool.inputSchema()).containsEntry("type", "object");
             assertThat(tool.outputSchema()).containsEntry("type", "object");
         });
+        assertThat(tools.subList(0, 5)).allSatisfy(tool ->
+            assertThat(((Map<?, ?>) tool.inputSchema().get("properties")).containsKey("environment")).isTrue()
+        );
     }
 
     @ParameterizedTest
@@ -156,8 +126,10 @@ class McpEndpointTest {
         delimiter = '|',
         value = {
             "get_health_overview | {}",
+            "get_health_overview | {\"environment\":\"staging\"}",
             "break_down_traffic | {\"by\":\"application\",\"api\":\"Orders\",\"statusGroup\":\"4XX\"}",
-            "get_traffic_timeline | {\"api\":\"orders-id\",\"window\":\"30m\"}",
+            "break_down_traffic | {\"by\":\"status\",\"environment\":\"staging\"}",
+            "get_traffic_timeline | {\"api\":\"0f3c9a52-orders\",\"window\":\"30m\"}",
             "search_failed_requests | {\"api\":\"Orders\",\"limit\":5}",
             "list_recent_changes | {\"api\":\"Orders\"}",
         }
@@ -172,12 +144,37 @@ class McpEndpointTest {
     }
 
     @Test
-    void should_report_times_as_iso_8601_instants() throws Exception {
+    void should_cover_every_readable_environment_and_name_the_degraded_one_first() throws Exception {
         var overview = JSON.readTree(textOf(call("get_health_overview", "{}")));
 
+        assertThat(overview.get("status").asText()).isEqualTo("DEGRADED");
+        assertThat(overview.at("/environments/0/environment/hrid").asText()).isEqualTo("prod");
+        assertThat(overview.at("/environments/0/status").asText()).isEqualTo("DEGRADED");
+        assertThat(overview.at("/environments/1/environment/hrid").asText()).isEqualTo("staging");
+        assertThat(overview.at("/environments/1/status").asText()).isEqualTo("HEALTHY");
+        assertThat(overview.at("/omittedEnvironments/0/hrid").asText()).isEqualTo("dev");
+        assertThat(overview.at("/findings/0/kind").asText()).isEqualTo("CLIENT_ERROR_RATE_UP");
+        assertThat(overview.at("/findings/0/environment/hrid").asText()).isEqualTo("prod");
         assertThat(overview.at("/window/from").asText()).isEqualTo("2026-01-31T13:45:00Z");
         assertThat(overview.at("/window/to").asText()).isEqualTo("2026-01-31T14:00:00Z");
-        assertThat(overview.at("/findings/0/kind").asText()).isEqualTo("CLIENT_ERROR_RATE_UP");
+    }
+
+    @Test
+    void should_find_the_environment_of_an_api_on_its_own() throws Exception {
+        var changes = JSON.readTree(textOf(call("list_recent_changes", "{\"api\":\"Orders\"}")));
+
+        assertThat(changes.at("/environment/hrid").asText()).isEqualTo("prod");
+        assertThat(changes.at("/changes/0/event").asText()).isEqualTo("APIKEY_REVOKED");
+    }
+
+    @Test
+    void should_ask_for_the_environment_when_an_api_exists_in_several() throws Exception {
+        var result = call("get_traffic_timeline", "{\"api\":\"Stock\"}");
+
+        assertThat(result.isError()).isTrue();
+        assertThat(textOf(result)).isEqualTo(
+            "Several environments have an API 'Stock': Production (prod), Staging (staging). Pass environment."
+        );
     }
 
     @Test
@@ -189,11 +186,11 @@ class McpEndpointTest {
     }
 
     @Test
-    void should_run_a_tool_as_the_authenticated_user_on_the_environment_of_the_endpoint() throws Exception {
+    void should_run_a_tool_as_the_authenticated_user_of_his_organization() throws Exception {
         var seen = JSON.readTree(textOf(call("who_am_i", "{}")));
 
-        assertThat(seen.get("caller").asText()).isEqualTo("api-owner@DEFAULT/DEFAULT");
-        assertThat(seen.get("threadBoundUser").asText()).isEqualTo("api-owner");
+        assertThat(seen.get("caller").asText()).isEqualTo("demo@DEFAULT");
+        assertThat(seen.get("threadBoundUser").asText()).isEqualTo("demo");
     }
 
     @Test
@@ -210,21 +207,21 @@ class McpEndpointTest {
 
         var contents = client.readResource(new ReadResourceRequest("gravitee://guides/incident-triage")).contents();
 
-        assertThat(((TextResourceContents) contents.getFirst()).text()).contains("# Incident triage on a Gravitee environment");
+        assertThat(((TextResourceContents) contents.getFirst()).text()).contains("# Incident triage on a Gravitee organization");
     }
 
     @ParameterizedTest
-    @CsvSource({ "/mcp/", "/mcp/organizations/DEFAULT", "/mcp/organizations/DEFAULT/environments/DEFAULT/extra" })
-    void should_answer_not_found_outside_an_environment_endpoint(String path) throws Exception {
+    @CsvSource({ "/mcp, 200", "/mcp/, 200", "/mcp/organizations/DEFAULT, 404", "/mcp/environments/DEFAULT, 404" })
+    void should_serve_the_mount_itself_and_nothing_under_it(String path, int status) throws Exception {
         var request = HttpRequest.newBuilder(URI.create(baseUrl + path))
             .header("Content-Type", "application/json")
             .header("Accept", "application/json, text/event-stream")
-            .POST(HttpRequest.BodyPublishers.ofString("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\"}"))
+            .POST(HttpRequest.BodyPublishers.ofString("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"ping\"}"))
             .build();
 
         var response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 
-        assertThat(response.statusCode()).isEqualTo(404);
+        assertThat(response.statusCode()).isEqualTo(status);
     }
 
     private CallToolResult call(String tool, String arguments) throws Exception {
@@ -233,59 +230,6 @@ class McpEndpointTest {
 
     private static String textOf(CallToolResult result) {
         return ((TextContent) result.content().getFirst()).text();
-    }
-
-    private static McpEndpointServlet servlet() {
-        var window = TimeWindow.parse("15m", null, NOW);
-        var access = new Fakes.Access();
-        var apis = Fakes.apis(ORDERS);
-        var analytics = new InMemoryTrafficAnalytics()
-            .total(window, traffic(1000, 600, 0))
-            .total(window.baseline(), traffic(1000, 5, 0))
-            .samples(window, new TrafficSample("1", "Unknown", traffic(600, 600, 0)))
-            .samples(window.baseline(), new TrafficSample("app-id", "Mobile app", traffic(600, 0, 0)))
-            .timeline(new TimelinePoint(window.from(), traffic(100, 0, 0)), new TimelinePoint(NOW.minusSeconds(60), traffic(100, 80, 0)));
-        var logs = new Fakes.InMemoryRequestLogs();
-        logs.page = new RequestLogs.Page(
-            600,
-            List.of(new FailedRequest(NOW, ORDERS, "GET", "/orders", 401, "API_KEY_INVALID", null, null, "Unknown", null, "gw-1", 2, "id"))
-        );
-        var changeLog = new Fakes.InMemoryChangeLog();
-        changeLog.audit.add(new Change(NOW.minusSeconds(300), Change.Source.AUDIT, "APIKEY_REVOKED", "admin", Map.of("API_KEY", "key-id")));
-
-        return McpServerFactory.create(
-            "test",
-            "Triage loop. Never pass epoch values.",
-            List.of(
-                new GetHealthOverviewTool(new GetHealthOverviewUseCase(access, analytics)),
-                new BreakDownTrafficTool(new BreakDownTrafficUseCase(access, apis, analytics)),
-                new GetTrafficTimelineTool(new GetTrafficTimelineUseCase(access, apis, analytics)),
-                new SearchFailedRequestsTool(new SearchFailedRequestsUseCase(access, apis, logs)),
-                new ListRecentChangesTool(new ListRecentChangesUseCase(access, apis, changeLog)),
-                new WhoAmI(),
-                new Broken()
-            ),
-            List.of(new IncidentTriageGuide())
-        );
-    }
-
-    /** Stands for the Spring Security chain of the mount: binds the user and the environment to the request thread. */
-    private static Filter authenticatedAs(String userId) {
-        return (request, response, chain) -> {
-            var user = new UserDetails(userId, "", List.of());
-            user.setSource("memory");
-            user.setSourceId(userId);
-            SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
-            var path = ((HttpServletRequest) request).getPathInfo();
-            GraviteeContext.fromExecutionContext(
-                path != null && path.contains("/environments/") ? new ExecutionContext("DEFAULT", "DEFAULT") : new ExecutionContext()
-            );
-            try {
-                chain.doFilter(request, response);
-            } finally {
-                SecurityContextHolder.clearContext();
-            }
-        };
     }
 
     private record NoArguments() {}
@@ -309,10 +253,9 @@ class McpEndpointTest {
 
         @Override
         public Object call(McpCaller caller, NoArguments input) {
-            var info = caller.auditInfo();
             return Map.of(
                 "caller",
-                info.actor().userId() + "@" + info.organizationId() + "/" + info.environmentId(),
+                caller.userId() + "@" + caller.organizationId(),
                 "threadBoundUser",
                 SecurityContextHolder.getContext().getAuthentication().getName()
             );

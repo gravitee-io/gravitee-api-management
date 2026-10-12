@@ -16,23 +16,23 @@
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.rest.api.mcp.core.ApiResolver;
-import io.gravitee.apim.rest.api.mcp.core.TriageException;
+import io.gravitee.apim.rest.api.mcp.core.EnvironmentResolver;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.FailedRequest;
 import io.gravitee.apim.rest.api.mcp.core.model.StatusGroup;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
-import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Samples the requests that failed, with the reason the gateway recorded for each.
+ * Samples the requests of one environment that failed, with the reason the gateway recorded for each.
  */
 @UseCase
 public class SearchFailedRequestsUseCase {
@@ -41,17 +41,26 @@ public class SearchFailedRequestsUseCase {
     static final int MAX_LIMIT = 50;
     static final String ANSWERED_BY_BACKEND = "NONE (answered by the backend)";
 
-    private final TriageAccess access;
+    private final EnvironmentDirectory environments;
     private final ApiDirectory apis;
     private final RequestLogs logs;
 
-    public SearchFailedRequestsUseCase(TriageAccess access, ApiDirectory apis, RequestLogs logs) {
-        this.access = access;
+    public SearchFailedRequestsUseCase(EnvironmentDirectory environments, ApiDirectory apis, RequestLogs logs) {
+        this.environments = environments;
         this.apis = apis;
         this.logs = logs;
     }
 
-    public record Input(AuditInfo caller, String api, String statusGroup, String errorKey, String window, String until, Integer limit) {}
+    public record Input(
+        McpCaller caller,
+        String environment,
+        String api,
+        String statusGroup,
+        String errorKey,
+        String window,
+        String until,
+        Integer limit
+    ) {}
 
     /**
      * @param total failed requests in the window, of which {@code requests} is the newest part
@@ -59,6 +68,7 @@ public class SearchFailedRequestsUseCase {
      */
     public record Output(
         String summary,
+        EnvRef environment,
         ApiRef api,
         TimeWindow window,
         long total,
@@ -67,23 +77,24 @@ public class SearchFailedRequestsUseCase {
     ) {}
 
     public Output execute(Input input) {
-        var caller = input.caller();
-        if (!access.canReadTraffic(caller)) {
-            throw new TriageException("You are not allowed to read the logs of this environment.");
-        }
         var window = TimeWindow.parse(input.window(), input.until(), TimeProvider.instantNow());
-        var api = ApiResolver.resolve(apis, caller, input.api());
+        var scope = EnvironmentResolver.resolve(environments, apis, input.caller(), input.environment(), input.api());
         var statusGroup = StatusGroup.parse(input.statusGroup());
         var errorKey = input.errorKey() == null || input.errorKey().isBlank() ? null : input.errorKey().trim();
         var limit = input.limit() == null ? DEFAULT_LIMIT : Math.clamp(input.limit(), 1, MAX_LIMIT);
 
-        var page = logs.failures(caller, window, new RequestLogs.Query(api == null ? null : api.id(), statusGroup, errorKey), limit);
+        var page = logs.failures(
+            scope.auditInfo(),
+            window,
+            new RequestLogs.Query(scope.api() == null ? null : scope.api().id(), statusGroup, errorKey),
+            limit
+        );
 
         var errorKeys = new TreeMap<String, Long>();
         for (var request : page.requests()) {
             errorKeys.merge(request.errorKey() == null ? ANSWERED_BY_BACKEND : request.errorKey(), 1L, Long::sum);
         }
         var summary = page.total() + " failed request(s) in the window, " + page.requests().size() + " returned, newest first.";
-        return new Output(summary, api, window, page.total(), errorKeys, page.requests());
+        return new Output(summary, scope.environment(), scope.api(), window, page.total(), errorKeys, page.requests());
     }
 }

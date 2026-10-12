@@ -5,6 +5,10 @@
   "inputSchema": {
     "type": "object",
     "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment of your organization. Omit when `api` names an API that exists in only one environment you can read, or when you can read only one."
+      },
       "api": {
         "type": "string",
         "description": "Id or exact name of an API. Use the id when several APIs share a name. Omit to look at the whole environment."
@@ -26,6 +30,9 @@
       "summary": {
         "type": "string",
         "description": "One sentence stating the result."
+      },
+      "environment": {
+        "$ref": "#/$defs/env"
       },
       "api": {
         "$ref": "#/$defs/api"
@@ -87,6 +94,7 @@
     },
     "required": [
       "summary",
+      "environment",
       "window",
       "intervalSeconds",
       "baselinePerInterval",
@@ -174,6 +182,25 @@
           "TRAFFIC_DROP"
         ],
         "description": "SERVER_ERROR_RATE_UP: 5xx, the gateway or a backend fails. CLIENT_ERROR_RATE_UP: 4xx, requests are rejected (credentials, quota, input). LATENCY_UP: P95 response time. TRAFFIC_DROP: half the requests or fewer."
+      },
+      "env": {
+        "type": "object",
+        "description": "An environment.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
       }
     }
   }

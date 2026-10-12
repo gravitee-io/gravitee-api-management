@@ -17,15 +17,10 @@ package io.gravitee.apim.rest.api.mcp.security.config;
 
 import static io.gravitee.rest.api.security.config.SecureHeadersConfigurer.hsts;
 
-import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
-import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.rest.api.mcp.security.filter.BearerOnlyFilter;
-import io.gravitee.rest.api.security.cookies.CookieGenerator;
-import io.gravitee.rest.api.security.filter.GraviteeContextAuthorizationFilter;
-import io.gravitee.rest.api.security.filter.GraviteeContextFilter;
-import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.apim.rest.api.mcp.security.filter.McpTokenAuthenticationFilter;
+import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,9 +33,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfFilter;
 
 /**
  * @author GraviteeSource Team
@@ -54,25 +47,16 @@ public class McpSecurityConfigurerAdapter {
     private ConfigurableEnvironment environment;
 
     @Autowired
-    private CookieGenerator cookieGenerator;
+    private UserService userService;
 
     @Autowired
-    private UserService userService;
+    private UserRepository userRepository;
 
     @Autowired
     private TokenService tokenService;
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
-
-    @Autowired
-    private AccessPointQueryService accessPointQueryService;
-
-    @Autowired
-    private InstallationTypeDomainService installationTypeDomainService;
-
-    @Autowired
-    private EnvironmentService environmentService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -88,16 +72,12 @@ public class McpSecurityConfigurerAdapter {
         http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(BearerOnlyFilter::challenge));
         hsts(http, environment);
 
+        // The organization is the authenticated user's: no path segment to resolve, nothing to check it against.
         http.addFilterBefore(
-            new TokenAuthenticationFilter(jwtSecret, cookieGenerator, userService, tokenService, authoritiesProvider),
+            new McpTokenAuthenticationFilter(jwtSecret, tokenService, userRepository, userService, authoritiesProvider),
             BasicAuthenticationFilter.class
         );
-        http.addFilterBefore(new BearerOnlyFilter(), TokenAuthenticationFilter.class);
-        http.addFilterBefore(
-            new GraviteeContextFilter(installationTypeDomainService, accessPointQueryService, environmentService),
-            CsrfFilter.class
-        );
-        http.addFilterAfter(new GraviteeContextAuthorizationFilter(), AuthorizationFilter.class);
+        http.addFilterBefore(new BearerOnlyFilter(), McpTokenAuthenticationFilter.class);
 
         return http.build();
     }

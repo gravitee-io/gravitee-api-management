@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.CALLER;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.MCP_CALLER;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.PROD;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.traffic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,10 +48,10 @@ class BreakDownTrafficUseCaseTest {
     private static final TimeWindow BASELINE = WINDOW.baseline();
     private static final ApiRef ORDERS = new ApiRef("orders-id", "Orders");
 
-    private final Fakes.Access access = new Fakes.Access();
+    private final Fakes.Directory environments = Fakes.environments(PROD);
     private final InMemoryTrafficAnalytics analytics = new InMemoryTrafficAnalytics();
     private final BreakDownTrafficUseCase useCase = new BreakDownTrafficUseCase(
-        access,
+        environments,
         Fakes.apis(ORDERS, new ApiRef("stock-1", "Stock"), new ApiRef("stock-2", "Stock")),
         analytics
     );
@@ -101,6 +102,7 @@ class BreakDownTrafficUseCaseTest {
         var breakdown = execute("consumer_ip", "orders-id", "4xx");
 
         assertThat(breakdown.api()).isEqualTo(ORDERS);
+        assertThat(breakdown.environment()).isEqualTo(PROD);
         assertThat(analytics.dimensions).containsOnly(Dimension.CONSUMER_IP);
         assertThat(analytics.scopes).containsOnly(new TrafficScope("orders-id", StatusGroup.CLIENT_ERROR));
     }
@@ -134,8 +136,8 @@ class BreakDownTrafficUseCaseTest {
     }
 
     @Test
-    void should_refuse_a_caller_who_cannot_read_analytics() {
-        access.traffic = false;
+    void should_refuse_a_caller_who_can_read_no_environment() {
+        environments.readable.clear();
 
         assertThatThrownBy(() -> execute("status", null, null))
             .isInstanceOf(TriageException.class)
@@ -143,6 +145,6 @@ class BreakDownTrafficUseCaseTest {
     }
 
     private BreakDownTrafficUseCase.Output execute(String by, String api, String statusGroup) {
-        return useCase.execute(new BreakDownTrafficUseCase.Input(CALLER, by, api, statusGroup, null, null));
+        return useCase.execute(new BreakDownTrafficUseCase.Input(MCP_CALLER, by, null, api, statusGroup, null, null));
     }
 }

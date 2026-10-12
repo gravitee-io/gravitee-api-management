@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.CALLER;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.MCP_CALLER;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.PROD;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.traffic;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +43,11 @@ class GetTrafficTimelineUseCaseTest {
     private static final ApiRef ORDERS = new ApiRef("orders-id", "Orders");
 
     private final InMemoryTrafficAnalytics analytics = new InMemoryTrafficAnalytics();
-    private final GetTrafficTimelineUseCase useCase = new GetTrafficTimelineUseCase(new Fakes.Access(), Fakes.apis(ORDERS), analytics);
+    private final GetTrafficTimelineUseCase useCase = new GetTrafficTimelineUseCase(
+        Fakes.environments(PROD),
+        Fakes.apis(ORDERS),
+        analytics
+    );
 
     @BeforeEach
     void setUp() {
@@ -102,13 +107,13 @@ class GetTrafficTimelineUseCaseTest {
 
     @Test
     void should_scope_the_timeline_to_the_api_asked_for() {
-        useCase.execute(new GetTrafficTimelineUseCase.Input(CALLER, "Orders", null, null));
+        useCase.execute(new GetTrafficTimelineUseCase.Input(MCP_CALLER, null, "Orders", null, null));
 
         assertThat(analytics.scopes).containsOnly(new TrafficScope("orders-id", null));
     }
 
     private GetTrafficTimelineUseCase.Output execute(String window) {
-        return useCase.execute(new GetTrafficTimelineUseCase.Input(CALLER, null, window, null));
+        return useCase.execute(new GetTrafficTimelineUseCase.Input(MCP_CALLER, null, null, window, null));
     }
 
     private static TimelinePoint point(String at, long requests, long clientErrors) {

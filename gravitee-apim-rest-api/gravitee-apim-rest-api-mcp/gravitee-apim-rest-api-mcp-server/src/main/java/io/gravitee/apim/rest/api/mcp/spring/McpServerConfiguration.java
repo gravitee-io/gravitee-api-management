@@ -25,6 +25,7 @@ import io.gravitee.apim.core.logs_engine.use_case.SearchEnvironmentLogsUseCase;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.RequestLogs;
 import io.gravitee.apim.rest.api.mcp.core.port.TrafficAnalytics;
 import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
@@ -34,6 +35,7 @@ import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
 import io.gravitee.apim.rest.api.mcp.infra.ComputeTrafficAnalytics;
+import io.gravitee.apim.rest.api.mcp.infra.EnvironmentServiceEnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.infra.EventAndAuditChangeLog;
 import io.gravitee.apim.rest.api.mcp.infra.LogsEngineRequestLogs;
 import io.gravitee.apim.rest.api.mcp.infra.PermissionTriageAccess;
@@ -47,6 +49,7 @@ import io.gravitee.apim.rest.api.mcp.tools.IncidentTriageGuide;
 import io.gravitee.apim.rest.api.mcp.tools.ListRecentChangesTool;
 import io.gravitee.apim.rest.api.mcp.tools.SearchFailedRequestsTool;
 import io.gravitee.common.util.Version;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -75,6 +78,11 @@ public class McpServerConfiguration {
     @Bean
     public TriageAccess mcpTriageAccess(PermissionService permissionService) {
         return new PermissionTriageAccess(permissionService);
+    }
+
+    @Bean
+    public EnvironmentDirectory mcpEnvironmentDirectory(EnvironmentService environmentService, TriageAccess access) {
+        return new EnvironmentServiceEnvironmentDirectory(environmentService, access);
     }
 
     @Bean

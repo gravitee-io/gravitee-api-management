@@ -62,7 +62,11 @@ public class EventAndAuditChangeLog implements ChangeLog {
             Optional.of(window.from().toEpochMilli()),
             Optional.of(window.to().toEpochMilli())
         );
-        return events.search(query, new PageableImpl(1, MAX_CHANGES)).events().stream().map(EventAndAuditChangeLog::toChange).toList();
+        return ApimContext.run(caller, () -> events.search(query, new PageableImpl(1, MAX_CHANGES)))
+            .events()
+            .stream()
+            .map(EventAndAuditChangeLog::toChange)
+            .toList();
     }
 
     @Override
@@ -75,7 +79,9 @@ public class EventAndAuditChangeLog implements ChangeLog {
             Optional.of(window.to().toEpochMilli()),
             Set.of()
         );
-        var output = searchApiAudit.execute(new SearchApiAuditUseCase.Input(filters, new PageableImpl(1, MAX_CHANGES)));
+        var output = ApimContext.run(caller, () ->
+            searchApiAudit.execute(new SearchApiAuditUseCase.Input(filters, new PageableImpl(1, MAX_CHANGES)))
+        );
         return output
             .data()
             .stream()

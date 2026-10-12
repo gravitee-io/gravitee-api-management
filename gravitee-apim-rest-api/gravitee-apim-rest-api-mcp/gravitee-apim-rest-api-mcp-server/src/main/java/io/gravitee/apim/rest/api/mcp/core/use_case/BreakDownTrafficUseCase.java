@@ -16,19 +16,19 @@
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.rest.api.mcp.core.ApiResolver;
-import io.gravitee.apim.rest.api.mcp.core.TriageException;
+import io.gravitee.apim.rest.api.mcp.core.EnvironmentResolver;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Dimension;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.StatusGroup;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficSample;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficScope;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficStats;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.TrafficAnalytics;
-import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Splits traffic along one dimension, in the window and in its baseline, so that a value that vanished and one that
- * appeared are both visible.
+ * Splits the traffic of one environment along one dimension, in the window and in its baseline, so that a value
+ * that vanished and one that appeared are both visible.
  */
 @UseCase
 public class BreakDownTrafficUseCase {
@@ -49,21 +49,22 @@ public class BreakDownTrafficUseCase {
     static final String UNRESOLVED_APPLICATION_ID = "1";
     static final String UNRESOLVED_APPLICATION_NAME = "Unknown (credential not resolved)";
 
-    private final TriageAccess access;
+    private final EnvironmentDirectory environments;
     private final ApiDirectory apis;
     private final TrafficAnalytics analytics;
 
-    public BreakDownTrafficUseCase(TriageAccess access, ApiDirectory apis, TrafficAnalytics analytics) {
-        this.access = access;
+    public BreakDownTrafficUseCase(EnvironmentDirectory environments, ApiDirectory apis, TrafficAnalytics analytics) {
+        this.environments = environments;
         this.apis = apis;
         this.analytics = analytics;
     }
 
-    public record Input(AuditInfo caller, String by, String api, String statusGroup, String window, String until) {}
+    public record Input(McpCaller caller, String by, String environment, String api, String statusGroup, String window, String until) {}
 
     public record Output(
         String summary,
         String by,
+        EnvRef environment,
         ApiRef api,
         String statusGroup,
         TimeWindow window,
@@ -82,19 +83,15 @@ public class BreakDownTrafficUseCase {
     }
 
     public Output execute(Input input) {
-        var caller = input.caller();
-        if (!access.canReadTraffic(caller)) {
-            throw new TriageException("You are not allowed to read the analytics of this environment.");
-        }
         var dimension = Dimension.parse(input.by());
         var statusGroup = StatusGroup.parse(input.statusGroup());
         var window = TimeWindow.parse(input.window(), input.until(), TimeProvider.instantNow());
         var baseline = window.baseline();
-        var api = ApiResolver.resolve(apis, caller, input.api());
-        var scope = TrafficScope.ofApi(api).with(statusGroup);
+        var scope = EnvironmentResolver.resolve(environments, apis, input.caller(), input.environment(), input.api());
+        var traffic = TrafficScope.ofApi(scope.api()).with(statusGroup);
 
-        var current = analytics.by(caller, window, scope, dimension);
-        var before = analytics.by(caller, baseline, scope, dimension);
+        var current = analytics.by(scope.auditInfo(), window, traffic, dimension);
+        var before = analytics.by(scope.auditInfo(), baseline, traffic, dimension);
 
         var merged = new LinkedHashMap<String, Bucket>();
         for (var sample : current) {
@@ -119,7 +116,8 @@ public class BreakDownTrafficUseCase {
         return new Output(
             summarize(kept),
             dimension.name().toLowerCase(Locale.ROOT),
-            api,
+            scope.environment(),
+            scope.api(),
             statusGroup == null ? null : statusGroup.label(),
             window,
             baseline,

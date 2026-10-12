@@ -15,9 +15,14 @@
  */
 package io.gravitee.apim.rest.api.mcp.spi;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
- * Who calls, and on which environment: the endpoint is scoped to one environment.
+ * Who calls. The endpoint covers an organization; tools choose the environment.
  */
-public record McpCaller(AuditInfo auditInfo) {}
+public record McpCaller(String organizationId, String userId, String userSource, String userSourceId) {
+    public AuditInfo on(String environmentId) {
+        return new AuditInfo(organizationId, environmentId, new AuditActor(userId, userSource, userSourceId));
+    }
+}

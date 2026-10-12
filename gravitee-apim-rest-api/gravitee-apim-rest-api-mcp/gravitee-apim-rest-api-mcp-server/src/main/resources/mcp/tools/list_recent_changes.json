@@ -5,6 +5,10 @@
   "inputSchema": {
     "type": "object",
     "properties": {
+      "environment": {
+        "type": "string",
+        "description": "Id, HRID or name of an environment of your organization. Omit when `api` names an API that exists in only one environment you can read, or when you can read only one."
+      },
       "api": {
         "type": "string",
         "description": "Id or exact name of an API. Use the id when several APIs share a name."
@@ -29,6 +33,9 @@
       "summary": {
         "type": "string",
         "description": "One sentence stating the result."
+      },
+      "environment": {
+        "$ref": "#/$defs/env"
       },
       "api": {
         "$ref": "#/$defs/api"
@@ -90,6 +97,7 @@
     },
     "required": [
       "summary",
+      "environment",
       "api",
       "window",
       "changes",
@@ -116,6 +124,25 @@
         "type": "object",
         "properties": {
           "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "env": {
+        "type": "object",
+        "description": "An environment.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "hrid": {
             "type": "string"
           },
           "name": {

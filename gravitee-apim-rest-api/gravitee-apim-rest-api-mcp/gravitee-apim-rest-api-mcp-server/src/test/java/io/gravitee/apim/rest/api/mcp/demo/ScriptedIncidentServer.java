@@ -21,7 +21,9 @@ import io.gravitee.apim.rest.api.mcp.core.use_case.GetTrafficTimelineUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.ListRecentChangesUseCase;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
 import io.gravitee.apim.rest.api.mcp.fakes.Fakes;
+import io.gravitee.apim.rest.api.mcp.sdk.McpEndpointServlet;
 import io.gravitee.apim.rest.api.mcp.sdk.McpServerFactory;
+import io.gravitee.apim.rest.api.mcp.spi.McpTool;
 import io.gravitee.apim.rest.api.mcp.spring.McpServerConfiguration;
 import io.gravitee.apim.rest.api.mcp.tools.BreakDownTrafficTool;
 import io.gravitee.apim.rest.api.mcp.tools.GetHealthOverviewTool;
@@ -34,10 +36,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
-import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
@@ -61,55 +64,67 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public final class ScriptedIncidentServer {
 
+    public static final String ENDPOINT = "/mcp";
+
     private ScriptedIncidentServer() {}
 
     public static void main(String[] args) throws Exception {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 18084;
         long minutesAgo = args.length > 1 ? Long.parseLong(args[1]) : 6;
         var incident = new ScriptedIncident(Instant.now().minus(Duration.ofMinutes(minutesAgo)));
+
+        var server = start("127.0.0.1", port, servlet(incident, List.of()));
+        System.out.println("MCP endpoint: http://localhost:" + port + ENDPOINT);
+        server.join();
+    }
+
+    /** The real server over the incident, plus any tools a test adds. */
+    public static McpEndpointServlet servlet(ScriptedIncident incident, List<McpTool<?>> extraTools) throws IOException {
         var access = new Fakes.Access();
-
-        var servlet = McpServerFactory.create(
-            "scripted",
-            instructions(),
+        var tools = new ArrayList<McpTool<?>>(
             List.of(
-                new GetHealthOverviewTool(new GetHealthOverviewUseCase(access, incident)),
-                new BreakDownTrafficTool(new BreakDownTrafficUseCase(access, incident, incident)),
-                new GetTrafficTimelineTool(new GetTrafficTimelineUseCase(access, incident, incident)),
-                new SearchFailedRequestsTool(new SearchFailedRequestsUseCase(access, incident, incident)),
-                new ListRecentChangesTool(new ListRecentChangesUseCase(access, incident, incident))
-            ),
-            List.of(new IncidentTriageGuide())
+                new GetHealthOverviewTool(new GetHealthOverviewUseCase(incident, incident)),
+                new BreakDownTrafficTool(new BreakDownTrafficUseCase(incident, incident, incident)),
+                new GetTrafficTimelineTool(new GetTrafficTimelineUseCase(incident, incident, incident)),
+                new SearchFailedRequestsTool(new SearchFailedRequestsUseCase(incident, incident, incident)),
+                new ListRecentChangesTool(new ListRecentChangesUseCase(incident, access, incident, incident))
+            )
         );
+        tools.addAll(extraTools);
+        return McpServerFactory.create("scripted", instructions(), tools, List.of(new IncidentTriageGuide()));
+    }
 
-        var context = new ServletContextHandler("/mcp");
-        context.addFilter(new FilterHolder(asDemoUser()), "/*", EnumSet.allOf(DispatcherType.class));
+    /** Mounts the servlet at {@link #ENDPOINT} behind a filter that stands for the security chain. Port 0 picks a free one. */
+    public static Server start(String host, int port, McpEndpointServlet servlet) throws Exception {
+        var context = new ServletContextHandler(ENDPOINT);
+        context.setAllowNullPathInContext(true);
+        context.addFilter(new FilterHolder(asUser("demo", "DEFAULT")), "/*", EnumSet.allOf(DispatcherType.class));
         context.addServlet(new ServletHolder(servlet), "/*");
         var server = new Server();
         var connector = new ServerConnector(server);
-        connector.setHost("127.0.0.1");
+        connector.setHost(host);
         connector.setPort(port);
         server.addConnector(connector);
         server.setHandler(context);
         server.start();
-        System.out.println("MCP endpoint: http://localhost:" + port + "/mcp/organizations/DEFAULT/environments/DEFAULT");
-        server.join();
+        return server;
     }
 
-    private static String instructions() throws java.io.IOException {
+    private static String instructions() throws IOException {
         try (var stream = McpServerConfiguration.class.getResourceAsStream("/mcp/instructions.md")) {
             return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
         }
     }
 
-    private static Filter asDemoUser() {
+    /** What the security chain of the mount does: binds the user and his organization to the request thread. */
+    private static Filter asUser(String userId, String organizationId) {
         return (request, response, chain) -> {
-            var user = new UserDetails("demo", "", List.of());
+            var user = new UserDetails(userId, "", List.of());
+            user.setSource("memory");
+            user.setSourceId(userId);
+            user.setOrganizationId(organizationId);
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, List.of()));
-            var path = ((HttpServletRequest) request).getPathInfo();
-            GraviteeContext.fromExecutionContext(
-                path != null && path.contains("/environments/") ? new ExecutionContext("DEFAULT", "DEFAULT") : new ExecutionContext()
-            );
+            GraviteeContext.fromExecutionContext(new ExecutionContext(organizationId));
             try {
                 chain.doFilter(request, response);
             } finally {

@@ -63,9 +63,8 @@ public class LogsEngineRequestLogs implements RequestLogs {
         }
         var range = new TimeRange(window.from().atOffset(ZoneOffset.UTC), window.to().atOffset(ZoneOffset.UTC));
 
-        var response = searchLogs
-            .execute(new SearchEnvironmentLogsUseCase.Input(caller, new SearchLogsRequest(range, filters, 1, limit)))
-            .response();
+        var request = new SearchEnvironmentLogsUseCase.Input(caller, new SearchLogsRequest(range, filters, 1, limit));
+        var response = ApimContext.run(caller, () -> searchLogs.execute(request)).response();
 
         var total = response.pagination() == null || response.pagination().totalCount() == null ? 0 : response.pagination().totalCount();
         return new Page(total, response.data().stream().map(LogsEngineRequestLogs::toFailedRequest).toList());

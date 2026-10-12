@@ -89,7 +89,8 @@ public class ComputeTrafficAnalytics implements TrafficAnalytics {
             )
         );
         var responseTimes = new HashMap<MetricSpec.Name, Double>();
-        for (var metric : measures.execute(new ComputeMeasuresUseCase.Input(caller, request)).response().metrics()) {
+        var measured = ApimContext.run(caller, () -> measures.execute(new ComputeMeasuresUseCase.Input(caller, request)));
+        for (var metric : measured.response().metrics()) {
             responseTimes.put(metric.name(), valueOf(metric.measures()));
         }
         return counts.toStats(
@@ -105,14 +106,10 @@ public class ComputeTrafficAnalytics implements TrafficAnalytics {
         }
         var facet = facetOf(dimension);
         var responseTimes = new HashMap<String, Map<MetricSpec.Name, Double>>();
-        var response = facets
-            .execute(
-                new ComputeFacetsUseCase.Input(
-                    caller,
-                    new FacetsRequest(range(window), filters(scope), RESPONSE_TIMES, List.of(facet), MAX_VALUES, List.of())
-                )
-            )
-            .response();
+        var responseTimesRequest = new FacetsRequest(range(window), filters(scope), RESPONSE_TIMES, List.of(facet), MAX_VALUES, List.of());
+        var response = ApimContext.run(caller, () ->
+            facets.execute(new ComputeFacetsUseCase.Input(caller, responseTimesRequest))
+        ).response();
         for (var metric : response.metrics()) {
             for (var bucket : metric.buckets()) {
                 responseTimes.computeIfAbsent(bucket.key(), key -> new HashMap<>()).put(metric.metric(), valueOf(bucket.measures()));
@@ -197,8 +194,7 @@ public class ComputeTrafficAnalytics implements TrafficAnalytics {
         Integer limit
     ) {
         var request = new FacetsRequest(range(window), filters(scope), metrics, by, limit, List.of());
-        return facets
-            .execute(new ComputeFacetsUseCase.Input(caller, request))
+        return ApimContext.run(caller, () -> facets.execute(new ComputeFacetsUseCase.Input(caller, request)))
             .response()
             .metrics()
             .stream()
@@ -215,7 +211,9 @@ public class ComputeTrafficAnalytics implements TrafficAnalytics {
         List<FacetSpec.Name> by
     ) {
         var request = new TimeSeriesRequest(range(window), interval.toMillis(), filters(scope), metrics, by, null, List.of());
-        return timeSeries.execute(new ComputeTimeSeriesUseCase.Input(caller, request)).response().metrics();
+        return ApimContext.run(caller, () -> timeSeries.execute(new ComputeTimeSeriesUseCase.Input(caller, request)))
+            .response()
+            .metrics();
     }
 
     private static TimeRange range(TimeWindow window) {

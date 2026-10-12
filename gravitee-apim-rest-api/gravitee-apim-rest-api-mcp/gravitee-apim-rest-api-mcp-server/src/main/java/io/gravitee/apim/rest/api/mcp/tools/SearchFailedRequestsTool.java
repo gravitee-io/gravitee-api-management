@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.rest.api.mcp.tools;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.use_case.SearchFailedRequestsUseCase;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 
 public class SearchFailedRequestsTool extends TriageTool<SearchFailedRequestsTool.Arguments> {
 
@@ -27,13 +27,22 @@ public class SearchFailedRequestsTool extends TriageTool<SearchFailedRequestsToo
         this.useCase = useCase;
     }
 
-    public record Arguments(String api, String statusGroup, String errorKey, String window, String until, Integer limit) {}
+    public record Arguments(
+        String environment,
+        String api,
+        String statusGroup,
+        String errorKey,
+        String window,
+        String until,
+        Integer limit
+    ) {}
 
     @Override
-    Object execute(AuditInfo caller, Arguments arguments) {
+    Object execute(McpCaller caller, Arguments arguments) {
         return useCase.execute(
             new SearchFailedRequestsUseCase.Input(
                 caller,
+                arguments.environment(),
                 arguments.api(),
                 arguments.statusGroup(),
                 arguments.errorKey(),

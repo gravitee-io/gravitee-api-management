@@ -19,14 +19,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.apim.rest.api.mcp.spi.McpResource;
 import io.gravitee.apim.rest.api.mcp.spi.McpTool;
 import io.gravitee.apim.rest.api.mcp.spi.ToolException;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.modelcontextprotocol.common.McpTransportContext;
 import io.modelcontextprotocol.json.McpJsonDefaults;
 import io.modelcontextprotocol.server.McpServer;
@@ -92,14 +89,7 @@ public final class McpServerFactory {
 
     private static McpCaller currentCaller() {
         var user = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        var context = GraviteeContext.getExecutionContext();
-        return new McpCaller(
-            new AuditInfo(
-                context.getOrganizationId(),
-                context.getEnvironmentId(),
-                new AuditActor(user.getUsername(), user.getSource(), user.getSourceId())
-            )
-        );
+        return new McpCaller(user.getOrganizationId(), user.getUsername(), user.getSource(), user.getSourceId());
     }
 
     private static <I> SyncToolSpecification toSpecification(McpTool<I> tool) {
@@ -137,13 +127,7 @@ public final class McpServerFactory {
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot serialize the result of MCP tool " + name, e);
         } catch (RuntimeException e) {
-            log.error(
-                "MCP tool {} failed for user {} on environment {}",
-                name,
-                caller.auditInfo().actor().userId(),
-                caller.auditInfo().environmentId(),
-                e
-            );
+            log.error("MCP tool {} failed for user {} of organization {}", name, caller.userId(), caller.organizationId(), e);
             return failure("The tool " + name + " failed on the server. Retry, or narrow the query.");
         }
     }

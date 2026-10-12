@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.CALLER;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.MCP_CALLER;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.PROD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -38,7 +39,7 @@ class SearchFailedRequestsUseCaseTest {
     private static final ApiRef ORDERS = new ApiRef("orders-id", "Orders");
 
     private final Fakes.InMemoryRequestLogs logs = new Fakes.InMemoryRequestLogs();
-    private final SearchFailedRequestsUseCase useCase = new SearchFailedRequestsUseCase(new Fakes.Access(), Fakes.apis(ORDERS), logs);
+    private final SearchFailedRequestsUseCase useCase = new SearchFailedRequestsUseCase(Fakes.environments(PROD), Fakes.apis(ORDERS), logs);
 
     @BeforeEach
     void setUp() {
@@ -70,6 +71,7 @@ class SearchFailedRequestsUseCaseTest {
         execute("Orders", "4XX", " API_KEY_INVALID ", 5);
 
         assertThat(logs.query).isEqualTo(new RequestLogs.Query("orders-id", StatusGroup.CLIENT_ERROR, "API_KEY_INVALID"));
+        assertThat(logs.caller.environmentId()).isEqualTo(PROD.id());
         assertThat(logs.limit).isEqualTo(5);
     }
 
@@ -83,7 +85,7 @@ class SearchFailedRequestsUseCaseTest {
     }
 
     private SearchFailedRequestsUseCase.Output execute(String api, String statusGroup, String errorKey, Integer limit) {
-        return useCase.execute(new SearchFailedRequestsUseCase.Input(CALLER, api, statusGroup, errorKey, null, null, limit));
+        return useCase.execute(new SearchFailedRequestsUseCase.Input(MCP_CALLER, null, api, statusGroup, errorKey, null, null, limit));
     }
 
     private static FailedRequest failure(int status, String errorKey) {

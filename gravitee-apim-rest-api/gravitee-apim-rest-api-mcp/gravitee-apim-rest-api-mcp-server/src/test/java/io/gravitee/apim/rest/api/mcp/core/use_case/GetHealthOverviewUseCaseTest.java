@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.CALLER;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.MCP_CALLER;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.PROD;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.STAGING;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.traffic;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.trafficAnsweredIn;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.rest.api.mcp.core.TriageException;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Finding;
 import io.gravitee.apim.rest.api.mcp.core.model.Finding.Kind;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
@@ -46,9 +49,9 @@ class GetHealthOverviewUseCaseTest {
     private static final ApiRef ORDERS = new ApiRef("orders-id", "Orders");
     private static final ApiRef STOCK = new ApiRef("stock-id", "Stock");
 
-    private final Fakes.Access access = new Fakes.Access();
+    private final Fakes.Directory environments = Fakes.environments(PROD);
     private final InMemoryTrafficAnalytics analytics = new InMemoryTrafficAnalytics();
-    private final GetHealthOverviewUseCase useCase = new GetHealthOverviewUseCase(access, analytics);
+    private final GetHealthOverviewUseCase useCase = new GetHealthOverviewUseCase(environments, analytics);
 
     @BeforeEach
     void setUp() {
@@ -71,7 +74,10 @@ class GetHealthOverviewUseCaseTest {
         assertThat(overview.findings()).isEmpty();
         assertThat(overview.window()).isEqualTo(WINDOW);
         assertThat(overview.baseline()).isEqualTo(BASELINE);
-        assertThat(overview.environment().current().requests()).isEqualTo(1000);
+        assertThat(overview.environments()).hasSize(1);
+        assertThat(overview.environments().getFirst().environment()).isEqualTo(PROD);
+        assertThat(overview.environments().getFirst().current().requests()).isEqualTo(1000);
+        assertThat(overview.summary()).isEqualTo("Nothing moved against the baseline in Production (prod).");
     }
 
     @Test
@@ -95,6 +101,7 @@ class GetHealthOverviewUseCaseTest {
                 org.assertj.core.groups.Tuple.tuple(Kind.SERVER_ERROR_RATE_UP, null),
                 org.assertj.core.groups.Tuple.tuple(Kind.SERVER_ERROR_RATE_UP, ORDERS)
             );
+        assertThat(overview.findings()).extracting(Finding::environment).containsOnly(PROD);
         assertThat(overview.apis().getFirst().api()).isEqualTo(ORDERS);
         assertThat(overview.apis().getFirst().findings()).containsExactly(Kind.SERVER_ERROR_RATE_UP);
         assertThat(overview.apis().getLast().findings()).isEmpty();
@@ -164,14 +171,53 @@ class GetHealthOverviewUseCaseTest {
     }
 
     @Test
-    void should_refuse_a_caller_who_cannot_read_analytics() {
-        access.traffic = false;
+    void should_refuse_a_caller_who_can_read_no_environment() {
+        environments.readable.clear();
 
         assertThatThrownBy(this::overview).isInstanceOf(TriageException.class).hasMessageContaining("not allowed");
     }
 
+    @Test
+    void should_cover_every_readable_environment_and_rank_the_degraded_one_first() {
+        environments.readable.add(STAGING);
+        environments.unreadable.add(new EnvRef("e-dev", "dev", "Dev"));
+        analytics.totalIn(PROD.id(), WINDOW, traffic(5000, 0, 0)).totalIn(PROD.id(), BASELINE, traffic(5000, 0, 0));
+        analytics.totalIn(STAGING.id(), WINDOW, traffic(100, 0, 50)).totalIn(STAGING.id(), BASELINE, traffic(100, 0, 0));
+
+        var overview = overview();
+
+        assertThat(overview.status()).isEqualTo(Status.DEGRADED);
+        assertThat(overview.environments())
+            .extracting(health -> health.environment().hrid(), GetHealthOverviewUseCase.EnvironmentHealth::status)
+            .containsExactly(
+                org.assertj.core.groups.Tuple.tuple("staging", Status.DEGRADED),
+                org.assertj.core.groups.Tuple.tuple("prod", Status.HEALTHY)
+            );
+        assertThat(overview.findings())
+            .extracting(Finding::kind, Finding::environment)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(Kind.SERVER_ERROR_RATE_UP, STAGING));
+        assertThat(overview.omittedEnvironments()).extracting(EnvRef::hrid).containsExactly("dev");
+        assertThat(overview.summary()).startsWith("1 finding(s) on 0 API(s) in Staging (staging).");
+        assertThat(analytics.callers)
+            .extracting(io.gravitee.apim.core.audit.model.AuditInfo::environmentId)
+            .contains("e-prod", "e-staging");
+    }
+
+    @Test
+    void should_cover_only_the_environment_asked_for() {
+        environments.readable.add(STAGING);
+        environments.unreadable.add(new EnvRef("e-dev", "dev", "Dev"));
+
+        var overview = useCase.execute(new GetHealthOverviewUseCase.Input(MCP_CALLER, "staging", null, null));
+
+        assertThat(overview.environments())
+            .extracting(health -> health.environment())
+            .containsExactly(STAGING);
+        assertThat(overview.omittedEnvironments()).isEmpty();
+    }
+
     private GetHealthOverviewUseCase.Output overview() {
-        return useCase.execute(new GetHealthOverviewUseCase.Input(CALLER, null, null));
+        return useCase.execute(new GetHealthOverviewUseCase.Input(MCP_CALLER, null, null, null));
     }
 
     private static TrafficSample sample(ApiRef api, TrafficStats stats) {

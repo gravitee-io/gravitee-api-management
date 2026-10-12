@@ -1,10 +1,10 @@
-# Incident triage on a Gravitee environment
+# Incident triage on a Gravitee organization
 
 ## The loop
 
 | Step | Question | Tool |
 |---|---|---|
-| Detect | Is anything off, compared with the time range just before? | `get_health_overview` |
+| Detect | Is anything off, in which environment, compared with the time range just before? | `get_health_overview` |
 | Localize | Which API, status code, consumer, path, gateway? | `break_down_traffic` |
 | Date | When did it start? | `get_traffic_timeline` |
 | Explain | What reason did the gateway record? | `search_failed_requests` |
@@ -17,7 +17,8 @@ Stop as soon as the evidence names a cause. State the cause, the evidence (numbe
 - **Time.** `window` is a length (`15m`, `2h`, `1d`) ending at `until`, an ISO-8601 UTC instant that defaults to now. No tool takes or returns epoch values. Timestamps in results are ISO-8601 UTC.
 - **Baseline.** The range of equal length just before the window. A 15m window ending at 14:00 is compared with 13:30 to 13:45.
 - **Units.** `...Ms` is milliseconds, `...Pct` is a percentage of requests.
-- **Visibility.** Results cover the APIs the authenticated user can see, nothing else.
+- **Environment.** `get_health_overview` covers every environment you can read and ranks them. The other tools work on one environment: pass `environment` (id, HRID or name), or let `api` decide when that API exists in only one environment.
+- **Visibility.** Results cover the environments and APIs the authenticated user can see, nothing else. Environments you cannot read are listed as omitted, so an empty result never hides them.
 
 ## Reading the numbers
 

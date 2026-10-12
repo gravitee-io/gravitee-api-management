@@ -15,8 +15,9 @@
  */
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
-import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.CALLER;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.MCP_CALLER;
 import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.NOW;
+import static io.gravitee.apim.rest.api.mcp.fakes.Fakes.PROD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -41,7 +42,12 @@ class ListRecentChangesUseCaseTest {
 
     private final Fakes.Access access = new Fakes.Access();
     private final Fakes.InMemoryChangeLog changeLog = new Fakes.InMemoryChangeLog();
-    private final ListRecentChangesUseCase useCase = new ListRecentChangesUseCase(access, Fakes.apis(ORDERS), changeLog);
+    private final ListRecentChangesUseCase useCase = new ListRecentChangesUseCase(
+        Fakes.environments(PROD),
+        access,
+        Fakes.apis(ORDERS),
+        changeLog
+    );
 
     @BeforeEach
     void setUp() {
@@ -91,7 +97,7 @@ class ListRecentChangesUseCaseTest {
     }
 
     private ListRecentChangesUseCase.Output execute(String api) {
-        return useCase.execute(new ListRecentChangesUseCase.Input(CALLER, api, null, null));
+        return useCase.execute(new ListRecentChangesUseCase.Input(MCP_CALLER, null, api, null, null));
     }
 
     private static Change change(String at, Source source, String event) {

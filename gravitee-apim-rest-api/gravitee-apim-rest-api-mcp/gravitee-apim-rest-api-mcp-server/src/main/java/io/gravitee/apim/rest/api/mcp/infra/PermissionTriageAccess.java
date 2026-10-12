@@ -49,12 +49,14 @@ public class PermissionTriageAccess implements TriageAccess {
     }
 
     private boolean can(AuditInfo caller, RolePermission permission, String referenceId) {
-        return permissionService.hasPermission(
-            new ExecutionContext(caller.organizationId(), caller.environmentId()),
-            caller.actor().userId(),
-            permission,
-            referenceId,
-            RolePermissionAction.READ
+        return ApimContext.run(caller, () ->
+            permissionService.hasPermission(
+                new ExecutionContext(caller.organizationId(), caller.environmentId()),
+                caller.actor().userId(),
+                permission,
+                referenceId,
+                RolePermissionAction.READ
+            )
         );
     }
 }

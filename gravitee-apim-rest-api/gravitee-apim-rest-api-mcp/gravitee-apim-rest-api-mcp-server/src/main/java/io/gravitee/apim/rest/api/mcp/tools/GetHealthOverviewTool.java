@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.rest.api.mcp.tools;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.use_case.GetHealthOverviewUseCase;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 
 public class GetHealthOverviewTool extends TriageTool<GetHealthOverviewTool.Arguments> {
 
@@ -27,10 +27,10 @@ public class GetHealthOverviewTool extends TriageTool<GetHealthOverviewTool.Argu
         this.useCase = useCase;
     }
 
-    public record Arguments(String window, String until) {}
+    public record Arguments(String environment, String window, String until) {}
 
     @Override
-    Object execute(AuditInfo caller, Arguments arguments) {
-        return useCase.execute(new GetHealthOverviewUseCase.Input(caller, arguments.window(), arguments.until()));
+    Object execute(McpCaller caller, Arguments arguments) {
+        return useCase.execute(new GetHealthOverviewUseCase.Input(caller, arguments.environment(), arguments.window(), arguments.until()));
     }
 }

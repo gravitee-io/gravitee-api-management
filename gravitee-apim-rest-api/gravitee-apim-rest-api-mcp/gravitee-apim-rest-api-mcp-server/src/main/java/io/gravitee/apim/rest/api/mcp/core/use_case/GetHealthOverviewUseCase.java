@@ -17,17 +17,19 @@ package io.gravitee.apim.rest.api.mcp.core.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.rest.api.mcp.core.EnvironmentResolver;
 import io.gravitee.apim.rest.api.mcp.core.FindingRules;
-import io.gravitee.apim.rest.api.mcp.core.TriageException;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Dimension;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Finding;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficSample;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficScope;
 import io.gravitee.apim.rest.api.mcp.core.model.TrafficStats;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.TrafficAnalytics;
-import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,29 +38,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Compares the traffic of an environment with the time range just before, and reports what moved and on which APIs.
+ * Compares the traffic of each environment with the time range just before, and reports what moved and where.
  */
 @UseCase
 public class GetHealthOverviewUseCase {
 
     static final int MAX_APIS = 10;
 
-    private final TriageAccess access;
+    private final EnvironmentDirectory environments;
     private final TrafficAnalytics analytics;
 
-    public GetHealthOverviewUseCase(TriageAccess access, TrafficAnalytics analytics) {
-        this.access = access;
+    public GetHealthOverviewUseCase(EnvironmentDirectory environments, TrafficAnalytics analytics) {
+        this.environments = environments;
         this.analytics = analytics;
     }
 
-    public record Input(AuditInfo caller, String window, String until) {}
+    public record Input(McpCaller caller, String environment, String window, String until) {}
 
+    /**
+     * @param omittedEnvironments environments of the organization the caller may not read: they are not covered
+     */
     public record Output(
         Status status,
         String summary,
         TimeWindow window,
         TimeWindow baseline,
-        Comparison environment,
+        List<EnvironmentHealth> environments,
+        List<EnvRef> omittedEnvironments,
         List<Finding> findings,
         List<ApiHealth> apis
     ) {}
@@ -69,78 +75,126 @@ public class GetHealthOverviewUseCase {
         NO_TRAFFIC,
     }
 
-    public record Comparison(TrafficStats current, TrafficStats baseline) {}
+    public record EnvironmentHealth(
+        EnvRef environment,
+        Status status,
+        TrafficStats current,
+        TrafficStats baseline,
+        List<Finding.Kind> findings
+    ) {}
 
-    public record ApiHealth(ApiRef api, TrafficStats current, TrafficStats baseline, List<Finding.Kind> findings) {}
+    public record ApiHealth(EnvRef environment, ApiRef api, TrafficStats current, TrafficStats baseline, List<Finding.Kind> findings) {}
 
     public Output execute(Input input) {
         var caller = input.caller();
-        if (!access.canReadTraffic(caller)) {
-            throw new TriageException("You are not allowed to read the analytics of this environment.");
-        }
+        var covered = EnvironmentResolver.environments(environments, caller, input.environment());
+        var omitted = input.environment() == null || input.environment().isBlank()
+            ? environments.environments(caller).unreadable()
+            : List.<EnvRef>of();
         var window = TimeWindow.parse(input.window(), input.until(), TimeProvider.instantNow());
         var baseline = window.baseline();
 
-        var current = analytics.total(caller, window, TrafficScope.ENVIRONMENT);
-        var before = analytics.total(caller, baseline, TrafficScope.ENVIRONMENT);
-
+        var healths = new ArrayList<EnvironmentHealth>();
         var findings = new ArrayList<Finding>();
-        for (var kind : FindingRules.evaluate(current, before)) {
-            findings.add(new Finding(kind, null, FindingRules.describe(kind, current, before)));
-        }
-
         var apis = new ArrayList<ApiHealth>();
-        var beforeByApi = byKey(analytics.by(caller, baseline, TrafficScope.ENVIRONMENT, Dimension.API));
-        var currentByApi = byKey(analytics.by(caller, window, TrafficScope.ENVIRONMENT, Dimension.API));
-        var seen = new LinkedHashMap<String, TrafficSample>(currentByApi);
-        beforeByApi.forEach(seen::putIfAbsent);
-        for (var sample : seen.values()) {
-            var api = new ApiRef(sample.key(), sample.name());
-            var apiCurrent = statsOf(currentByApi, sample.key());
-            var apiBefore = statsOf(beforeByApi, sample.key());
-            var kinds = FindingRules.evaluate(apiCurrent, apiBefore);
+        for (var env : covered) {
+            var auditInfo = caller.on(env.id());
+            var current = analytics.total(auditInfo, window, TrafficScope.ENVIRONMENT);
+            var before = analytics.total(auditInfo, baseline, TrafficScope.ENVIRONMENT);
+            var kinds = FindingRules.evaluate(current, before);
             for (var kind : kinds) {
-                findings.add(new Finding(kind, api, FindingRules.describe(kind, apiCurrent, apiBefore)));
+                findings.add(new Finding(kind, env, null, FindingRules.describe(kind, current, before)));
             }
-            apis.add(new ApiHealth(api, apiCurrent, apiBefore, kinds));
+            int apiFindings = apis(env, auditInfo, window, baseline, findings, apis);
+            var status = kinds.isEmpty() && apiFindings == 0
+                ? current.requests() == 0 && before.requests() == 0
+                    ? Status.NO_TRAFFIC
+                    : Status.HEALTHY
+                : Status.DEGRADED;
+            healths.add(new EnvironmentHealth(env, status, current, before, kinds));
         }
+        healths.sort(
+            Comparator.comparingInt((EnvironmentHealth health) -> health.status() == Status.DEGRADED ? 1 : 0)
+                .thenComparingLong(health -> health.current().requests())
+                .reversed()
+        );
         apis.sort(
             Comparator.comparingInt((ApiHealth api) -> api.findings().size())
                 .thenComparingLong(api -> api.current().requests())
                 .reversed()
         );
 
-        var status = status(current, before, findings);
+        var status = status(healths);
         return new Output(
             status,
-            summarize(status, findings),
+            summarize(status, healths, findings),
             window,
             baseline,
-            new Comparison(current, before),
+            healths,
+            omitted,
             findings,
             apis.stream().limit(MAX_APIS).toList()
         );
     }
 
-    private static Status status(TrafficStats current, TrafficStats before, List<Finding> findings) {
-        if (!findings.isEmpty()) {
-            return Status.DEGRADED;
+    /** Adds the findings and health of the APIs of one environment; returns how many findings the APIs carry. */
+    private int apis(
+        EnvRef env,
+        AuditInfo auditInfo,
+        TimeWindow window,
+        TimeWindow baseline,
+        List<Finding> findings,
+        List<ApiHealth> apis
+    ) {
+        var beforeByApi = byKey(analytics.by(auditInfo, baseline, TrafficScope.ENVIRONMENT, Dimension.API));
+        var currentByApi = byKey(analytics.by(auditInfo, window, TrafficScope.ENVIRONMENT, Dimension.API));
+        var seen = new LinkedHashMap<String, TrafficSample>(currentByApi);
+        beforeByApi.forEach(seen::putIfAbsent);
+        int count = 0;
+        for (var sample : seen.values()) {
+            var api = new ApiRef(sample.key(), sample.name());
+            var apiCurrent = statsOf(currentByApi, sample.key());
+            var apiBefore = statsOf(beforeByApi, sample.key());
+            var kinds = FindingRules.evaluate(apiCurrent, apiBefore);
+            for (var kind : kinds) {
+                findings.add(new Finding(kind, env, api, FindingRules.describe(kind, apiCurrent, apiBefore)));
+            }
+            count += kinds.size();
+            apis.add(new ApiHealth(env, api, apiCurrent, apiBefore, kinds));
         }
-        return current.requests() == 0 && before.requests() == 0 ? Status.NO_TRAFFIC : Status.HEALTHY;
+        return count;
     }
 
-    private static String summarize(Status status, List<Finding> findings) {
+    private static Status status(List<EnvironmentHealth> healths) {
+        if (healths.stream().anyMatch(health -> health.status() == Status.DEGRADED)) {
+            return Status.DEGRADED;
+        }
+        return healths.stream().allMatch(health -> health.status() == Status.NO_TRAFFIC) ? Status.NO_TRAFFIC : Status.HEALTHY;
+    }
+
+    private static String summarize(Status status, List<EnvironmentHealth> healths, List<Finding> findings) {
+        var scope = healths.size() == 1 ? healths.getFirst().environment().label() : healths.size() + " environments";
         return switch (status) {
-            case NO_TRAFFIC -> "No traffic in the window or in the baseline.";
-            case HEALTHY -> "Nothing moved against the baseline.";
+            case NO_TRAFFIC -> "No traffic in the window or in the baseline, in " + scope + ".";
+            case HEALTHY -> "Nothing moved against the baseline in " + scope + ".";
             case DEGRADED -> {
+                var degraded = healths
+                    .stream()
+                    .filter(health -> health.status() == Status.DEGRADED)
+                    .map(health -> health.environment().label())
+                    .toList();
                 long apis = findings
                     .stream()
                     .filter(finding -> finding.api() != null)
-                    .map(finding -> finding.api().id())
+                    .map(finding -> finding.environment().id() + "/" + finding.api().id())
                     .distinct()
                     .count();
-                yield findings.size() + " finding(s), on " + apis + " API(s). Break the traffic of an affected API down to localize it.";
+                yield findings.size() +
+                " finding(s) on " +
+                apis +
+                " API(s) in " +
+                String.join(", ", degraded) +
+                ". Break the traffic of an affected API down to localize it.";
             }
         };
     }

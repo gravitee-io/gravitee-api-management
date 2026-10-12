@@ -18,10 +18,11 @@ package io.gravitee.apim.rest.api.mcp.core;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Finds the API a caller names, by id or by name, among those the caller can see.
+ * Finds the API a caller names, by id or by name, among those the caller can see in one environment.
  */
 public final class ApiResolver {
 
@@ -33,29 +34,33 @@ public final class ApiResolver {
             return null;
         }
         var wanted = api.trim();
-        var visible = directory.visibleTo(caller);
-        var byId = visible
-            .stream()
-            .filter(candidate -> candidate.id().equals(wanted))
-            .findFirst();
-        if (byId.isPresent()) {
-            return byId.get();
-        }
-        var byName = visible
-            .stream()
-            .filter(candidate -> candidate.name().equalsIgnoreCase(wanted))
-            .toList();
-        if (byName.isEmpty()) {
+        var matches = find(directory.visibleTo(caller), wanted);
+        if (matches.isEmpty()) {
             throw new TriageException(
                 "No API '" +
                     wanted +
                     "' is visible to you in this environment. Call break_down_traffic with by=api to list APIs with traffic."
             );
         }
-        if (byName.size() > 1) {
-            var ids = byName.stream().map(ApiRef::id).collect(Collectors.joining(", "));
+        if (matches.size() > 1) {
+            var ids = matches.stream().map(ApiRef::id).collect(Collectors.joining(", "));
             throw new TriageException("Several APIs are named '" + wanted + "'. Pass one of these ids instead: " + ids + ".");
         }
-        return byName.getFirst();
+        return matches.getFirst();
+    }
+
+    /** The APIs matching an id exactly, or failing that a name, case ignored. */
+    static List<ApiRef> find(List<ApiRef> visible, String wanted) {
+        var byId = visible
+            .stream()
+            .filter(candidate -> candidate.id().equals(wanted))
+            .toList();
+        if (!byId.isEmpty()) {
+            return byId;
+        }
+        return visible
+            .stream()
+            .filter(candidate -> candidate.name().equalsIgnoreCase(wanted))
+            .toList();
     }
 }

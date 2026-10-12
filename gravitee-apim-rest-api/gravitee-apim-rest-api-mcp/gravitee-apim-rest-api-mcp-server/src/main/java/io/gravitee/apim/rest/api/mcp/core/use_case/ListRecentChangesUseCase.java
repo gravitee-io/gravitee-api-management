@@ -16,15 +16,17 @@
 package io.gravitee.apim.rest.api.mcp.core.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.rest.api.mcp.core.ApiResolver;
+import io.gravitee.apim.rest.api.mcp.core.EnvironmentResolver;
 import io.gravitee.apim.rest.api.mcp.core.TriageException;
 import io.gravitee.apim.rest.api.mcp.core.model.ApiRef;
 import io.gravitee.apim.rest.api.mcp.core.model.Change;
+import io.gravitee.apim.rest.api.mcp.core.model.EnvRef;
 import io.gravitee.apim.rest.api.mcp.core.model.TimeWindow;
 import io.gravitee.apim.rest.api.mcp.core.port.ApiDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.ChangeLog;
+import io.gravitee.apim.rest.api.mcp.core.port.EnvironmentDirectory;
 import io.gravitee.apim.rest.api.mcp.core.port.TriageAccess;
+import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,29 +40,39 @@ public class ListRecentChangesUseCase {
 
     static final String DEFAULT_WINDOW = "1h";
 
+    private final EnvironmentDirectory environments;
     private final TriageAccess access;
     private final ApiDirectory apis;
     private final ChangeLog changeLog;
 
-    public ListRecentChangesUseCase(TriageAccess access, ApiDirectory apis, ChangeLog changeLog) {
+    public ListRecentChangesUseCase(EnvironmentDirectory environments, TriageAccess access, ApiDirectory apis, ChangeLog changeLog) {
+        this.environments = environments;
         this.access = access;
         this.apis = apis;
         this.changeLog = changeLog;
     }
 
-    public record Input(AuditInfo caller, String api, String window, String until) {}
+    public record Input(McpCaller caller, String environment, String api, String window, String until) {}
 
     /**
      * @param omittedSources sources the caller may not read: an empty {@code changes} does not mean nothing changed there
      */
-    public record Output(String summary, ApiRef api, TimeWindow window, List<Change> changes, List<Change.Source> omittedSources) {}
+    public record Output(
+        String summary,
+        EnvRef environment,
+        ApiRef api,
+        TimeWindow window,
+        List<Change> changes,
+        List<Change.Source> omittedSources
+    ) {}
 
     public Output execute(Input input) {
-        var caller = input.caller();
-        var api = ApiResolver.resolve(apis, caller, input.api());
-        if (api == null) {
+        if (input.api() == null || input.api().isBlank()) {
             throw new TriageException("api is required: pass the id or the name of the API to list changes for.");
         }
+        var scope = EnvironmentResolver.resolve(environments, apis, input.caller(), input.environment(), input.api());
+        var auditInfo = scope.auditInfo();
+        var api = scope.api();
         var window = TimeWindow.parse(
             input.window() == null || input.window().isBlank() ? DEFAULT_WINDOW : input.window(),
             input.until(),
@@ -69,13 +81,13 @@ public class ListRecentChangesUseCase {
 
         var changes = new ArrayList<Change>();
         var omitted = new ArrayList<Change.Source>();
-        if (access.canReadApiEvents(caller, api.id())) {
-            changes.addAll(changeLog.deployments(caller, api.id(), window));
+        if (access.canReadApiEvents(auditInfo, api.id())) {
+            changes.addAll(changeLog.deployments(auditInfo, api.id(), window));
         } else {
             omitted.add(Change.Source.DEPLOYMENT);
         }
-        if (access.canReadApiAudit(caller, api.id())) {
-            changes.addAll(changeLog.audit(caller, api.id(), window));
+        if (access.canReadApiAudit(auditInfo, api.id())) {
+            changes.addAll(changeLog.audit(auditInfo, api.id(), window));
         } else {
             omitted.add(Change.Source.AUDIT);
         }
@@ -85,6 +97,6 @@ public class ListRecentChangesUseCase {
         if (!omitted.isEmpty()) {
             summary += " Not allowed to read: " + omitted + ".";
         }
-        return new Output(summary, api, window, changes, omitted);
+        return new Output(summary, scope.environment(), api, window, changes, omitted);
     }
 }

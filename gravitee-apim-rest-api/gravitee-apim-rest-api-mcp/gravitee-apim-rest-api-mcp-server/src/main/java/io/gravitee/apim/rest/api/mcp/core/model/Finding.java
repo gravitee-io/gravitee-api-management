@@ -16,9 +16,9 @@
 package io.gravitee.apim.rest.api.mcp.core.model;
 
 /**
- * Something that moved against the baseline, on the whole environment when {@code api} is null.
+ * Something that moved against the baseline, on a whole environment when {@code api} is null.
  */
-public record Finding(Kind kind, ApiRef api, String summary) {
+public record Finding(Kind kind, EnvRef environment, ApiRef api, String summary) {
     public enum Kind {
         /** 5xx: the gateway or a backend fails. */
         SERVER_ERROR_RATE_UP,

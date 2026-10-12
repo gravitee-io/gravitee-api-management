@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.rest.api.mcp.tools;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.mcp.core.TriageException;
 import io.gravitee.apim.rest.api.mcp.spi.McpCaller;
 import io.gravitee.apim.rest.api.mcp.spi.McpTool;
@@ -48,11 +47,11 @@ abstract class TriageTool<I> implements McpTool<I> {
     @Override
     public final Object call(McpCaller caller, I input) {
         try {
-            return execute(caller.auditInfo(), input);
+            return execute(caller, input);
         } catch (TriageException e) {
             throw new ToolException(e.getMessage());
         }
     }
 
-    abstract Object execute(AuditInfo caller, I input);
+    abstract Object execute(McpCaller caller, I input);
 }

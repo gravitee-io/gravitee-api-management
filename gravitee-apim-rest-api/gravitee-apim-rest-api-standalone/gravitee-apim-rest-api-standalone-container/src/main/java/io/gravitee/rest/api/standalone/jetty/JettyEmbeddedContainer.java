@@ -131,13 +131,14 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         }
 
         if (startMcpAPI) {
-            contexts.add(
-                configureServlet(
-                    mcpEntrypoint,
-                    new ServletHolder(applicationContext.getBean(McpEndpointServlet.class)),
-                    SecurityMcpConfiguration.class
-                )
+            ServletContextHandler mcpContextHandler = configureServlet(
+                mcpEntrypoint,
+                new ServletHolder(applicationContext.getBean(McpEndpointServlet.class)),
+                SecurityMcpConfiguration.class
             );
+            // The endpoint is the mount itself: serve it without redirecting to a trailing slash, which a POST cannot follow.
+            mcpContextHandler.setAllowNullPathInContext(true);
+            contexts.add(mcpContextHandler);
         }
 
         if (startManagementAPI) {

@@ -37,14 +37,14 @@ class PermissionTriageAccessTest {
     @ParameterizedTest
     @EnumSource(value = RolePermission.class, names = { "ENVIRONMENT_DASHBOARD", "ENVIRONMENT_API" })
     void should_let_a_reader_of_dashboards_or_of_the_apis_of_the_environment_read_traffic(RolePermission permission) {
-        grant(permission, "DEFAULT");
+        grant(permission, "e-prod");
 
         assertThat(access.canReadTraffic(CALLER)).isTrue();
     }
 
     @Test
     void should_refuse_traffic_to_a_user_with_neither_permission() {
-        grant(RolePermission.ENVIRONMENT_APPLICATION, "DEFAULT");
+        grant(RolePermission.ENVIRONMENT_APPLICATION, "e-prod");
 
         assertThat(access.canReadTraffic(CALLER)).isFalse();
     }

@@ -23,16 +23,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 /**
- * The MCP endpoint of one environment: {@code /organizations/{orgId}/environments/{envId}}.
- *
- * Anything else under the mount is not an endpoint, so that no request is served without a resolved environment.
+ * The MCP endpoint of the installation: the mount itself, and nothing under it.
  */
 public class McpEndpointServlet extends HttpServlet {
-
-    private static final Pattern ENDPOINT = Pattern.compile("^/organizations/[^/]+/environments/[^/]+/?$");
 
     private final transient HttpServletStatelessServerTransport transport;
 
@@ -50,7 +45,7 @@ public class McpEndpointServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
             var path = request.getPathInfo();
-            if (path == null || !ENDPOINT.matcher(path).matches() || !GraviteeContext.getExecutionContext().hasEnvironmentId()) {
+            if (path != null && !path.equals("/")) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return;
             }

@@ -32,8 +32,7 @@ public class UserContextApiDirectory implements ApiDirectory {
 
     @Override
     public List<ApiRef> visibleTo(AuditInfo caller) {
-        return userContextLoader
-            .loadApis(new UserContext(caller))
+        return ApimContext.run(caller, () -> userContextLoader.loadApis(new UserContext(caller)))
             .apis()
             .orElse(List.of())
             .stream()
