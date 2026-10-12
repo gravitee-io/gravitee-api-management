@@ -27,11 +27,15 @@ import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
+import io.gravitee.gateway.core.invoker.V3InvokerAttributes;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -62,12 +66,40 @@ public class FailoverInvoker extends EndpointInvoker {
         ((MutableExecutionContext) context).request(new FailoverRequest(context.request()));
 
         final String apiId = String.valueOf(context.getAttribute(ExecutionContext.ATTR_API));
+
+        // Lets the caller cancel the attempt in flight, and stop retrying, when the client goes away before any response head.
+        final AtomicBoolean cancelled = new AtomicBoolean();
+        final AtomicReference<Promise<ProxyConnection>> pendingAttempt = new AtomicReference<>();
+        final AtomicReference<ProxyConnection> pendingConnection = new AtomicReference<>();
+        context.setAttribute(
+            V3InvokerAttributes.ATTR_INTERNAL_V3_CANCEL_UPSTREAM,
+            (Runnable) () -> {
+                cancelled.set(true);
+                final ProxyConnection connection = pendingConnection.get();
+                if (connection != null) {
+                    connection.cancel();
+                }
+                final Promise<ProxyConnection> attempt = pendingAttempt.get();
+                if (attempt != null) {
+                    attempt.tryFail(new CancellationException("Client closed the request"));
+                }
+            }
+        );
         circuitBreaker
             .execute(
                 new io.vertx.core.Handler<Promise<ProxyConnection>>() {
                     @Override
                     public void handle(Promise<ProxyConnection> event) {
+                        if (cancelled.get()) {
+                            event.tryFail(new CancellationException("Client closed the request"));
+                            return;
+                        }
+                        pendingAttempt.set(event);
                         FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
+                            pendingConnection.set(proxyConnection);
+                            if (cancelled.get()) {
+                                proxyConnection.cancel();
+                            }
                             proxyConnection.exceptionHandler(error -> {
                                 try {
                                     event.fail(error);
