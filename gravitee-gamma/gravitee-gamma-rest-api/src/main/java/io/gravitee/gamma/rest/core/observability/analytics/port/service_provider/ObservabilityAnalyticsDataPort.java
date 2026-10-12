@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
+import io.gravitee.gamma.rest.core.observability.analytics.model.SeriesRanking;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.util.List;
@@ -97,17 +98,35 @@ public interface ObservabilityAnalyticsDataPort {
 
     JsonNode computeTimeSeries(TimeSeriesQuery query);
 
+    /**
+     * @param ranking the only series to plot, or {@code null} to plot every series the engine returns. The
+     *     conditions it takes to fetch them are applied on top of the scope and never reported as ignored.
+     */
     record TimeSeriesQuery(
         String organizationId,
         String environmentId,
         AnalyticsRequestPipeline.PreparedScope scope,
         Long interval,
         List<String> facets,
-        Integer facetSize,
         List<AnalyticsFacetMetricQuery> metrics,
         List<AnalyticsNumberRange> ranges,
-        Map<String, List<String>> conditionsNotApplied
-    ) {}
+        Map<String, List<String>> conditionsNotApplied,
+        SeriesRanking ranking
+    ) {
+        public TimeSeriesQuery withRanking(SeriesRanking ranking) {
+            return new TimeSeriesQuery(
+                organizationId,
+                environmentId,
+                scope,
+                interval,
+                facets,
+                metrics,
+                ranges,
+                conditionsNotApplied,
+                ranking
+            );
+        }
+    }
 
     /**
      * Refuses a query the analytics engine would refuse, without reading any data: an unknown metric,

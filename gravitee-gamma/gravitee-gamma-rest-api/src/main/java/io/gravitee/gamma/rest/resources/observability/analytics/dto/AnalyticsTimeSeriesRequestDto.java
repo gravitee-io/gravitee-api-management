@@ -21,6 +21,9 @@ import java.util.List;
 
 /**
  * POST body for {@code /observability/analytics/time-series}.
+ *
+ * <p>{@code facetSize} is the deprecated name of {@code limit}, with the same meaning; {@code limit} wins
+ * when both are sent.
  */
 public record AnalyticsTimeSeriesRequestDto(
     TimeRangeDto timeRange,
@@ -28,6 +31,11 @@ public record AnalyticsTimeSeriesRequestDto(
     Long interval,
     List<FacetMetricQueryDto> metrics,
     List<String> by,
-    Integer facetSize,
+    Integer limit,
+    @Deprecated Integer facetSize,
     List<NumberRangeDto> ranges
-) {}
+) {
+    public Integer seriesLimit() {
+        return limit != null ? limit : facetSize;
+    }
+}

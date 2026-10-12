@@ -129,7 +129,7 @@ public class AnalyticsResource {
                 request != null ? request.interval() : null,
                 toFacetMetrics(request != null ? request.metrics() : null),
                 request != null && request.by() != null ? request.by() : List.of(),
-                request != null ? request.facetSize() : null,
+                request != null ? request.seriesLimit() : null,
                 toRanges(request != null ? request.ranges() : null)
             )
         );
