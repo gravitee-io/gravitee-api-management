@@ -25,7 +25,16 @@ import {
     DropdownMenuTrigger,
     PageHeader,
 } from '@gravitee/graphene-core';
-import { BookOpenIcon, ChevronDownIcon, EyeOffIcon, FileTextIcon, GlobeIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import {
+    BookOpenIcon,
+    ChevronDownIcon,
+    EyeOffIcon,
+    FileTextIcon,
+    FolderOpenIcon,
+    GlobeIcon,
+    PlusIcon,
+    Trash2Icon,
+} from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -35,6 +44,7 @@ import { CreatePageDialog } from '../../components/detail/documentation/CreatePa
 import { ApiPublicationBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
+import { FolderDialog } from '../../components/detail/documentation/FolderDialog';
 import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
@@ -79,9 +89,10 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const expandedFolders = useExpandedDocumentationFolders(apiId);
     const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
-    // `parent` is absent for a page added at the top level.
+    // `parent` is absent for an item added at the top level.
     const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
-    const [pageToEdit, setPageToEdit] = useState<PortalNavigationPage | null>(null);
+    const [folderToAdd, setFolderToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<PortalNavigationPage | PortalNavigationFolder | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
     const [isUnpublishing, setIsUnpublishing] = useState(false);
 
@@ -89,9 +100,10 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const isFirstUse = !isLoading && !isError && items.length === 0;
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
     const openAddPageDialog = useCallback((parent: PortalNavigationFolder) => setPageToAdd({ parent }), []);
-    const openEditDetailsDialog = useCallback((page: PortalNavigationPage) => setPageToEdit(page), []);
-    const parentOfPageToEdit = items.find(
-        (item): item is PortalNavigationFolder => item.type === 'FOLDER' && item.id === pageToEdit?.parentId,
+    const openAddFolderDialog = useCallback((parent: PortalNavigationFolder) => setFolderToAdd({ parent }), []);
+    const openEditDetailsDialog = useCallback((item: PortalNavigationPage | PortalNavigationFolder) => setItemToEdit(item), []);
+    const parentOfItemToEdit = items.find(
+        (item): item is PortalNavigationFolder => item.type === 'FOLDER' && item.id === itemToEdit?.parentId,
     );
 
     async function handleDelete() {
@@ -116,7 +128,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
         }
     }
 
-    const addMenu = canAdd ? <AddDocumentationMenu onAddPage={() => setPageToAdd({})} /> : null;
+    const addMenu = canAdd ? <AddDocumentationMenu onAddPage={() => setPageToAdd({})} onAddFolder={() => setFolderToAdd({})} /> : null;
 
     return (
         <div className="flex flex-col gap-6">
@@ -162,6 +174,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onDelete={openDeleteDialog}
                     canAdd={canAdd}
                     onAddPage={openAddPageDialog}
+                    onAddFolder={openAddFolderDialog}
                     canEdit={canEdit}
                     onEditDetails={openEditDetailsDialog}
                 />
@@ -192,6 +205,17 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 }}
             />
 
+            <FolderDialog
+                open={folderToAdd !== null}
+                apiId={apiId}
+                parent={folderToAdd?.parent}
+                onClose={() => setFolderToAdd(null)}
+                onCreated={() => {
+                    // So the new folder shows.
+                    if (folderToAdd?.parent) expandedFolders.expand(folderToAdd.parent.id);
+                }}
+            />
+
             <PublishToPortalDialog
                 open={isPublishing}
                 apiId={apiId}
@@ -211,21 +235,33 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 onConfirm={handleUnpublish}
             />
 
-            {pageToEdit ? (
+            {itemToEdit?.type === 'PAGE' ? (
                 <EditPageDetailsDialog
                     open
                     apiId={apiId}
-                    page={pageToEdit}
-                    syncState={syncStateOf(pageToEdit, getAncestors(items, pageToEdit))}
-                    parent={parentOfPageToEdit}
-                    onClose={() => setPageToEdit(null)}
+                    page={itemToEdit}
+                    syncState={syncStateOf(itemToEdit, getAncestors(items, itemToEdit))}
+                    parent={parentOfItemToEdit}
+                    onClose={() => setItemToEdit(null)}
+                />
+            ) : null}
+
+            {itemToEdit?.type === 'FOLDER' ? (
+                <FolderDialog
+                    open
+                    apiId={apiId}
+                    folder={itemToEdit}
+                    syncState={syncStateOf(itemToEdit, getAncestors(items, itemToEdit))}
+                    itemsInside={items.filter(item => getAncestors(items, item).some(ancestor => ancestor.id === itemToEdit.id)).length}
+                    parent={parentOfItemToEdit}
+                    onClose={() => setItemToEdit(null)}
                 />
             ) : null}
         </div>
     );
 }
 
-function AddDocumentationMenu({ onAddPage }: Readonly<{ onAddPage: () => void }>) {
+function AddDocumentationMenu({ onAddPage, onAddFolder }: Readonly<{ onAddPage: () => void; onAddFolder: () => void }>) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -239,6 +275,10 @@ function AddDocumentationMenu({ onAddPage }: Readonly<{ onAddPage: () => void }>
                 <DropdownMenuItem onSelect={onAddPage}>
                     <FileTextIcon className="size-4" aria-hidden />
                     Page
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={onAddFolder}>
+                    <FolderOpenIcon className="size-4" aria-hidden />
+                    Folder
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
