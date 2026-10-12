@@ -57,15 +57,17 @@ public class ComputeObservabilityFacetsUseCase {
         if (input.metrics == null || input.metrics.isEmpty()) {
             throw InvalidObservabilityQueryException.missingMetrics();
         }
-        // Before the scope is prepared: a refused condition never reaches the data.
+        // Before the request is prepared: a refused condition never reaches the data.
+        var metricConditions = input.metrics.stream().map(AnalyticsFacetMetricQuery::filters).toList();
+        pipeline.validateMetricConditions(metricConditions);
+        var shared = pipeline.sharedMetricConditions(metricConditions);
         var notApplied = pipeline.conditionsNotApplied(
             input.filters,
-            input.metrics
-                .stream()
-                .map(metric -> new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
-                .toList()
+            input.metrics.stream().map(AnalyticsFacetMetricQuery::metricName).toList()
         );
-        var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
+        var scope = pipeline
+            .prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort)
+            .scopeWith(shared);
         var query = new ObservabilityAnalyticsDataPort.FacetsQuery(
             input.organizationId,
             input.environmentId,

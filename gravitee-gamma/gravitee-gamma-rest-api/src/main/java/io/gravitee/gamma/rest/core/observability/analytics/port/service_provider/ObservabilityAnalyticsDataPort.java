@@ -33,8 +33,8 @@ import java.util.Map;
  * through without requiring duplicate records in the Gamma core. Jackson serializes the node tree
  * directly to the HTTP response body.
  *
- * <p>Each query carries, by metric name, the conditions Gamma did not hand to the engine. A response
- * lists them in each metric's {@code ignoredFilters}, after the ones the engine skipped.
+ * <p>Each query carries the conditions Gamma did not hand to the engine. A response lists them in each
+ * metric's {@code ignoredFilters}, after the ones the engine skipped.
  *
  * @author GraviteeSource Team
  */
@@ -43,13 +43,44 @@ public interface ObservabilityAnalyticsDataPort {
 
     JsonNode computeMeasures(MeasuresQuery query);
 
+    /**
+     * A measures request split into groups, one engine query each: the metrics of a group share their
+     * own conditions, already part of the group's scope. A group whose scope is empty answers zero-valued
+     * entries without querying anything.
+     *
+     * <p>When the metrics carry ids, the response has one entry per metric, in request order, echoing its
+     * id and holding only its own measures. Otherwise it has one entry per metric name, measures merged:
+     * without ids, metrics sharing a name always share a group. A zero-valued entry lists only the
+     * conditions Gamma did not apply, the engine having been asked nothing.
+     *
+     * @param groups  The scope of each group's query.
+     * @param metrics The request's metrics, in request order.
+     */
     record MeasuresQuery(
         String organizationId,
         String environmentId,
-        AnalyticsRequestPipeline.PreparedScope scope,
-        List<AnalyticsMetricQuery> metrics,
-        Map<String, List<String>> conditionsNotApplied
-    ) {}
+        List<AnalyticsRequestPipeline.PreparedScope> groups,
+        List<Metric> metrics
+    ) {
+        /**
+         * @param group                Index in {@link #groups()} of the query computing this metric.
+         * @param conditionsNotApplied Conditions of the request or of the metric that its group's query
+         *                             does not apply, to report on its entry.
+         */
+        public record Metric(AnalyticsMetricQuery query, int group, List<String> conditionsNotApplied) {}
+
+        public boolean identified() {
+            return metrics.stream().anyMatch(metric -> metric.query().id() != null);
+        }
+
+        public List<AnalyticsMetricQuery> metricsOf(int group) {
+            return metrics
+                .stream()
+                .filter(metric -> metric.group() == group)
+                .map(Metric::query)
+                .toList();
+        }
+    }
 
     JsonNode computeFacets(FacetsQuery query);
 
@@ -89,7 +120,6 @@ public interface ObservabilityAnalyticsDataPort {
 
     void validate(TimeSeriesQuery query);
 
-    JsonNode emptyMeasuresResponse();
     JsonNode emptyFacetsResponse();
     JsonNode emptyTimeSeriesResponse();
 }

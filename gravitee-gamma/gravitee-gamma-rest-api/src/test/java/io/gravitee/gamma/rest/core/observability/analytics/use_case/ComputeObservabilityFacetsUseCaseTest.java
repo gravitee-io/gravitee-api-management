@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -27,14 +28,23 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetM
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
+import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -99,5 +109,75 @@ class ComputeObservabilityFacetsUseCaseTest {
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(InvalidObservabilityQueryException.class);
         verify(analyticsDataPort, never()).emptyFacetsResponse();
+    }
+
+    @Test
+    void should_append_the_metric_conditions_every_metric_shares_to_the_query_filters() {
+        givenTheStatusFilter();
+        when(analyticsDataPort.loadAccessibleApis("org-1", "env-1")).thenReturn(
+            List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+        );
+
+        useCase().execute(input(List.of(STATUS_500), List.of(STATUS_500)));
+
+        var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.FacetsQuery.class);
+        verify(analyticsDataPort).computeFacets(captor.capture());
+        assertThat(captor.getValue().scope().filters()).contains(STATUS_500);
+        assertThat(captor.getValue().conditionsNotApplied()).isEmpty();
+    }
+
+    @Test
+    void should_refuse_metrics_carrying_different_conditions_before_any_data_access() {
+        givenTheStatusFilter();
+
+        assertThatThrownBy(() -> useCase().execute(input(List.of(STATUS_500), List.of())))
+            .isInstanceOf(InvalidObservabilityQueryException.class)
+            .extracting("technicalCode")
+            .isEqualTo("observability.query.differing_metric_conditions");
+        verifyNoInteractions(analyticsDataPort);
+    }
+
+    private ComputeObservabilityFacetsUseCase useCase() {
+        var pipeline = new AnalyticsRequestPipeline(
+            new ObservabilityFilterValidator(filterRegistry),
+            new AccessibleApiScopeDomainService()
+        );
+        return new ComputeObservabilityFacetsUseCase(analyticsDataPort, pipeline);
+    }
+
+    private static ComputeObservabilityFacetsUseCase.Input input(List<FilterCondition> first, List<FilterCondition> second) {
+        return new ComputeObservabilityFacetsUseCase.Input(
+            "org-1",
+            "env-1",
+            List.of(),
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-11T00:00:00Z"),
+            List.of(
+                new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), first),
+                new AnalyticsFacetMetricQuery("HTTP_ERRORS", List.of("COUNT"), List.of(), second)
+            ),
+            List.of("HTTP_STATUS"),
+            null,
+            List.of()
+        );
+    }
+
+    private static final FilterCondition STATUS_500 = new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("500"));
+
+    private void givenTheStatusFilter() {
+        when(filterRegistry.getFilters(any(), any())).thenReturn(
+            List.of(
+                new FilterSpec(
+                    "HTTP_STATUS",
+                    "Status Code",
+                    FilterType.NUMBER,
+                    List.of(FilterOperator.EQ),
+                    null,
+                    new FilterSpec.Range(100, 599),
+                    Set.of(Signal.ANALYTICS),
+                    Set.of(ApiType.HTTP_PROXY)
+                )
+            )
+        );
     }
 }

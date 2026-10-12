@@ -231,6 +231,50 @@ class FilterAdapterTest {
             var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/status");
             assertThat(rangeFilter.isMissingNode()).isTrue();
         }
+
+        // Gamma appends a widget's own conditions to the dashboard's: two conditions on one field must both
+        // narrow the documents, so a 5xx tile under a "status = 200" dashboard counts nothing.
+        @Test
+        void should_and_two_conditions_on_the_same_field_as_two_clauses() throws JsonProcessingException {
+            var filters = List.of(
+                new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.EQ, 200),
+                new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.EQ, 500)
+            );
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+            var jsonQuery = JSON.readTree(measuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics)));
+
+            var statusClauses = new ArrayList<Integer>();
+            jsonQuery
+                .at("/query/bool/filter")
+                .forEach(clause -> {
+                    if (clause.has("term") && clause.get("term").has("status")) {
+                        statusClauses.add(clause.at("/term/status").asInt());
+                    }
+                });
+            assertThat(statusClauses).containsExactly(200, 500);
+        }
+
+        @Test
+        void should_and_two_status_code_groups_as_two_clauses() throws JsonProcessingException {
+            var filters = List.of(
+                new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.EQ, "2XX"),
+                new Filter(Filter.Name.HTTP_STATUS_CODE_GROUP, Filter.Operator.EQ, "5XX")
+            );
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+
+            var jsonQuery = JSON.readTree(measuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics)));
+
+            var lowerBounds = new ArrayList<Integer>();
+            jsonQuery
+                .at("/query/bool/filter")
+                .forEach(clause -> {
+                    if (clause.has("range") && clause.get("range").has("status")) {
+                        lowerBounds.add(clause.at("/range/status/gte").asInt());
+                    }
+                });
+            assertThat(lowerBounds).containsExactly(200, 500);
+        }
     }
 
     @Nested
