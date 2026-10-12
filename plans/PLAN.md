@@ -94,7 +94,7 @@ todos:
     status: pending
   - id: STORY-29
     content: "Edit a page's title and access."
-    status: pending
+    status: completed
   - id: STORY-30
     content: "Publish and unpublish the API from Gamma."
     status: pending
@@ -1182,6 +1182,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Size:** S · **Depends on:** STORY-25, STORY-26 (adds to its menu) · **Backend:** STORY-10 must be in place, or an invalid area is accepted silently
 
 #### STORY-29 — Edit a page's title and access
+**Status:** Done under [PORTAL-256](https://gravitee.atlassian.net/browse/PORTAL-256), as [#21036](https://github.com/gravitee-io/gravitee-api-management/pull/21036). Unlike the criterion below, a synced page cannot be renamed: `SourcedItemReadOnlyRule` refuses to rename an item that keeps its source, so the title of a synced page is read only and only its access can change. The same rule holds for a synced folder in STORY-27.
 **Why:** a typo in a title, or a page that must become private, should not mean deleting the page and writing it again. STORY-26 sets both only when the page is created.
 **Acceptance criteria:**
 - "Edit details" on the editor screen opens a dialog with the title and access fields of the page dialog, and its own Save, apart from the content's.
