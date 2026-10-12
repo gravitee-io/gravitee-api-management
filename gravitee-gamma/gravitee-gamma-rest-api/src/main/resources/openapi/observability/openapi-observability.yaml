@@ -1256,6 +1256,16 @@ paths:
                 Each time bucket may optionally contain nested facet buckets when `by` is
                 provided, enabling per-API or per-status time-series breakdowns.
 
+                With `by`, `limit` keeps the same top values in every time bucket: the values
+                of the innermost facet are ranked over the whole time range by the first measure
+                of each metric, descending (ties go to the smaller key, compared as text), within
+                each value of the outer facet. The outer facet keeps its 10 most frequent values
+                over the range. A status group or ranged facet keeps its top `limit` buckets too.
+                A metric's `sorts` do not change which values `limit` keeps: they only order the
+                buckets. Ranking takes one extra engine query, run before the time-series. Without
+                `limit`, each time bucket holds its own 10 values of the innermost facet: the most
+                frequent ones, or the first ones by the metric's `sorts`.
+
                 `interval` is in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
 
                 **Metric conditions**: the request runs as one query, so every metric must carry the
@@ -1291,7 +1301,7 @@ paths:
                                         - name: "HTTP_REQUESTS"
                                           measures: ["COUNT"]
                                     by: ["API"]
-                                    facetSize: 5
+                                    limit: 5
             responses:
                 "200":
                     description: Time-series metric results.
@@ -1810,6 +1820,7 @@ components:
                 - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                 - `metrics` is empty (`observability.query.metrics_required`)
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
+                - `limit` is above 100, on time-series (`observability.query.invalid_limit`)
                 - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
                 - An array of the body holds a null entry (`observability.query.null_entry`)
                 - A combination the engine refuses, such as a facet a metric does not support (no technical code)
@@ -2808,7 +2819,10 @@ components:
                 sorts:
                     type: array
                     nullable: true
-                    description: Sort directives for bucket ordering. Only applies to facets.
+                    description: |
+                        Sort directives for bucket ordering. On facets, they also decide which buckets
+                        `limit` keeps. On a time-series, they order the buckets of each time bucket but
+                        never choose the values a `limit` keeps.
                     items:
                         $ref: "#/components/schemas/SortSpec"
                 filters:
@@ -2916,14 +2930,24 @@ components:
                 by:
                     type: array
                     nullable: true
-                    description: Optional facet dimensions for nested breakdown within each time bucket.
+                    description: Optional facet dimensions for nested breakdown within each time bucket, outermost first.
                     items:
                         type: string
+                limit:
+                    type: integer
+                    nullable: true
+                    description: |
+                        Maximum number of innermost facet values over the time range, per value of the
+                        outer facet: the top values, the same in every time bucket. Ignored without `by`.
+                        Absent or below 1, each time bucket holds its own 10 values: the most frequent
+                        ones, or the first ones by the metric's `sorts`. At most 100.
+                    maximum: 100
+                    example: 5
                 facetSize:
                     type: integer
                     nullable: true
-                    description: Maximum facet values per time bucket.
-                    example: 5
+                    deprecated: true
+                    description: Deprecated name of `limit`, with the same meaning. `limit` wins when both are sent.
                 ranges:
                     type: array
                     nullable: true

@@ -48,6 +48,13 @@ public class InvalidObservabilityQueryException extends ValidationDomainExceptio
         );
     }
 
+    public static InvalidObservabilityQueryException invalidLimit(Integer limit, int max) {
+        return new InvalidObservabilityQueryException(
+            "'limit' must be at most " + max + " series, was " + limit,
+            "observability.query.invalid_limit"
+        );
+    }
+
     public static InvalidObservabilityQueryException missingMetrics() {
         return new InvalidObservabilityQueryException("At least one metric is required", "observability.query.metrics_required");
     }
