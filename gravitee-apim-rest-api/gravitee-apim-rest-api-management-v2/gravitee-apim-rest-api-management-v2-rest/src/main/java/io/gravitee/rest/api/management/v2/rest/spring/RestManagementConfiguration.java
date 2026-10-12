@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
+import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
@@ -88,11 +89,8 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public BucketNamesPostProcessor bucketNamesPostProcessor(
-        @Lazy ApiRepository apiRepository,
-        ApplicationService applicationSearchService
-    ) {
-        return new BucketNamesPostProcessorImpl(apiRepository, applicationSearchService);
+    public BucketNamesPostProcessor bucketNamesPostProcessor(FilterValueNameResolver filterValueNameResolver) {
+        return new BucketNamesPostProcessorImpl(filterValueNameResolver);
     }
 
     @Bean
