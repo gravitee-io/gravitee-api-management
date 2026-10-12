@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * Wire shape for a dashboard. {@code environmentId} and {@code createdBy} are intentionally omitted
  * — redundant with the URL scope / not needed by the UI. {@code module} is {@code null}, hence
- * omitted from the JSON, on a dashboard created without one. {@code widgets} is returned verbatim
+ * omitted from the JSON, on a dashboard created before it was required. {@code widgets} is returned verbatim
  * (opaque, never parsed). {@code version} must be present even though nothing enforces it yet —
  * OBS-16/17 need it on the write path and reads are the only place it can be handed out.
  */

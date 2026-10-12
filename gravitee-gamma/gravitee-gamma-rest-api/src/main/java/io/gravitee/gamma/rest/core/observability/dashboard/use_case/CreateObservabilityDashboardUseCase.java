@@ -30,8 +30,8 @@ import lombok.AllArgsConstructor;
  * Creates a dashboard from author-supplied {@link DashboardContent} (OBS-16). The id is
  * client-supplied (AGENTS.md §9 — resource-creation ids come from the request); every server-owned
  * field is derived here: {@code version} starts at 1, {@code createdBy} is the authenticated caller,
- * {@code createdAt}/{@code updatedAt} are stamped now. {@code module} is optional
- * until every host sends it (OBS-106). Version is maintained but not enforced — the
+ * {@code createdAt}/{@code updatedAt} are stamped now. {@code module} is required, or the new
+ * dashboard would show in no module's view (OBS-106). Version is maintained but not enforced — the
  * optimistic-locking guard is OBS-17.
  *
  * @author GraviteeSource Team
@@ -51,7 +51,7 @@ public class CreateObservabilityDashboardUseCase {
 
     public Output execute(Input input) {
         input.content().validate();
-        DashboardModule.requireValidOrAbsent(input.module());
+        DashboardModule.requireValid(input.module());
         filterValidator.validateDashboardFilters(input.content().filters().stream().map(DashboardFilter::condition).toList());
         Instant now = TimeProvider.instantNow();
         Dashboard dashboard = new Dashboard(

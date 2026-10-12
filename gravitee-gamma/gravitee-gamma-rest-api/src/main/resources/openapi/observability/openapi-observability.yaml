@@ -82,8 +82,8 @@ tags:
           is an optimistic-locking counter: nothing enforces it yet, but it must round-trip so a
           future write can submit it back.
 
-          A dashboard can belong to a Gamma module (`module`, set once at creation), so each module
-          lists its own dashboards. This scoping is not an access-control boundary: every dashboard
+          A dashboard belongs to a Gamma module (`module`, required and set once at creation), so each
+          module lists its own dashboards. This scoping is not an access-control boundary: every dashboard
           of the environment stays readable and writable by anyone holding the
           `ENVIRONMENT_DASHBOARD` permissions, whatever its module.
 
@@ -1426,14 +1426,21 @@ paths:
                 "400":
                     description: |
                         The dashboard could not be saved. The message names the problem: a missing
-                        title, more than 50 widgets, a widgets payload above 1 MB, a widget with a
-                        missing or duplicated `id`, a time range without the fields its `type`
-                        requires, or a dashboard filter the catalog refuses (see `SaveDashboardFilter`).
+                        or invalid module, a missing title, more than 50 widgets, a widgets payload
+                        above 1 MB, a widget with a missing or duplicated `id`, a time range without
+                        the fields its `type` requires, or a dashboard filter the catalog refuses (see
+                        `SaveDashboardFilter`).
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             examples:
+                                module-missing:
+                                    summary: No module
+                                    value:
+                                        http_status: 400
+                                        message: "Dashboard field 'module' is required"
+                                        technicalCode: "observability.dashboard.module_required"
                                 too-many-widgets:
                                     summary: Too many widgets
                                     value:
@@ -3114,8 +3121,7 @@ components:
                     readOnly: true
                     description: |
                         Gamma module the dashboard belongs to, set at creation and never changed.
-                        Absent for a dashboard created without one, including every dashboard
-                        created before this field existed.
+                        Absent only for a dashboard created before `module` was required.
                 title:
                     type: string
                     example: Performance overview
@@ -3257,15 +3263,15 @@ components:
                   description: |
                       A dashboard being created. You supply the `id`. The new dashboard starts at
                       version 1, returned in the response `ETag`.
-                  required: [id]
+                  required: [id, module]
                   properties:
                       module:
                           allOf:
                               - $ref: "#/components/schemas/DashboardModule"
                           description: |
-                              Gamma module the dashboard belongs to. Optional for now: a dashboard
-                              created without one belongs to no module and is only listed when no
-                              `module` is requested. It cannot be changed afterwards.
+                              Gamma module the dashboard belongs to. A missing or blank value is
+                              refused with `400` and the technical code
+                              `observability.dashboard.module_required`. It cannot be changed afterwards.
 
         UpdateDashboardRequest:
             allOf:

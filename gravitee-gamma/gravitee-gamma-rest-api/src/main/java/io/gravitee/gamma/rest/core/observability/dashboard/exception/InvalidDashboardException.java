@@ -18,9 +18,8 @@ package io.gravitee.gamma.rest.core.observability.dashboard.exception;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 
 /**
- * Raised by {@code Dashboard}'s compact constructor when a required field is missing. Reachable
- * today only if persisted data is corrupt (this ticket only reads dashboards written by OBS-14's
- * repository layer); the write path introduced by OBS-16 will also route through it.
+ * Raised when a dashboard, or a request to save one, breaks a validation rule; answered with
+ * {@code 400}. A technical code is set where a client has to tell the rule apart.
  *
  * @author GraviteeSource Team
  */
@@ -28,5 +27,9 @@ public class InvalidDashboardException extends ValidationDomainException {
 
     public InvalidDashboardException(String message) {
         super(message);
+    }
+
+    public InvalidDashboardException(String message, String technicalCode) {
+        super(message, technicalCode);
     }
 }
