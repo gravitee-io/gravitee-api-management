@@ -179,7 +179,7 @@
     <gravitee-policy-url-rewriting.version>2.0.0</gravitee-policy-url-rewriting.version>
     <gravitee-policy-xml-json.version>3.0.0</gravitee-policy-xml-json.version>
     <gravitee-policy-xml-threat-protection.version>2.0.0</gravitee-policy-xml-threat-protection.version>
-    <gravitee-policy-xml-validation.version>2.1.0</gravitee-policy-xml-validation.version>
+    <gravitee-policy-xml-validation.version>2.1.1</gravitee-policy-xml-validation.version>
     <gravitee-policy-xslt.version>4.0.0</gravitee-policy-xslt.version>
     <gravitee-policy-wssecurity-authentication.version>3.0.0</gravitee-policy-wssecurity-authentication.version>
     <gravitee-policy-http-redirect.version>1.0.2</gravitee-policy-http-redirect.version>
@@ -246,7 +246,7 @@
     <gravitee-policy-graphql-rate-limit.version>2.0.0</gravitee-policy-graphql-rate-limit.version>
     <gravitee-resource-schema-registry-confluent.version>6.0.0</gravitee-resource-schema-registry-confluent.version>
     <gravitee-resource-schema-registry-embedded.version>1.0.3</gravitee-resource-schema-registry-embedded.version>
-    <gravitee-resource-schema-registry-http.version>1.0.0</gravitee-resource-schema-registry-http.version>
+    <gravitee-resource-schema-registry-http.version>1.0.2</gravitee-resource-schema-registry-http.version>
     <gravitee-resource-storage-azure-blob.version>1.1.1</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.1.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.4</gravitee-reactor-native-kafka.version>
