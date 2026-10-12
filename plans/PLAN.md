@@ -532,6 +532,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 1 — Unblock the ownership model
 
 #### STORY-01 — Saving an API-owned item must not detach it from its API
+**Status:** Done under [PORTAL-230](https://gravitee.atlassian.net/browse/PORTAL-230), as [#20749](https://github.com/gravitee-io/gravitee-api-management/pull/20749).
 **Why:** every rename, visibility toggle and drag in the classic portal editor currently detaches an API's page from the API. Today this only bites automation-created documentation; once all documentation is API-owned it happens on nearly every edit, which makes the whole model unusable.
 **Acceptance criteria:**
 - Given a page owned by an API and shown under that API's listing row, when the client sends back the parent it was shown and changes only the visibility, then the stored parent is still empty and the page is still owned by the API.
