@@ -1210,11 +1210,11 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - When the hidden listing row sits somewhere the dialog cannot offer, such as a nested folder, the dialog says where it is and that publishing will move it.
 - On success the screen shows where the API is published.
 - Unpublish is offered only when published, and publish only when not. A hidden listing row counts as not published.
-- **Decision required:** what the dialog does when no sections exist at all.
+- When no section exists, the dialog still opens and shows the section picker empty, with a short explanation; publishing stays disabled (decision 3).
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/PublishToPortalDialog.tsx`
 - *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — wire the action and show where the API is published
-**Size:** M · **Depends on:** STORY-25 · **Blocked by:** decision 3 · **Backend:** STORY-15, STORY-16
+**Size:** M · **Depends on:** STORY-25 · **Backend:** STORY-15, STORY-16
 **Subtasks:**
 1. The dialog with the section list and the default selection by name.
 2. Publish, unpublish, and the exclusive action state.
@@ -1495,7 +1495,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 |---|---|---|
 | 1 | Title, position, ordering and visibility become properties of the API rather than of one portal, so editing them in one portal edits them everywhere. Accept, or constrain? | 31, 32 (wording) |
 | 2 | ~~Should documentation written in Gamma start visible or hidden?~~ **Settled: hidden.** Items created through the API-scoped path are always unpublished, whatever the request says, and publishing the API publishes everything it owns, so an admin who publishes the entry does see the documentation | — |
-| 3 | What happens when the portal has no top-level sections at all? Disable publishing with an explanation, or allow the section to be created in this one case? | 30 |
+| 3 | ~~What happens when the portal has no top-level sections at all?~~ **Settled: the publish dialog still opens, with the section picker empty and a short explanation, so the user sees that choosing a location is the step that blocks. Publishing stays disabled; Gamma never creates a section.** | — |
 | 4 | Does deleting an API from the console clean up its documentation in this release? | 37 |
 | 5 | Should an API whose only documentation is an empty folder still get a starter page? | 09 |
 | 6 | May the migration delete a duplicate starter page that still matches the template? | 19 |
@@ -1535,7 +1535,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | An update sends a short payload and unlinks a sourced page or rejects every link | High | STORY-29's payload builder is tested for both failures first, and every update goes through it |
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
 | Create response misleads the editor about where the page is | Medium | STORY-04 |
-| Publishing impossible when no top-level section exists | Medium | Decision 3 |
+| Publishing impossible when no top-level section exists | Medium | Accepted: the publish dialog explains it, a portal administrator adds a section (decision 3), and STORY-35 adds a default one |
 | Deleting an API from the console leaks documentation and page text | Medium | STORY-37, or an accepted known issue |
 | The migration cannot be reversed | Medium | In-place updates, unchanged ids, logging, run-twice test (STORY-19) |
 | Items with an external source lose read-only protection after migration | Medium | STORY-19 skips them |
