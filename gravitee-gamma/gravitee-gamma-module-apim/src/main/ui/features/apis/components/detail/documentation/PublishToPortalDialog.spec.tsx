@@ -186,6 +186,20 @@ describe('PublishToPortalDialog', () => {
         expect(publishButton().disabled).toBe(true);
     });
 
+    it('cannot be dismissed while publishing, so a refusal that comes afterwards is still shown', async () => {
+        let refuse: (error: Error) => void = () => {};
+        mockPublish.mockReturnValue(new Promise((_resolve, reject) => (refuse = reject)));
+        const { user, onClose } = renderDialog();
+
+        await waitFor(() => expect(sectionPicker().textContent).toBe('APIs'));
+        await user.click(publishButton());
+        await user.keyboard('{Escape}');
+
+        expect(onClose).not.toHaveBeenCalled();
+        refuse(new ApimApiError(400, 'The API is already published'));
+        expect(await screen.findByText('The API is already published')).not.toBeNull();
+    });
+
     it('shows why the server refused, keeping the dialog open with the chosen section', async () => {
         mockPublish.mockRejectedValue(new ApimApiError(400, 'The API is already published'));
         const { user, onClose } = renderDialog();

@@ -38,7 +38,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { notify } from '../../../../../shared/notify';
 import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
 import { useApiPublishLocations, usePublishApiToPortal } from '../../../hooks/useApiDocumentation';
-import type { ApiPortalPublication } from '../../../types/apiDocumentation';
+import type { ApiPortalPublication, PublishApiToPortal } from '../../../types/apiDocumentation';
 import { defaultPublishSectionId, getHiddenListing } from '../../../utils/documentationTree';
 
 export function PublishToPortalDialog({
@@ -53,10 +53,19 @@ export function PublishToPortalDialog({
     publications: ApiPortalPublication[];
     onClose: () => void;
 }>) {
+    // Held here rather than in the form: closing the dialog mid-request would unmount the form and lose a refusal.
+    const publish = usePublishApiToPortal(apiId);
+
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && !publish.isPending && onClose()}>
             <DialogContent style={{ maxWidth: '480px' }}>
-                <PublishToPortalForm apiId={apiId} publications={publications} onClose={onClose} />
+                <PublishToPortalForm
+                    apiId={apiId}
+                    publications={publications}
+                    publishApi={publish.mutateAsync}
+                    isPublishing={publish.isPending}
+                    onClose={onClose}
+                />
             </DialogContent>
         </Dialog>
     );
@@ -66,13 +75,19 @@ export function PublishToPortalDialog({
 function PublishToPortalForm({
     apiId,
     publications,
+    publishApi,
+    isPublishing,
     onClose,
-}: Readonly<{ apiId: string; publications: ApiPortalPublication[]; onClose: () => void }>) {
+}: Readonly<{
+    apiId: string;
+    publications: ApiPortalPublication[];
+    publishApi: (request: PublishApiToPortal) => Promise<ApiPortalPublication>;
+    isPublishing: boolean;
+    onClose: () => void;
+}>) {
     const sectionId = useId();
     const locationsQuery = useApiPublishLocations(apiId);
-    const publish = usePublishApiToPortal(apiId);
     const [chosenSectionId, setChosenSectionId] = useState<string | undefined>(undefined);
-    const [isPublishing, setIsPublishing] = useState(false);
     const [refusal, setRefusal] = useState<string | null>(null);
 
     const locations = locationsQuery.data?.data ?? [];
@@ -95,14 +110,12 @@ function PublishToPortalForm({
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!canPublish) return;
-        setIsPublishing(true);
         try {
-            const published = await publish.mutateAsync({ sectionId: selectedSectionId });
+            const published = await publishApi({ sectionId: selectedSectionId });
             notify.success(`Published in '${published.sectionName}'`);
             onClose();
         } catch (error) {
             setRefusal(extractErrorMessage(error));
-            setIsPublishing(false);
         }
     }
 
