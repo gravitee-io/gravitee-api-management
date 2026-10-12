@@ -202,6 +202,15 @@ class TracingResourceTest extends AbstractResourceTest {
             assertThat(captor.getValue().perPage()).isEqualTo(50);
         }
 
+        @Test
+        void should_ignore_an_unknown_key() {
+            when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(), 0, 0, 0)));
+
+            Response response = postSearch(Map.of("apiId", API_ID, "unknownKey", "ignored"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
         private Response postSearch(Map<String, Object> body) {
             return rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
         }

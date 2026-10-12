@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Wire shape for a metric query on the facets and time-series endpoints.
  */
+@RejectUnknownProperties
 public record FacetMetricQueryDto(String name, List<String> measures, List<SortSpecDto> sorts, List<FilterConditionDto> filters) {
     public AnalyticsFacetMetricQuery toCore() {
         return new AnalyticsFacetMetricQuery(
