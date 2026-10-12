@@ -311,9 +311,11 @@ public class GetFilterValuesUseCase {
         var fromIndex = Math.min((input.page() - 1) * input.perPage(), matching.size());
         var toIndex = Math.min(fromIndex + input.perPage(), matching.size());
         var pagePlans = matching.subList(fromIndex, toIndex);
+        // Labelled like the plan buckets and chips: plan names are unique per API only.
+        var labels = filterValueNameResolver.planLabels(environmentId, pagePlans);
         var values = pagePlans
             .stream()
-            .map(plan -> new FilterValue(plan.getName(), plan.getId()))
+            .map(plan -> new FilterValue(labels.getOrDefault(plan.getId(), plan.getName()), plan.getId()))
             .toList();
 
         return new Output(new FilterValuesPage(values, null, totalFiltered));
