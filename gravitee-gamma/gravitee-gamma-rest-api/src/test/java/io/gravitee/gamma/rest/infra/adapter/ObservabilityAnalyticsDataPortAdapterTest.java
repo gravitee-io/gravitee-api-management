@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
+import io.gravitee.apim.core.analytics_engine.model.FacetBucketResponse;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
@@ -37,6 +38,10 @@ import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricFacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesBucketResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesMetricResponse;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -48,7 +53,9 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.definition.Analyti
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
+import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
+import io.gravitee.gamma.rest.core.observability.analytics.model.SeriesRanking;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.FacetsQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.MeasuresQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort.TimeSeriesQuery;
@@ -550,6 +557,207 @@ class ObservabilityAnalyticsDataPortAdapterTest {
         );
     }
 
+    @Nested
+    class SeriesLimit {
+
+        private static final List<AnalyticsFacetMetricQuery> REQUEST_COUNT = List.of(
+            new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())
+        );
+        private static final SeriesRanking TOP_B_AND_C = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("b"), List.of("c"))));
+
+        @Test
+        void should_fetch_only_the_ranked_values_on_top_of_the_scope() {
+            givenTheEngineAnswers(List.of());
+
+            adapter.computeTimeSeries(query(List.of("LLM_PROXY_MODEL"), List.of(), TOP_B_AND_C));
+
+            var request = engineRequest();
+            assertThat(request.filters()).containsExactly(
+                new Filter(FilterSpec.Name.API, io.gravitee.apim.core.observability.model.FilterOperator.IN, List.of("api-1")),
+                new Filter(FilterSpec.Name.LLM_PROXY_MODEL, io.gravitee.apim.core.observability.model.FilterOperator.IN, List.of("b", "c"))
+            );
+            assertThat(request.limit()).as("every ranked value fits in each time bucket").isEqualTo(2);
+        }
+
+        @Test
+        void should_restrict_every_facet_level_to_its_ranked_values() {
+            givenTheEngineAnswers(List.of());
+            var ranking = new SeriesRanking(
+                Map.of(
+                    "HTTP_REQUESTS",
+                    Set.of(List.of("api-1", "gpt"), List.of("api-1", "mistral"), List.of("api-2", "gpt"), List.of("api-2", "claude"))
+                )
+            );
+
+            adapter.computeTimeSeries(query(List.of("APPLICATION", "LLM_PROXY_MODEL"), List.of(), ranking));
+
+            var request = engineRequest();
+            assertThat(request.filters()).contains(
+                new Filter(
+                    FilterSpec.Name.APPLICATION,
+                    io.gravitee.apim.core.observability.model.FilterOperator.IN,
+                    List.of("api-1", "api-2")
+                ),
+                new Filter(
+                    FilterSpec.Name.LLM_PROXY_MODEL,
+                    io.gravitee.apim.core.observability.model.FilterOperator.IN,
+                    List.of("claude", "gpt", "mistral")
+                )
+            );
+            assertThat(request.limit()).as("the innermost level's ranked values, not the outer level's").isEqualTo(3);
+        }
+
+        @Test
+        void should_draw_no_series_for_an_empty_ranking() {
+            givenTheEngineAnswers(List.of(timeBucket(1L, facetBucket("a", 1))));
+
+            var response = adapter.computeTimeSeries(query(List.of("LLM_PROXY_MODEL"), List.of(), new SeriesRanking(Map.of())));
+
+            var request = engineRequest();
+            assertThat(request.filters()).extracting(Filter::name).containsExactly(FilterSpec.Name.API);
+            assertThat(request.limit()).as("no ranked value; the engine reads 0 as its default").isZero();
+            assertThat(response.at("/metrics/0/buckets/0/buckets")).isEmpty();
+        }
+
+        @Test
+        void should_only_restrict_the_facet_levels_the_ranking_reached() {
+            givenTheEngineAnswers(List.of());
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("api-1"), List.of("api-2"))));
+
+            adapter.computeTimeSeries(query(List.of("API", "PLAN"), List.of(), ranking));
+
+            var request = engineRequest();
+            assertThat(request.filters()).extracting(Filter::name).containsExactly(FilterSpec.Name.API, FilterSpec.Name.API);
+            assertThat(request.limit()).isEqualTo(2);
+        }
+
+        @Test
+        void should_not_filter_on_bucket_keys_that_are_not_filter_values() {
+            givenTheEngineAnswers(List.of());
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("200-299", "100-199"))));
+
+            adapter.computeTimeSeries(
+                query(List.of("HTTP_STATUS_CODE_GROUP", "HTTP_STATUS"), List.of(new AnalyticsNumberRange(100, 199)), ranking)
+            );
+
+            assertThat(engineRequest().filters())
+                .as("a status group key and a range key are labels, not values")
+                .extracting(Filter::name)
+                .containsExactly(FilterSpec.Name.API);
+        }
+
+        @Test
+        void should_keep_only_the_ranked_series_in_every_bucket() {
+            givenTheEngineAnswers(
+                List.of(
+                    timeBucket(1L, facetBucket("a", 9), facetBucket("b", 1), facetBucket("c", 2)),
+                    timeBucket(2L, facetBucket("d", 7), facetBucket("c", 3)),
+                    timeBucket(3L, facetBucket("a", 4))
+                )
+            );
+
+            var response = adapter.computeTimeSeries(query(List.of("LLM_PROXY_MODEL"), List.of(), TOP_B_AND_C));
+
+            assertThat(response.at("/metrics/0/buckets/0/buckets").findValuesAsText("key")).containsExactly("b", "c");
+            assertThat(response.at("/metrics/0/buckets/1/buckets").findValuesAsText("key")).containsExactly("c");
+            assertThat(response.at("/metrics/0/buckets/2/buckets")).isEmpty();
+            assertThat(response.at("/metrics/0/buckets/2/type").asText()).as("typed after the series are kept").isEqualTo("LEAF");
+        }
+
+        @Test
+        void should_keep_an_inner_series_only_under_the_outer_value_it_was_ranked_in() {
+            givenTheEngineAnswers(
+                List.of(
+                    timeBucket(
+                        1L,
+                        new FacetBucketResponse("app-1", null, List.of(facetBucket("gpt", 1), facetBucket("claude", 1)), null),
+                        new FacetBucketResponse("app-2", null, List.of(facetBucket("gpt", 1), facetBucket("claude", 1)), null),
+                        new FacetBucketResponse("app-3", null, List.of(facetBucket("gpt", 1)), null)
+                    )
+                )
+            );
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("app-1", "gpt"), List.of("app-2", "claude"))));
+
+            var response = adapter.computeTimeSeries(query(List.of("APPLICATION", "LLM_PROXY_MODEL"), List.of(), ranking));
+
+            var outer = response.at("/metrics/0/buckets/0/buckets");
+            assertThat(outer).as("app-3 has no ranked series").hasSize(2);
+            assertThat(outer.at("/0/key").asText()).isEqualTo("app-1");
+            assertThat(outer.at("/1/key").asText()).isEqualTo("app-2");
+            assertThat(outer.at("/0/buckets").findValuesAsText("key")).containsExactly("gpt");
+            assertThat(outer.at("/1/buckets").findValuesAsText("key")).containsExactly("claude");
+        }
+
+        @Test
+        void should_drop_an_outer_value_left_without_a_ranked_series_in_a_time_bucket() {
+            givenTheEngineAnswers(
+                List.of(
+                    timeBucket(
+                        1L,
+                        new FacetBucketResponse("app-1", null, List.of(facetBucket("claude", 1)), null),
+                        new FacetBucketResponse("app-2", null, List.of(facetBucket("claude", 1)), null)
+                    )
+                )
+            );
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("app-1", "gpt"), List.of("app-2", "claude"))));
+
+            var response = adapter.computeTimeSeries(query(List.of("APPLICATION", "LLM_PROXY_MODEL"), List.of(), ranking));
+
+            var outer = response.at("/metrics/0/buckets/0/buckets");
+            assertThat(outer).as("app-1 holds only an unranked model in this hour").hasSize(1);
+            assertThat(outer.at("/0/key").asText()).isEqualTo("app-2");
+        }
+
+        @Test
+        void should_not_report_a_ranking_condition_the_engine_ignored_unless_the_caller_sent_it() {
+            when(computeTimeSeriesUseCase.execute(any())).thenReturn(
+                new ComputeTimeSeriesUseCase.Output(
+                    new TimeSeriesResponse(
+                        List.of(
+                            new TimeSeriesMetricResponse(
+                                MetricSpec.Name.HTTP_REQUESTS,
+                                null,
+                                List.of(),
+                                List.of(FilterSpec.Name.EDGE_MODEL, FilterSpec.Name.NATIVE_CLIENT_ID, FilterSpec.Name.API)
+                            )
+                        )
+                    )
+                )
+            );
+            var ranking = new SeriesRanking(Map.of("HTTP_REQUESTS", Set.of(List.of("model-1", "api-1"))));
+
+            var response = adapter.computeTimeSeries(query(List.of("EDGE_MODEL", "API"), List.of(), ranking));
+
+            assertThat(response.at("/metrics/0/ignoredFilters").toString()).isEqualTo("[\"NATIVE_CLIENT_ID\",\"API\"]");
+        }
+
+        private void givenTheEngineAnswers(List<TimeSeriesBucketResponse> buckets) {
+            when(computeTimeSeriesUseCase.execute(any())).thenReturn(
+                new ComputeTimeSeriesUseCase.Output(
+                    new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, buckets, List.of())))
+                )
+            );
+        }
+
+        private TimeSeriesRequest engineRequest() {
+            var captor = ArgumentCaptor.forClass(ComputeTimeSeriesUseCase.Input.class);
+            verify(computeTimeSeriesUseCase).execute(captor.capture());
+            return captor.getValue().request();
+        }
+
+        private static TimeSeriesQuery query(List<String> facets, List<AnalyticsNumberRange> ranges, SeriesRanking ranking) {
+            return new TimeSeriesQuery(ORG, ENV, SCOPE, 60_000L, facets, REQUEST_COUNT, ranges, Map.of(), ranking);
+        }
+
+        private static TimeSeriesBucketResponse timeBucket(long timestamp, FacetBucketResponse... buckets) {
+            return new TimeSeriesBucketResponse(String.valueOf(timestamp), null, timestamp, List.of(buckets), null);
+        }
+
+        private static FacetBucketResponse facetBucket(String key, long count) {
+            return new FacetBucketResponse(key, null, null, List.of(new Measure(MetricSpec.Measure.COUNT, count)));
+        }
+    }
+
     // Runs whatever the caller can read: the use cases call it before answering an empty scope.
     @Nested
     class Validate {
@@ -601,10 +809,10 @@ class ObservabilityAnalyticsDataPortAdapterTest {
                 emptyScope,
                 60_000L,
                 List.of(),
-                null,
                 List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("MEDIAN"), List.of(), List.of())),
                 List.of(),
-                Map.of()
+                Map.of(),
+                null
             );
 
             assertThatThrownBy(() -> adapter.validate(query))

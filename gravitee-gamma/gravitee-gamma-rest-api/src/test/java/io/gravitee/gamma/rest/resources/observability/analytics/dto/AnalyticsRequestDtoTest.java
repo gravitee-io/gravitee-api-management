@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsRequestDtoTest {
@@ -44,20 +46,29 @@ class AnalyticsRequestDtoTest {
         assertThat(request.limit()).isEqualTo(5);
     }
 
-    @Test
-    void should_deserialize_time_series_request_with_by_clause() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = { "limit", "facetSize" })
+    void should_deserialize_time_series_request_with_by_clause_and_limit(String limitField) throws Exception {
         var json = """
             {
               "interval": 60000,
               "by": ["API"],
               "metrics": [{"name": "HTTP_REQUESTS", "measures": ["COUNT"]}],
-              "facetSize": 5
+              "%s": 5
             }
-            """;
+            """.formatted(limitField);
 
         var request = objectMapper.readValue(json, AnalyticsTimeSeriesRequestDto.class);
 
         assertThat(request.by()).containsExactly("API");
-        assertThat(request.facetSize()).isEqualTo(5);
+        assertThat(request.seriesLimit()).isEqualTo(5);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"limit\": 5, \"facetSize\": 9}", "{\"facetSize\": 9, \"limit\": 5}" })
+    void should_take_limit_over_facet_size_when_a_time_series_request_sends_both(String json) throws Exception {
+        var request = objectMapper.readValue(json, AnalyticsTimeSeriesRequestDto.class);
+
+        assertThat(request.seriesLimit()).isEqualTo(5);
     }
 }

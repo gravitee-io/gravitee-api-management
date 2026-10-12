@@ -20,12 +20,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
+import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSpec;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
@@ -44,6 +48,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -179,7 +184,121 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
         );
     }
 
+    @Nested
+    class Limit {
+
+        private static final List<AnalyticsFacetMetricQuery> SORTED_REQUEST_COUNT = List.of(
+            new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(new AnalyticsSortSpec("COUNT", "ASC")), List.of())
+        );
+
+        @BeforeEach
+        void readableApi() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+        }
+
+        @Test
+        void should_rank_the_values_over_the_whole_range_with_the_scope_of_the_time_series() throws Exception {
+            when(analyticsDataPort.computeFacets(any())).thenReturn(facets("a", 3, "b", 9, "c", 5));
+            when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(60_000L, SORTED_REQUEST_COUNT, List.of("LLM_PROXY_MODEL"), 2));
+
+            var facetsQuery = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.FacetsQuery.class);
+            verify(analyticsDataPort).computeFacets(facetsQuery.capture());
+            var timeSeriesQuery = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class);
+            verify(analyticsDataPort).computeTimeSeries(timeSeriesQuery.capture());
+
+            assertThat(facetsQuery.getValue().scope()).isEqualTo(timeSeriesQuery.getValue().scope());
+            assertThat(facetsQuery.getValue().facets()).containsExactly("LLM_PROXY_MODEL");
+            assertThat(facetsQuery.getValue().limit()).as("every candidate, not the top N of the engine's order").isEqualTo(1000);
+            assertThat(facetsQuery.getValue().metrics().getFirst().sorts()).as("ranked by Gamma, not by the engine").isEmpty();
+            assertThat(timeSeriesQuery.getValue().ranking().keysAt(0)).containsExactly("b", "c");
+        }
+
+        @Test
+        void should_refuse_a_limit_above_the_series_cap_before_any_data_access() {
+            reset(analyticsDataPort);
+
+            assertThatThrownBy(() -> useCase.execute(input(60_000L, METRICS, List.of("API"), 101)))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.invalid_limit");
+            verifyNoInteractions(analyticsDataPort);
+        }
+
+        @Test
+        void should_accept_a_limit_at_the_series_cap() throws Exception {
+            when(analyticsDataPort.computeFacets(any())).thenReturn(facets("a", 3));
+            when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(60_000L, METRICS, List.of("API"), 100));
+
+            verify(analyticsDataPort).computeTimeSeries(any());
+        }
+
+        @Test
+        void should_answer_the_empty_time_series_without_plotting_when_no_value_occurs() throws Exception {
+            var empty = JsonNodeFactory.instance.objectNode();
+            when(analyticsDataPort.computeFacets(any())).thenReturn(facets());
+            when(analyticsDataPort.emptyTimeSeriesResponse()).thenReturn(empty);
+
+            var output = useCase.execute(input(60_000L, METRICS, List.of("API"), 5));
+
+            assertThat(output.response()).isSameAs(empty);
+            verify(analyticsDataPort, never()).computeTimeSeries(any());
+        }
+
+        @ParameterizedTest
+        @NullSource
+        @ValueSource(ints = { 0, -1 })
+        void should_leave_the_engine_its_per_bucket_default_without_a_positive_limit(Integer limit) {
+            when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(60_000L, METRICS, List.of("API"), limit));
+
+            verify(analyticsDataPort, never()).computeFacets(any());
+            var timeSeriesQuery = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.TimeSeriesQuery.class);
+            verify(analyticsDataPort).computeTimeSeries(timeSeriesQuery.capture());
+            assertThat(timeSeriesQuery.getValue().ranking()).isNull();
+        }
+
+        @Test
+        void should_not_rank_a_time_series_without_facets() {
+            when(analyticsDataPort.computeTimeSeries(any())).thenReturn(JsonNodeFactory.instance.objectNode());
+
+            useCase.execute(input(60_000L, METRICS, List.of(), 5));
+
+            verify(analyticsDataPort, never()).computeFacets(any());
+        }
+
+        private static JsonNode facets(Object... keysAndCounts) throws Exception {
+            var buckets = new StringBuilder();
+            for (int i = 0; i < keysAndCounts.length; i += 2) {
+                buckets
+                    .append(i == 0 ? "" : ",")
+                    .append(
+                        "{\"key\": \"%s\", \"measures\": [{\"name\": \"COUNT\", \"value\": %s}]}".formatted(
+                            keysAndCounts[i],
+                            keysAndCounts[i + 1]
+                        )
+                    );
+            }
+            return new ObjectMapper().readTree("{\"metrics\": [{\"metric\": \"HTTP_REQUESTS\", \"buckets\": [" + buckets + "]}]}");
+        }
+    }
+
     private static ComputeObservabilityTimeSeriesUseCase.Input input(Long interval, List<AnalyticsFacetMetricQuery> metrics) {
+        return input(interval, metrics, List.of(), null);
+    }
+
+    private static ComputeObservabilityTimeSeriesUseCase.Input input(
+        Long interval,
+        List<AnalyticsFacetMetricQuery> metrics,
+        List<String> facets,
+        Integer limit
+    ) {
         return new ComputeObservabilityTimeSeriesUseCase.Input(
             ORG_ID,
             ENV_ID,
@@ -188,8 +307,8 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
             TO,
             interval,
             metrics,
-            List.of(),
-            null,
+            facets,
+            limit,
             List.of()
         );
     }
