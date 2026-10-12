@@ -43,7 +43,7 @@ todos:
     status: completed
   - id: STORY-12-BIS
     content: "Read and save a page's content under the API-scoped path, governed by API documentation permission. Without it, Gamma cannot create or edit what a page says."
-    status: pending
+    status: completed
   - id: STORY-13
     content: "Reject a request whose body targets a different API than the one in the URL. Security control."
     status: completed
@@ -772,6 +772,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** the single-item read has no identified caller yet, because the list (STORY-14) returns the same item. Keep it only if STORY-24 uses it.
 
 #### STORY-12 Bis — Read and save a page's content under the API-scoped path
+**Status:** Done under [PORTAL-245](https://gravitee.atlassian.net/browse/PORTAL-245), as [#20887](https://github.com/gravitee-io/gravitee-api-management/pull/20887).
 **Why:** a page's text is stored apart from the page, and reading or saving it goes through `/portal-page-contents/{id}`, which needs `ENVIRONMENT_DOCUMENTATION`. Without this story, a Gamma user with only API documentation permission can create, move and publish pages, but can never read or write what they say.
 **Acceptance criteria:**
 - A page's content can be read and saved under that page's API-scoped path, with API documentation READ and UPDATE respectively.
@@ -867,9 +868,9 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 |---|---|---|
 | 01 — Bug A | Done | Merged to `master` as `e20f15d5d1` ("preserve API-owned documentation structure on update"). Not part of this work; recorded here because PHASE 3's item endpoints rely on it. |
 | 08 — Import ownership | Partly done | The explicit-owner half came with [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698). Inheriting the owner from the parent when importing through the portal editor remains: STORY-03 does not cover the import path. |
-| 11 — Contract | Done | Not published up front as one change: each endpoint added its own operation in its pull request. |
+| 11 — Contract | Done | Not published up front as one change: each endpoint added its own operation in its pull request, and the page content operations came with STORY-12 Bis. |
 | 12 — API-scoped operations | Done | Create, read, update and delete, in [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695), [#20697](https://github.com/gravitee-io/gravitee-api-management/pull/20697), [#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700) and [#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701). Import was added under the same mount ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)). |
-| 12 Bis — Page content | Not started | Not part of PORTAL-231. Until it lands, a Gamma user with only API documentation permission can create a page but cannot read or save its text. |
+| 12 Bis — Page content | Done | Under [PORTAL-245](https://gravitee.atlassian.net/browse/PORTAL-245), as [#20887](https://github.com/gravitee-io/gravitee-api-management/pull/20887), separately from PORTAL-231. |
 | 13 — Body-target check | Done | The guard came with [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) and is applied by every operation that names an item or a parent: create, read, update, delete, import and refresh. |
 | 14 — List documentation | Done | Merged as [#20694](https://github.com/gravitee-io/gravitee-api-management/pull/20694). |
 | 15 — Publish locations | Done | Merged as [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696). |
@@ -964,7 +965,6 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 
 | Item | Where | What is needed |
 |---|---|---|
-| A page's content cannot be read or saved with API permission | STORY-12 Bis | Not started. |
 | A bare name in the git fetcher's `repository` is skipped by the address check | [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698) | For the git fetcher that value is a relative local path, not a repository name. Accepted for now; see the next row. |
 | The Management API guesses from field names which configuration values a fetcher connects to | follow-up ticket, proposed on [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698), not yet created | Extend the fetcher interface so each plugin validates and sanitises its own configuration. That would close the row above, let scp-style git addresses be judged by their host instead of always being refused, and remove the name matching from both the portal check and `PageServiceImpl.validateSafeSource`. It touches `gravitee-fetcher-api` and the five fetcher plugins. |
 | Inherited ownership on import | STORY-08 | The portal editor's import path, which STORY-03 does not cover. |
@@ -1539,7 +1539,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Per-item visibility and ordering apply to every portal listing the API | Medium | Explicit wording; decision 1 |
 | Moves that change owner corrupt sibling order | Medium | STORY-06; Gamma's own moves never change owner |
 | Permission annotations are OR-semantics, allowing escalation on requests with a body | Medium | STORY-13, kept as its own story |
-| Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | STORY-12 Bis — not started |
+| Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | Closed: STORY-12 Bis reads and saves it under the API path ([#20887](https://github.com/gravitee-io/gravitee-api-management/pull/20887)) |
 | Creating a page can point it at another page's existing content and show that content in the portal | High | Closed: the Management API ignores `portalPageContentId` on every create (merged with #20695); automation keeps its ids |
 | The list shows an item of the portal, or of another API, stored under a folder the API owns | Medium | Closed: the owned-items walk follows only children with the same owner (merged with #20694) |
 | The server fetches from any address a source names, now reachable with API-level permission | High | #20698 applies the import address rules on write and on every fetch. No effect while `imports.allow-from-private` is at its default of `true` |
