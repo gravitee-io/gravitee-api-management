@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: STORY-02
     content: "Publish-with-propagate must reach an API's documentation. Regression prevention — works today for editor-created pages, would stop working once documentation is API-owned."
-    status: pending
+    status: completed
   - id: STORY-03
     content: "Assign API ownership from the parent when creating an item under an API (the inherited rule), before validation runs."
     status: pending
@@ -545,6 +545,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** blocks STORY-03 onwards, and is worth shipping on its own. Not splittable — it is one comparison.
 
 #### STORY-02 — Publish-with-propagate must reach an API's documentation
+**Status:** Done under [PORTAL-229](https://gravitee.atlassian.net/browse/PORTAL-229), as [#20811](https://github.com/gravitee-io/gravitee-api-management/pull/20811).
 **Why:** regression prevention. "Publish everything underneath" works today because the editor's pages are stored under the API's listing row. Once documentation is owned by the API its stored parent is empty, and the walk — which goes by stored parent only — would stop finding anything.
 **Acceptance criteria:**
 - Given an API with documentation owned by the API, when its listing row is published with propagate-to-children, then that documentation becomes visible.
