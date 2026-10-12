@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { cn } from '@gravitee/graphene-core';
-import { UploadIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useRef, useState } from 'react';
 
 const MAX_SIZE_BYTES = 1024 * 1024;
@@ -28,25 +27,34 @@ function fileToBase64(file: File): Promise<string> {
     });
 }
 
-function AvatarPreview({ src }: { readonly src: string }) {
-    const [failed, setFailed] = useState(false);
-    if (failed) {
-        return <UploadIcon className="size-6 text-muted-foreground" />;
-    }
-    return <img src={src} alt="Avatar" className="size-full object-cover" onError={() => setFailed(true)} />;
+function initialsFromName(name: string): string {
+    return (
+        name
+            .split(/\s+/)
+            .map(part => part[0] ?? '')
+            .join('')
+            .toUpperCase()
+            .slice(0, 2) || '?'
+    );
 }
 
 export function AvatarPicker({
     preview,
+    fallbackName,
     onSelect,
     onUseDefault,
 }: Readonly<{
     preview?: string;
+    fallbackName: string;
     onSelect: (dataUrl: string) => void;
     onUseDefault: () => void;
 }>) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [fileError, setFileError] = useState<string | null>(null);
+    const [failedPreview, setFailedPreview] = useState<string | undefined>(undefined);
+    const imageFailed = preview !== undefined && failedPreview === preview;
+    const showingCustom = Boolean(preview) && !imageFailed;
+    const caption = showingCustom ? 'Change picture' : 'Upload picture';
 
     const handleFile = useCallback(
         async (file: File) => {
@@ -75,27 +83,42 @@ export function AvatarPicker({
 
     return (
         <div className="space-y-2 text-center">
-            <div
-                role="button"
-                tabIndex={0}
+            <button
+                type="button"
                 onClick={() => inputRef.current?.click()}
-                onKeyDown={event => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        inputRef.current?.click();
-                    }
-                }}
                 className={cn(
-                    'flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border transition-colors',
+                    'group relative flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-muted transition-colors',
                     'cursor-pointer hover:border-primary/50',
                 )}
-                aria-label="Upload avatar"
+                aria-label={caption}
             >
-                {preview ? <AvatarPreview key={preview} src={preview} /> : <UploadIcon className="size-6 text-muted-foreground" />}
-            </div>
+                {showingCustom ? (
+                    <img
+                        key={preview}
+                        src={preview}
+                        alt="Avatar"
+                        className="size-full object-cover transition-opacity group-hover:opacity-10 group-focus-visible:opacity-10"
+                        onError={() => setFailedPreview(preview)}
+                    />
+                ) : (
+                    <span className="relative z-0 flex size-full items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
+                        {initialsFromName(fallbackName)}
+                    </span>
+                )}
+                <span className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-background px-2 text-center text-xs leading-tight font-medium text-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                    {caption}
+                </span>
+            </button>
             {fileError ? <p className="text-xs text-destructive">{fileError}</p> : null}
-            {preview ? (
-                <button type="button" className="text-sm text-destructive hover:underline" onClick={onUseDefault}>
+            {showingCustom ? (
+                <button
+                    type="button"
+                    className="text-sm text-destructive hover:underline"
+                    onClick={event => {
+                        event.stopPropagation();
+                        onUseDefault();
+                    }}
+                >
                     Use default
                 </button>
             ) : null}
