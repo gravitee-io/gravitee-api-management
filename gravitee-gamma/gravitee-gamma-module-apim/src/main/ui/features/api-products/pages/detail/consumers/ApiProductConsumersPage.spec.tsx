@@ -47,6 +47,7 @@ jest.mock('../../../../apis/hooks/useSubscriptions', () => ({
     useApiPlans: jest.fn(),
     useSubscriptionCount: jest.fn(() => ({ data: 0, isLoading: false })),
     useApplicationSearch: jest.fn(() => ({ data: [], isLoading: false })),
+    DEFAULT_STATUSES: ['ACCEPTED', 'PAUSED', 'PENDING'],
     isSubscriptionFiltersDirty: jest.fn(() => false),
 }));
 

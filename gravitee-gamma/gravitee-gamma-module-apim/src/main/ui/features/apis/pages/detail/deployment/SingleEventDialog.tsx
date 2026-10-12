@@ -32,13 +32,13 @@ import type { ApiEvent } from '../../../types';
 
 type Props = Readonly<{
     event: ApiEvent;
-    canRollback?: boolean;
+    canRollback: boolean;
     onRollback: (eventId: string) => Promise<void>;
     onClose: () => void;
     isRollingBack: boolean;
 }>;
 
-export function SingleEventDialog({ event, canRollback = true, onRollback, onClose, isRollingBack }: Props) {
+export function SingleEventDialog({ event, canRollback, onRollback, onClose, isRollingBack }: Props) {
     const version = event.properties.DEPLOYMENT_NUMBER ?? '—';
     const definition = useMemo(() => extractDefinition(event), [event]);
     const [confirmingRollback, setConfirmingRollback] = useState(false);
@@ -79,11 +79,11 @@ export function SingleEventDialog({ event, canRollback = true, onRollback, onClo
                                 Close
                             </Button>
                         </DialogClose>
-                        {canRollback ? (
+                        {canRollback && (
                             <Button size="sm" disabled={isRollingBack} onClick={() => setConfirmingRollback(true)}>
                                 {isRollingBack ? 'Rolling back…' : `Rollback to v${version}`}
                             </Button>
-                        ) : null}
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

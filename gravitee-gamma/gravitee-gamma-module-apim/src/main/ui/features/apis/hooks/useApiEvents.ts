@@ -17,14 +17,25 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 import { getApiEvents } from '../services/apis';
+import type { ApiEvent } from '../types';
 import { apiEventsKeys } from '../utils/queryKeys';
 
-export function useApiEvents(apiId: string | undefined, page: number, perPage: number) {
+export function useApiEvents(apiId: string | undefined, page: number, perPage: number, enabled = true) {
     const env = useEnvironment();
     return useQuery({
         queryKey: apiEventsKeys.list(env?.id ?? '', apiId ?? '', page, perPage),
         queryFn: () => getApiEvents(env!.id, apiId!, { page, perPage }),
-        enabled: Boolean(env && apiId),
+        enabled: enabled && Boolean(env && apiId),
         staleTime: 30_000,
     });
+}
+
+/**
+ * The deployment in use is the newest event. Page 1 of the history already lists it first, so it is
+ * only fetched separately once the user leaves that page.
+ */
+export function useLiveDeploymentEvent(apiId: string | undefined, page: number, events: ApiEvent[]): ApiEvent | null {
+    const isFirstPage = page === 1;
+    const { data } = useApiEvents(apiId, 1, 1, !isFirstPage);
+    return (isFirstPage ? events[0] : data?.data[0]) ?? null;
 }
