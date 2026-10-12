@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.observability.logs.dto;
 
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import java.time.Instant;
 import java.util.List;
 
@@ -26,9 +27,11 @@ import java.util.List;
  * <p>Unlike the tracing endpoint, there is no mandatory {@code apiId}: the logs search is
  * environment-wide with server-side RBAC scoping.
  */
+@RejectUnknownProperties
 public record SearchLogsRequestDto(TimeRangeDto timeRange, List<FilterConditionDto> filters) {
     /**
      * ISO-8601 time window. Both bounds are required; the use case refuses a missing one.
      */
+    @RejectUnknownProperties
     public record TimeRangeDto(Instant from, Instant to) {}
 }

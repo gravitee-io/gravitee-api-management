@@ -43,6 +43,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +51,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -339,6 +342,38 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
                     assertThat(e.filterName()).isEqualTo("PLAN");
                     assertThat(e.ids()).containsExactly("plan-1", "plan-2");
                 });
+        }
+
+        @Test
+        void should_return_200_to_the_library_resolve_payload() {
+            when(resolveFilterLabelsUseCase.execute(any())).thenReturn(new ResolveObservabilityFilterLabelsUseCase.Output(List.of()));
+            var body = Map.of(
+                "entries",
+                List.of(
+                    Map.of("filterName", "API", "ids", List.of("api-1", "api-2")),
+                    Map.of("filterName", "APPLICATION", "ids", List.of("app-1"))
+                )
+            );
+
+            Response response = rootTarget("resolve").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "root, apiId", "entry, filtername" })
+        void should_return_400_naming_an_unknown_key(String location, String unknownKey) {
+            var entry = new HashMap<String, Object>(Map.of("filterName", "API", "ids", List.of("api-1")));
+            var body = new HashMap<String, Object>(Map.of("entries", List.of(entry)));
+            (location.equals("root") ? body : entry).put(unknownKey, "x");
+
+            Response response = rootTarget("resolve").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Property [" + unknownKey + "] is not recognized as a valid property"
+            );
+            Mockito.verifyNoInteractions(resolveFilterLabelsUseCase);
         }
 
         @Test

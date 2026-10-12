@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import io.gravitee.gamma.rest.resources.observability.dto.FilterValues;
 import java.util.Locale;
 
@@ -31,6 +32,7 @@ import java.util.Locale;
  * the core model carries. Only the shape is checked here; the save use cases check the filter against
  * the catalog ({@code ObservabilityFilterValidator#validateDashboardFilters}).
  */
+@RejectUnknownProperties
 public record SaveDashboardFilterDto(String name, String label, String operator, Object value, Boolean editable) {
     public DashboardFilter toCore() {
         if (name == null || name.isBlank()) {

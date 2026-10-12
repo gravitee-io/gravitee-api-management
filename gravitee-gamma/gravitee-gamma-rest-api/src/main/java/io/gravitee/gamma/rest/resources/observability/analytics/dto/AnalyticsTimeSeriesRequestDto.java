@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
+import io.gravitee.gamma.rest.resources.RejectUnknownProperties;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.SearchLogsRequestDto.TimeRangeDto;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.List;
  * <p>{@code facetSize} is the deprecated name of {@code limit}, with the same meaning; {@code limit} wins
  * when both are sent.
  */
+@RejectUnknownProperties
 public record AnalyticsTimeSeriesRequestDto(
     TimeRangeDto timeRange,
     List<FilterConditionDto> filters,

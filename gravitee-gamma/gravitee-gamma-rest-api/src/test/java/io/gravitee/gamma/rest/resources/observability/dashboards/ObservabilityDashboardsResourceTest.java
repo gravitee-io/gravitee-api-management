@@ -440,6 +440,55 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_naming_an_unknown_key_in_a_filter() {
+            Response response = rootTarget()
+                .request()
+                .post(
+                    Entity.json(
+                        """
+                        {
+                          "id": "dash-new",
+                          "title": "Performance overview",
+                          "filters": [{ "name": "API_TYPE", "operator": "IN", "values": ["MCP"] }]
+                        }
+                        """
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Property [values] is not recognized as a valid property"
+            );
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
+        }
+
+        @Test
+        void should_return_201_to_the_library_save_payload() {
+            Response response = rootTarget()
+                .request()
+                .post(
+                    Entity.json(
+                        """
+                        {
+                          "id": "dash-new",
+                          "title": "API health",
+                          "description": "Errors and latency per API",
+                          "filters": [
+                            { "name": "API", "label": "API", "operator": "IN", "value": ["api-1"], "editable": true },
+                            { "name": "HTTP_STATUS", "operator": "EQ", "value": ["500"], "editable": false }
+                          ],
+                          "timeRange": { "type": "absolute", "from": 1760184000000, "to": 1760270400000 },
+                          "widgets": [{ "id": "w1", "type": "chart" }],
+                          "module": "apim"
+                        }
+                        """
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        }
+
+        @Test
         void should_return_400_when_title_is_blank() {
             Response response = rootTarget()
                 .request()
@@ -565,6 +614,78 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             var persisted = dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
             assertThat(persisted.createdBy()).isEqualTo("user-1");
             assertThat(persisted.version()).isEqualTo(4);
+        }
+
+        @Test
+        void should_accept_the_dashboard_it_returned_echoed_back() {
+            rootTarget()
+                .request()
+                .post(
+                    Entity.json(
+                        """
+                        {
+                          "id": "dash-new",
+                          "module": "aim",
+                          "title": "Performance overview",
+                          "filters": [{ "name": "API_TYPE", "label": "API Type", "operator": "EQ", "value": ["MCP"], "editable": true }],
+                          "timeRange": { "type": "relative", "period": "24h" },
+                          "widgets": [{ "id": "w1", "type": "metric" }]
+                        }
+                        """
+                    )
+                );
+            JsonNode returned = rootTarget("dash-new").request().get().readEntity(JsonNode.class);
+
+            Response response = rootTarget("dash-new")
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"1\"")
+                .put(Entity.json(returned.toString()));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.readEntity(JsonNode.class).get("version").asInt()).isEqualTo(2);
+        }
+
+        @Test
+        void should_return_200_to_the_library_save_payload() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(
+                    Entity.json(
+                        """
+                        {
+                          "title": "API health",
+                          "filters": [{ "name": "API_TYPE", "label": "API Type", "operator": "EQ", "value": ["MCP"], "editable": false }],
+                          "timeRange": { "type": "relative", "period": "24h" },
+                          "widgets": [{ "id": "w1", "type": "chart" }]
+                        }
+                        """
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_return_400_naming_an_unknown_key_in_a_filter() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(
+                    Entity.json(
+                        "{ \"title\": \"Renamed\", \"filters\": [{ \"name\": \"API_TYPE\", \"operator\": \"EQ\", \"value\": \"MCP\", \"lable\": \"x\" }] }"
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).isEqualTo(
+                "Property [lable] is not recognized as a valid property"
+            );
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().version()).isEqualTo(3);
         }
 
         /** {@code module} is set once at creation; an update cannot move a dashboard to another module. */
