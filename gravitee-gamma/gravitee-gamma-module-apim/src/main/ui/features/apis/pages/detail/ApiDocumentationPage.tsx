@@ -39,7 +39,7 @@ import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import type { ApiPortalPublication, PortalNavigationFolder, PortalNavigationPage } from '../../types/apiDocumentation';
-import { type DocumentationRow, getPublishedSection } from '../../utils/documentationTree';
+import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
 
@@ -175,6 +175,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     open
                     apiId={apiId}
                     page={pageToEdit}
+                    syncState={syncStateOf(pageToEdit, getAncestors(items, pageToEdit))}
                     parent={parentOfPageToEdit}
                     onClose={() => setPageToEdit(null)}
                 />

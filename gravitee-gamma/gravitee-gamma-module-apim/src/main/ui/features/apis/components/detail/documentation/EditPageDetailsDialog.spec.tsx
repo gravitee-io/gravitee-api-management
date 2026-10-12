@@ -24,6 +24,7 @@ import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { notify } from '../../../../../shared/notify';
 import { listApiDocumentation, updateApiDocumentationItem } from '../../../services/apiDocumentation';
 import type { PortalNavigationFolder, PortalNavigationItemSource, PortalNavigationPage } from '../../../types/apiDocumentation';
+import type { SyncState } from '../../../utils/documentationTree';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -67,11 +68,15 @@ const PAGE: PortalNavigationPage = {
 
 const SOURCE: PortalNavigationItemSource = { type: 'github-fetcher', configuration: { repository: 'docs', filepath: 'oauth.md' } };
 
-function renderDialog({ page = PAGE, parent }: { page?: PortalNavigationPage; parent?: PortalNavigationFolder } = {}) {
+function renderDialog({
+    page = PAGE,
+    parent,
+    syncState = 'NOT_SYNCED',
+}: { page?: PortalNavigationPage; parent?: PortalNavigationFolder; syncState?: SyncState } = {}) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const onClose = jest.fn();
-    render(<EditPageDetailsDialog open apiId="api-1" page={page} parent={parent} onClose={onClose} />, { wrapper });
+    render(<EditPageDetailsDialog open apiId="api-1" page={page} parent={parent} syncState={syncState} onClose={onClose} />, { wrapper });
     return { onClose, user: userEvent.setup() };
 }
 
@@ -161,7 +166,7 @@ describe('EditPageDetailsDialog', () => {
         const SYNCED_PAGE = { ...PAGE, source: SOURCE };
 
         it('keeps its title, which the server refuses to change, saying why', () => {
-            renderDialog({ page: SYNCED_PAGE });
+            renderDialog({ page: SYNCED_PAGE, syncState: 'OWN_SOURCE' });
 
             expect(titleInput().disabled).toBe(true);
             expect(
@@ -171,7 +176,7 @@ describe('EditPageDetailsDialog', () => {
 
         it('changes its access, sending its title and source back unchanged', async () => {
             mockList.mockResolvedValue({ items: [GUIDES, SYNCED_PAGE], publications: [] });
-            const { user, onClose } = renderDialog({ page: SYNCED_PAGE });
+            const { user, onClose } = renderDialog({ page: SYNCED_PAGE, syncState: 'OWN_SOURCE' });
 
             await user.click(privateSwitch());
             await user.click(saveButton());

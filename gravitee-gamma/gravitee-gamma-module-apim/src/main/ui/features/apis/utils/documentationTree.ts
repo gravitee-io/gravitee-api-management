@@ -20,8 +20,7 @@ export interface DocumentationRow {
     depth: number;
     hasChildren: boolean;
     expanded: boolean;
-    /** The item has an external source, or sits below one: the server refuses to delete it. */
-    synced: boolean;
+    syncState: SyncState;
     descendantCount: number;
 }
 
@@ -57,17 +56,24 @@ export function buildDocumentationRows(items: ApiDocumentationItem[], expandedId
 
     // Walked with an explicit stack: recursion would exhaust the call stack on a deep enough hierarchy.
     const rows: DocumentationRow[] = [];
-    const toVisit = [...(childrenByParent.get(undefined) ?? [])].reverse().map(item => ({ item, depth: 0, underSource: false }));
+    const toVisit = [...(childrenByParent.get(undefined) ?? [])].reverse().map(item => ({ item, depth: 0, belowSource: false }));
     let next = toVisit.pop();
     while (next) {
-        const { item, depth, underSource } = next;
+        const { item, depth, belowSource } = next;
         const children = childrenByParent.get(item.id) ?? [];
-        const synced = underSource || hasSource(item);
+        const syncState = belowSource ? 'BELOW_SYNCED_FOLDER' : hasSource(item) ? 'OWN_SOURCE' : 'NOT_SYNCED';
         const expanded = expandedIds.has(item.id);
-        rows.push({ item, depth, hasChildren: children.length > 0, expanded, synced, descendantCount: descendantCounts.get(item.id) ?? 0 });
+        rows.push({
+            item,
+            depth,
+            hasChildren: children.length > 0,
+            expanded,
+            syncState,
+            descendantCount: descendantCounts.get(item.id) ?? 0,
+        });
         if (expanded) {
             for (const child of [...children].reverse()) {
-                toVisit.push({ item: child, depth: depth + 1, underSource: synced });
+                toVisit.push({ item: child, depth: depth + 1, belowSource: syncState !== 'NOT_SYNCED' });
             }
         }
         next = toVisit.pop();
@@ -113,6 +119,37 @@ export function getAncestors(items: ApiDocumentationItem[], item: ApiDocumentati
 
 export function hasSource(item: ApiDocumentationItem): boolean {
     return item.type !== 'LINK' && item.source !== undefined;
+}
+
+/** How an item is kept in step with an external source. A synced folder owns everything below it, sources included. */
+export type SyncState = 'NOT_SYNCED' | 'OWN_SOURCE' | 'BELOW_SYNCED_FOLDER';
+
+export function syncStateOf(item: ApiDocumentationItem, ancestors: ApiDocumentationItem[]): SyncState {
+    if (ancestors.some(hasSource)) return 'BELOW_SYNCED_FOLDER';
+    return hasSource(item) ? 'OWN_SOURCE' : 'NOT_SYNCED';
+}
+
+export interface AllowedChanges {
+    content: boolean;
+    title: boolean;
+    access: boolean;
+    delete: boolean;
+    addInside: boolean;
+}
+
+/**
+ * What the server lets change on an item in this state, before permissions — its SourcedItemReadOnlyRule: an item
+ * with its own source only changes its access, and nothing below a synced folder changes at all.
+ */
+export function allowedChanges(state: SyncState): AllowedChanges {
+    const notSynced = state === 'NOT_SYNCED';
+    return {
+        content: notSynced,
+        title: notSynced,
+        access: state !== 'BELOW_SYNCED_FOLDER',
+        delete: notSynced,
+        addInside: notSynced,
+    };
 }
 
 /** The section the API is visible under, if any: a hidden listing does not make the API published. */

@@ -40,7 +40,7 @@ import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
 import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
-import { buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
+import { allowedChanges, buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
 
@@ -89,18 +89,15 @@ export function DocumentationTree({
     const actionsFor = useCallback(
         (row: DocumentationRow): RowAction[] => {
             const { item } = row;
+            const allowed = allowedChanges(row.syncState);
             const actions: RowAction[] = [];
-            // The server keeps everything below a synced folder read only, but lets the access of a synced page change.
-            const belowSyncedFolder = row.synced && !hasSource(item);
-            if (canEdit && item.type === 'PAGE' && !belowSyncedFolder) {
+            if (canEdit && item.type === 'PAGE' && allowed.access) {
                 actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
             }
-            // The server refuses to add anything below a synced folder, or to delete what it syncs.
-            if (row.synced) return actions;
-            if (canAdd && item.type === 'FOLDER') {
+            if (canAdd && item.type === 'FOLDER' && allowed.addInside) {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
             }
-            if (canDelete) {
+            if (canDelete && allowed.delete) {
                 actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
             }
             return actions;
