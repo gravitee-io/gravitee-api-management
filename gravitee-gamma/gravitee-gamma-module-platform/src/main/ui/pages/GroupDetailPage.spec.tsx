@@ -43,6 +43,7 @@ import {
     useUpdateGroup,
 } from '../features/groups/hooks/useGroupMutations';
 import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
+import { useAllGroupNames } from '../features/groups/hooks/useGroups';
 import type { Group, GroupInvitation, GroupMember, GroupMembershipItem, GroupMembershipPayload } from '../features/groups/types/group';
 import type { RemovalOwnershipTransfer } from '../features/groups/utils/primaryOwnership';
 import { notify } from '../shared/notify';
@@ -53,6 +54,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 jest.mock('../features/groups/hooks/useGroupDetail');
 jest.mock('../features/groups/hooks/useCurrentUserGroupAdmin');
 jest.mock('../features/groups/hooks/useGroupRoles');
+jest.mock('../features/groups/hooks/useGroups');
 jest.mock('../features/groups/hooks/useGroupMutations', () => {
     const actual = jest.requireActual('../features/groups/hooks/useGroupMutations') as {
         GroupMemberRemovalError: typeof GroupMemberRemovalError;
@@ -239,6 +241,7 @@ const mockUseGroupApis = jest.mocked(useGroupApis);
 const mockUseGroupApplications = jest.mocked(useGroupApplications);
 const mockUseGroupApiProducts = jest.mocked(useGroupApiProducts);
 const mockUseGroupRoles = jest.mocked(useGroupRoles);
+const mockUseAllGroupNames = jest.mocked(useAllGroupNames);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
@@ -288,6 +291,12 @@ describe('GroupDetailPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
+        mockUseAllGroupNames.mockReturnValue({
+            names: [GROUP.name],
+            data: [GROUP],
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useAllGroupNames>);
         mockUseGroupDetail.mockReturnValue({ data: GROUP, isLoading: false, isError: false } as ReturnType<typeof useGroupDetail>);
         mockUseGroupMembers.mockReturnValue({
             data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: {} }],

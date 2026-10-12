@@ -16,8 +16,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useEnv } from './useEnv';
-import { expireApiKey, listApiKeys, renewApiKey, revokeApiKey } from '../services/subscriptions';
-import type { SubscriptionContext } from '../types/subscription';
+import { expireApiKey, listApiKeys, reactivateApiKey, renewApiKey, revokeApiKey } from '../services/subscriptions';
+import type { ApiKey, SubscriptionContext } from '../types/subscription';
 import { apiSubscriptionKeys } from '../utils/queryKeys';
 
 export function useApiKeyList(ctx: SubscriptionContext, subscriptionId: string, page: number, perPage = 5) {
@@ -34,8 +34,8 @@ export function useRenewApiKey(ctx: SubscriptionContext, subscriptionId: string)
     const envId = useEnv();
     const qc = useQueryClient();
 
-    return useMutation({
-        mutationFn: () => renewApiKey(envId, ctx, subscriptionId),
+    return useMutation<ApiKey, Error, string | undefined>({
+        mutationFn: customApiKey => renewApiKey(envId, ctx, subscriptionId, customApiKey),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'api-keys', envId, subscriptionId] });
         },
@@ -48,6 +48,18 @@ export function useRevokeApiKey(ctx: SubscriptionContext, subscriptionId: string
 
     return useMutation({
         mutationFn: (apiKeyId: string) => revokeApiKey(envId, ctx, subscriptionId, apiKeyId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'api-keys', envId, subscriptionId] });
+        },
+    });
+}
+
+export function useReactivateApiKey(ctx: SubscriptionContext, subscriptionId: string) {
+    const envId = useEnv();
+    const qc = useQueryClient();
+
+    return useMutation({
+        mutationFn: (apiKeyId: string) => reactivateApiKey(envId, ctx, subscriptionId, apiKeyId),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'api-keys', envId, subscriptionId] });
         },

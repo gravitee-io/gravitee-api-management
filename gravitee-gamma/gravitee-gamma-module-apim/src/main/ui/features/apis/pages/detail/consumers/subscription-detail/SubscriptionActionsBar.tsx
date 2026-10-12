@@ -53,6 +53,7 @@ import {
 } from '../../../../hooks/useSubscriptionActions';
 import { useApiPlans } from '../../../../hooks/useSubscriptions';
 import type { ApproveSubscriptionPayload, Plan, Subscription, SubscriptionContext, SubscriptionPlan } from '../../../../types/subscription';
+import { dateInputToOffsetDateTime, localDateInputToday, offsetDateTimeToDateInput } from '../../../../utils/dateInputToOffsetDateTime';
 
 type InlineAction = 'pause' | 'resume' | 'close' | 'resumeFailure' | null;
 
@@ -72,7 +73,6 @@ interface SubscriptionActionsBarProps {
     subscription: Subscription;
     canUpdate: boolean;
     canDelete: boolean;
-    /** Classic parity: federated APIs hide Transfer / Pause / Change end date. */
     isFederated?: boolean;
 }
 
@@ -178,16 +178,32 @@ export function SubscriptionActionsBar({
         });
     }, [selectedPlanId, transferMutation]);
 
+    const openEndDateDialog = useCallback(() => {
+        setEndDate(offsetDateTimeToDateInput(subscription.endingAt));
+        setEndDateOpen(true);
+    }, [subscription.endingAt]);
+
     const handleEndDate = useCallback(() => {
-        endDateMutation.mutate(endDate || null, {
-            onSuccess: () => {
-                notify.success('End date updated');
-                setEndDateOpen(false);
-                setEndDate('');
+        const endingAt = endDate.trim() ? dateInputToOffsetDateTime(endDate) : null;
+        endDateMutation.mutate(
+            {
+                endingAt,
+                subscription: {
+                    startingAt: subscription.startingAt,
+                    consumerConfiguration: subscription.consumerConfiguration,
+                    metadata: subscription.metadata,
+                },
             },
-            onError: error => notify.error(error, 'Failed to update end date.'),
-        });
-    }, [endDate, endDateMutation]);
+            {
+                onSuccess: () => {
+                    notify.success('End date updated');
+                    setEndDateOpen(false);
+                    setEndDate('');
+                },
+                onError: error => notify.error(error, 'Failed to update end date.'),
+            },
+        );
+    }, [endDate, endDateMutation, subscription.startingAt, subscription.consumerConfiguration, subscription.metadata]);
 
     if (isKubernetes) {
         return (
@@ -234,7 +250,7 @@ export function SubscriptionActionsBar({
                     </Button>
                 )}
                 {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && !isFederated && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => setEndDateOpen(true)}>
+                    <Button type="button" variant="outline" size="sm" onClick={openEndDateDialog}>
                         <CalendarIcon className="size-3.5" aria-hidden />
                         Change end date
                     </Button>
@@ -309,7 +325,11 @@ export function SubscriptionActionsBar({
             {/* Approve dialog */}
             <SubscriptionApproveDialog
                 open={approveOpen}
+                ctx={ctx}
+                applicationId={subscription.application.id}
                 isApiKeyPlan={isApiKeyPlan}
+                isSharedApiKeyMode={subscription.application.apiKeyMode === 'SHARED'}
+                isFederated={isFederated}
                 isPending={approveMutation.isPending}
                 onConfirm={handleApprove}
                 onClose={handleApproveClose}
@@ -413,13 +433,23 @@ export function SubscriptionActionsBar({
                     </DialogHeader>
                     <div className="space-y-2 py-2">
                         <Label htmlFor="end-date">End date (leave empty to remove)</Label>
-                        <Input id="end-date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                        <Input
+                            id="end-date"
+                            type="date"
+                            value={endDate}
+                            min={localDateInputToday()}
+                            onChange={e => setEndDate(e.target.value)}
+                        />
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setEndDateOpen(false)}>
                             Cancel
                         </Button>
-                        <Button type="button" onClick={handleEndDate} disabled={endDateMutation.isPending}>
+                        <Button
+                            type="button"
+                            onClick={handleEndDate}
+                            disabled={endDateMutation.isPending || endDate === offsetDateTimeToDateInput(subscription.endingAt)}
+                        >
                             {endDateMutation.isPending ? 'Saving…' : 'Save'}
                         </Button>
                     </DialogFooter>

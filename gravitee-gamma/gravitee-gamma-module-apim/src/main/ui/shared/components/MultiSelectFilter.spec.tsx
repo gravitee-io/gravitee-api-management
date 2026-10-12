@@ -41,4 +41,45 @@ describe('MultiSelectFilter', () => {
         expect(optionsList?.className).toContain('overflow-y-auto');
         expect(optionsList?.className).not.toContain('max-h-[200px]');
     });
+
+    it('stays open so multiple values can be toggled without reopening', async () => {
+        const user = userEvent.setup();
+        const onSelectedValuesChange = jest.fn();
+        const { rerender } = render(
+            <MultiSelectFilter
+                placeholder="Select"
+                ariaLabel="Status"
+                options={[
+                    { value: 'a', label: 'Accepted' },
+                    { value: 'b', label: 'Pending' },
+                    { value: 'c', label: 'Closed' },
+                ]}
+                selectedValues={[]}
+                onSelectedValuesChange={onSelectedValuesChange}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Status' }));
+        await user.click(screen.getByText('Accepted'));
+        expect(onSelectedValuesChange).toHaveBeenCalledWith(['a']);
+
+        rerender(
+            <MultiSelectFilter
+                placeholder="Select"
+                ariaLabel="Status"
+                options={[
+                    { value: 'a', label: 'Accepted' },
+                    { value: 'b', label: 'Pending' },
+                    { value: 'c', label: 'Closed' },
+                ]}
+                selectedValues={['a']}
+                onSelectedValuesChange={onSelectedValuesChange}
+            />,
+        );
+
+        expect(screen.getByText('Pending')).toBeInTheDocument();
+        await user.click(screen.getByText('Pending'));
+        expect(onSelectedValuesChange).toHaveBeenLastCalledWith(['a', 'b']);
+        expect(screen.getByText('Closed')).toBeInTheDocument();
+    });
 });

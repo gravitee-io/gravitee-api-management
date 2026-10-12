@@ -17,11 +17,19 @@ import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
-import type { ApproveSubscriptionPayload } from '../../../../types/subscription';
+import { useCustomApiKeyCheck } from '../../../../hooks/useCustomApiKeyCheck';
+import { useCustomApiKeyEnabled } from '../../../../hooks/usePlanSecuritySettings';
+import type { ApproveSubscriptionPayload, SubscriptionContext } from '../../../../types/subscription';
+import { dateInputToOffsetDateTime } from '../../../../utils/dateInputToOffsetDateTime';
+import { CustomApiKeyField } from '../CustomApiKeyField';
 
 interface SubscriptionApproveDialogProps {
     open: boolean;
+    ctx: SubscriptionContext;
+    applicationId: string;
     isApiKeyPlan: boolean;
+    isSharedApiKeyMode?: boolean;
+    isFederated?: boolean;
     isPending: boolean;
     onConfirm: (payload: ApproveSubscriptionPayload) => void;
     onClose: () => void;
@@ -36,8 +44,22 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { startingAt: '', endingAt: '', customApiKey: '', reason: '' };
 
-export function SubscriptionApproveDialog({ open, isApiKeyPlan, isPending, onConfirm, onClose }: Readonly<SubscriptionApproveDialogProps>) {
+export function SubscriptionApproveDialog({
+    open,
+    ctx,
+    applicationId,
+    isApiKeyPlan,
+    isSharedApiKeyMode = false,
+    isFederated = false,
+    isPending,
+    onConfirm,
+    onClose,
+}: Readonly<SubscriptionApproveDialogProps>) {
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
+    const customApiKeyEnabled = useCustomApiKeyEnabled();
+    const showDates = !isFederated;
+    const showCustomApiKey = !isFederated && isApiKeyPlan && customApiKeyEnabled && !isSharedApiKeyMode;
+    const customKeyCheck = useCustomApiKeyCheck(ctx, applicationId, showCustomApiKey ? form.customApiKey : '');
 
     const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
         setForm(prev => ({ ...prev, [key]: value }));
@@ -49,13 +71,14 @@ export function SubscriptionApproveDialog({ open, isApiKeyPlan, isPending, onCon
     }, [onClose]);
 
     const handleConfirm = useCallback(() => {
+        if (customKeyCheck.blocked) return;
         const payload: ApproveSubscriptionPayload = {};
         if (form.reason.trim()) payload.reason = form.reason.trim();
-        if (form.startingAt) payload.startingAt = new Date(form.startingAt).toISOString();
-        if (form.endingAt) payload.endingAt = new Date(form.endingAt).toISOString();
-        if (isApiKeyPlan && form.customApiKey.trim()) payload.customApiKey = form.customApiKey.trim();
+        if (showDates && form.startingAt) payload.startingAt = dateInputToOffsetDateTime(form.startingAt);
+        if (showDates && form.endingAt) payload.endingAt = dateInputToOffsetDateTime(form.endingAt);
+        if (showCustomApiKey && form.customApiKey !== '') payload.customApiKey = form.customApiKey;
         onConfirm(payload);
-    }, [form, isApiKeyPlan, onConfirm]);
+    }, [customKeyCheck.blocked, form, showDates, showCustomApiKey, onConfirm]);
 
     return (
         <Dialog open={open} onOpenChange={open ? handleClose : undefined}>
@@ -66,40 +89,41 @@ export function SubscriptionApproveDialog({ open, isApiKeyPlan, isPending, onCon
                 </DialogHeader>
 
                 <div className="space-y-4 py-2">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <Label htmlFor="approve-start">Starting date</Label>
-                            <Input
-                                id="approve-start"
-                                type="date"
-                                value={form.startingAt}
-                                onChange={e => set('startingAt', e.target.value)}
-                            />
+                    {showDates && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <Label htmlFor="approve-start">Starting date</Label>
+                                <Input
+                                    id="approve-start"
+                                    type="date"
+                                    value={form.startingAt}
+                                    onChange={e => set('startingAt', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label htmlFor="approve-end">Ending date</Label>
+                                <Input
+                                    id="approve-end"
+                                    type="date"
+                                    value={form.endingAt}
+                                    min={form.startingAt || undefined}
+                                    onChange={e => set('endingAt', e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-1.5">
-                            <Label htmlFor="approve-end">Ending date</Label>
-                            <Input
-                                id="approve-end"
-                                type="date"
-                                value={form.endingAt}
-                                min={form.startingAt || undefined}
-                                onChange={e => set('endingAt', e.target.value)}
-                            />
-                        </div>
-                    </div>
+                    )}
 
-                    {isApiKeyPlan && (
-                        <div className="space-y-1.5">
-                            <Label htmlFor="approve-key">Custom API key</Label>
-                            <Input
-                                id="approve-key"
-                                value={form.customApiKey}
-                                onChange={e => set('customApiKey', e.target.value)}
-                                placeholder="Leave blank to auto-generate"
-                                autoComplete="off"
-                            />
-                            <p className="text-xs text-muted-foreground">Must be 8–64 alphanumeric characters if provided.</p>
-                        </div>
+                    {showCustomApiKey && (
+                        <CustomApiKeyField
+                            id="approve-key"
+                            label="Custom API key"
+                            value={form.customApiKey}
+                            onChange={value => set('customApiKey', value)}
+                            error={customKeyCheck.error}
+                            checking={customKeyCheck.checking}
+                            disabled={isPending}
+                            placeholder="Leave blank to auto-generate"
+                        />
                     )}
 
                     <div className="space-y-1.5">
@@ -118,7 +142,7 @@ export function SubscriptionApproveDialog({ open, isApiKeyPlan, isPending, onCon
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handleConfirm} disabled={isPending}>
+                    <Button type="button" onClick={handleConfirm} disabled={isPending || customKeyCheck.blocked}>
                         <CircleCheckIcon className="size-4" aria-hidden />
                         {isPending ? 'Approving…' : 'Approve'}
                     </Button>
